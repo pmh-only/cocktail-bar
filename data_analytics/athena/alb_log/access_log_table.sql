@@ -1,4 +1,4 @@
-CREATE EXTERNAL TABLE IF NOT EXISTS alb_access_logs (
+CREATE EXTERNAL TABLE alb_access_logs (
             type string,
             time string,
             elb string,
@@ -44,7 +44,7 @@ CREATE EXTERNAL TABLE IF NOT EXISTS alb_access_logs (
             'input.regex' = 
         '([^ ]*) ([^ ]*) ([^ ]*) ([^ ]*):([0-9]*) ([^ ]*)[:-]([0-9]*) ([-.0-9]*) ([-.0-9]*) ([-.0-9]*) (|[-0-9]*) (-|[-0-9]*) ([-0-9]*) ([-0-9]*) \"([^ ]*) (.*) (- |[^ ]*)\" \"([^\"]*)\" ([A-Z0-9-_]+) ([A-Za-z0-9.-]*) ([^ ]*) \"([^\"]*)\" \"([^\"]*)\" \"([^\"]*)\" ([-.0-9]*) ([^ ]*) \"([^\"]*)\" \"([^\"]*)\" \"([^ ]*)\" \"([^\\s]+?)\" \"([^\\s]+)\" \"([^ ]*)\" \"([^ ]*)\" ?([^ ]*)?'
             )
-            LOCATION 's3://amzn-s3-demo-bucket/AWSLogs/<ACCOUNT-NUMBER>/elasticloadbalancing/<REGION>/'
+            LOCATION 's3://<BUCKET-NAME>/access_log/AWSLogs/<ACCOUNT-NUMBER>/elasticloadbalancing/<REGION>/'
             TBLPROPERTIES
             (
              "projection.enabled" = "true",
@@ -53,5 +53,5 @@ CREATE EXTERNAL TABLE IF NOT EXISTS alb_access_logs (
              "projection.day.format" = "yyyy/MM/dd",
              "projection.day.interval" = "1",
              "projection.day.interval.unit" = "DAYS",
-             "storage.location.template" = "s3://amzn-s3-demo-bucket/AWSLogs/<ACCOUNT-NUMBER>/elasticloadbalancing/<REGION>/${day}"
+             "storage.location.template" = "s3://<BUCKET-NAME>/access_log/AWSLogs/<ACCOUNT-NUMBER>/elasticloadbalancing/<REGION>/${day}"
             )
