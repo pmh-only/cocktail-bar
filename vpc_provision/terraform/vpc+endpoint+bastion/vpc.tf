@@ -22,6 +22,10 @@ module "vpc" {
   private_subnet_names = ["${var.project_name}-subnet-private-a", "${var.project_name}-subnet-private-b", "${var.project_name}-subnet-private-c"]
   intra_subnet_names = ["${var.project_name}-subnet-protected-a", "${var.project_name}-subnet-protected-b", "${var.project_name}-subnet-protected-c"]
 
+  enable_flow_log = true
+  create_flow_log_cloudwatch_iam_role = true
+  create_flow_log_cloudwatch_log_group = true
+
   enable_dns_support = true
   enable_dns_hostnames = true
   enable_nat_gateway = true  

@@ -1,0 +1,2 @@
+time,client_ip,client_port,listener_port,tls_protocol,tls_cipher,tls_handshake_latency,leaf_client_cert_subject,leaf_client_cert_validity,leaf_client_cert_serial_number,tls_verify_status,conn_trace_id
+STRING,STRING,INT,INT,STRING,STRING,DOUBLE,STRING,STRING,STRING,STRING,STRING
