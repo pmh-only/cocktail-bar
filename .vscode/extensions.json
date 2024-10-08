@@ -1,0 +1,12 @@
+{
+  "recommendations": [
+    "akamud.vscode-theme-onelight",
+    "usernamehw.errorlens",
+    "remcohaszing.schemastore",
+    "vscodevim.vim",
+    "ms-toolsai.jupyter",
+    "ms-kubernetes-tools.vscode-kubernetes-tools",
+    "lunuan.kubernetes-templates",
+    "ms-azuretools.vscode-docker"
+  ]
+}

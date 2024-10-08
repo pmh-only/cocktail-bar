@@ -1,0 +1,1 @@
+output/year=!{partitionKeyFromLambda:year}/month=!{partitionKeyFromLambda:month}/date=!{partitionKeyFromLambda:date}/hour=!{partitionKeyFromLambda:hour}/minute=!{partitionKeyFromLambda:minute}/
