@@ -225,5 +225,18 @@
   },
   "standard.autoFixOnSave": true,
   "http.proxySupport": "fallback",
-  "terminal.integrated.fontSize": 25
+  "terminal.integrated.fontSize": 25,
+  
+  // ---
+
+  "yaml.schemas": {
+    "kubernetes": [
+      "*.yml",
+      "*.yaml"
+    ],
+    "./kubernetes/eksctl.json": [
+      "cluster.yml",
+      "cluster.yaml"
+    ]
+  }
 }

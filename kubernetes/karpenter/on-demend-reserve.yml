@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: on-demend-reserve
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: on-demend-reserve
+  template:
+    metadata:
+      labels:
+        app: on-demend-reserve
+    spec:
+      nodeSelector:
+        dedicated: app
+        on-demand: 'yes'
+      tolerations:
+        - key: dedicated
+          value: app
+          effect: NoSchedule
+      containers:
+      - name: overprovision
+        image: alpine
+        command:
+          - sh
+          - -c
+          - 'while true; do sleep 3600; done'
+        resources:
+          limits:
+            memory: "10Mi"
+            cpu: "10m"
