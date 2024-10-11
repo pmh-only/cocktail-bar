@@ -28,6 +28,7 @@ module "eks_blueprints_addons" {
   enable_cluster_autoscaler = true
   enable_bottlerocket_update_operator = true
   enable_aws_load_balancer_controller = true
+  enable_external_secrets = true
   
   aws_load_balancer_controller = {
     set = [
