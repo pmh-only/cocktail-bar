@@ -1,0 +1,24 @@
+https://aws.amazon.com/blogs/big-data/federate-amazon-quicksight-access-with-open-source-identity-provider-keycloak/
+
+* Full Scope Disable
+* arn:aws:iam::ACCOUNT_ID:role/ROLE_NAME,arn:aws:iam::ACCOUNT_ID:saml-provider/PROVIDER_NAME
+
+Name: Session Role
+Mapper type: Role list
+Friendly Name: Session Role
+Role attribute name: https://aws.amazon.com/SAML/Attributes/Role
+SAML Attribute NameFormat: Basic
+
+Name: Session Duration
+Mapper Type: Hardcoded attribute
+Friendly Name: Session Duration
+SAML Attribute Name: https://aws.amazon.com/SAML/Attributes/SessionDuration
+SAML Attribute NameFormat: Basic
+Attribute Value: 28800
+
+Name: Session Name
+Mapper Type: User Property
+Property: username
+Friendly Name: Session Name
+SAML Attribute Name: https://aws.amazon.com/SAML/Attributes/RoleSessionName
+SAML Attribute NameFormat: Basic
