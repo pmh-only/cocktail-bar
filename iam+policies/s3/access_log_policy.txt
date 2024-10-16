@@ -1,0 +1,63 @@
+https://docs.aws.amazon.com/elasticloadbalancing/latest/application/enable-access-logging.html#attach-bucket-policy
+
+Asia Pacific (Hyderabad)
+Asia Pacific (Malaysia)
+Asia Pacific (Melbourne)
+Canada West (Calgary)
+Europe (Spain)
+Europe (Zurich)
+Israel (Tel Aviv)
+Middle East (UAE)
+
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "logdelivery.elasticloadbalancing.amazonaws.com"
+      },
+      "Action": "s3:PutObject",
+      "Resource": "s3-bucket-arn"
+    }
+  ]
+}    
+
+---
+
+US East (N. Virginia) – 127311923021
+US East (Ohio) – 033677994240
+US West (N. California) – 027434742980
+US West (Oregon) – 797873946194
+Africa (Cape Town) – 098369216593
+Asia Pacific (Hong Kong) – 754344448648
+Asia Pacific (Jakarta) – 589379963580
+Asia Pacific (Mumbai) – 718504428378
+Asia Pacific (Osaka) – 383597477331
+Asia Pacific (Seoul) – 600734575887
+Asia Pacific (Singapore) – 114774131450
+Asia Pacific (Sydney) – 783225319266
+Asia Pacific (Tokyo) – 582318560864
+Canada (Central) – 985666609251
+Europe (Frankfurt) – 054676820928
+Europe (Ireland) – 156460612806
+Europe (London) – 652711504416
+Europe (Milan) – 635631232127
+Europe (Paris) – 00999645766
+Europe (Stockholm) – 897822967062
+Middle East (Bahrain) – 076674570225
+South America (São Paulo) – 507241528517
+
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::elb-account-id:root"
+      },
+      "Action": "s3:PutObject",
+      "Resource": "s3-bucket-arn"
+    }
+  ]
+}
