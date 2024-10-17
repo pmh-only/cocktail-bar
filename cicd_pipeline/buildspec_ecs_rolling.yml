@@ -1,0 +1,31 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR...
+      - aws --version
+      - ACCOUNT_ID=$(aws sts get-caller-identity | jq ".Account" -r)
+      - REPOSITORY_URI=$ACCOUNT_ID.dkr.ecr.ap-northeast-2.amazonaws.com/wsi-product
+      - IMAGE_TAG=$(TZ=Asia/Seoul date +"%Y-%m-%d.%H.%M.%S")
+      - aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin "$ACCOUNT_ID.dkr.ecr.ap-northeast-2.amazonaws.com"
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Building the Docker image...
+      - docker build -t $REPOSITORY_URI:latest .
+      - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Pushing the Docker images...
+      - docker push $REPOSITORY_URI:latest
+      - docker push $REPOSITORY_URI:$IMAGE_TAG
+      - echo Writing image definitions file...
+      - "printf '[{\"name\": \"app\", \"imageUri\":\"%s\"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json"
+
+artifacts:
+  files:
+    - imagedefinitions.json
+    - taskdef.json
+    - appspec.yaml
