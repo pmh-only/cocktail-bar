@@ -225,7 +225,7 @@
   },
   "standard.autoFixOnSave": true,
   "http.proxySupport": "fallback",
-  "terminal.integrated.fontSize": 25,
+  "terminal.integrated.fontSize": 22,
   
   // ---
 

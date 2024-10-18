@@ -1,19 +1,19 @@
 {
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Sid": "1",
-      "Effect": "Allow",
-      "Principal": {
-        "AWS": "arn:aws:iam::SourceBucket-account-ID:role/service-role/source-account-IAM-role"
-      },
-      "Action": [
-        "s3:ObjectOwnerOverrideToBucketOwner",
-        "s3:ReplicateObject",
-        "s3:ReplicateTags",
-        "s3:ReplicateDelete"
-      ],
-      "Resource": "arn:aws:s3:::DestinationBucket/*"
-    }
-  ]
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Sid": "1",
+			"Effect": "Allow",
+			"Principal": {
+				"AWS": "arn:aws:iam::SourceBucket-account-ID:role/service-role/source-account-IAM-role"
+			},
+			"Action": [
+				"s3:ObjectOwnerOverrideToBucketOwner",
+				"s3:ReplicateObject",
+				"s3:ReplicateTags",
+				"s3:ReplicateDelete"
+			],
+			"Resource": "arn:aws:s3:::DestinationBucket/*"
+		}
+	]
 }
