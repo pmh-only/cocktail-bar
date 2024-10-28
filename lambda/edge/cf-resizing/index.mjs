@@ -15,6 +15,20 @@ export const handler = async (event) => {
   })
 
   const object = await client.send(command)
+    .catch(() => undefined)
+
+  if (object === undefined) {
+    return {
+      body: 'no object!!!',
+      headers: {
+        'Content-Type': [{
+          value: 'text/plain'
+        }]
+      },
+      status: '200'
+    }
+  }
+
   const objectBody = await object.Body.transformToByteArray()
   
   const result = await sharp(objectBody)

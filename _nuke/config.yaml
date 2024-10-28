@@ -21,6 +21,8 @@ accounts:
       Route53ResourceRecordSet:
         - "samsungskills2.pmh.codes."
         - "_a6d0d215e3fb85c4d5d2372846f01f34.samsungskills2.pmh.codes."
+      Route53HostedZone:
+        - "/hostedzone/Z093302115ZHXKOFEFJ2Q (samsungskills2.pmh.codes.)"
       IAMLoginProfile:
         - "admin"
       IAMUserMFADevice:
@@ -44,6 +46,31 @@ accounts:
         - "SamsungCloudOpsPlatform_Linked_Role_20230918"
         - "scmp_security_auditor"
         - "stacksets-exec-d1373500c74b3a738a04f178177902a4"
+        - "AWSServiceRoleForClientVPN"
+        - "AWSServiceRoleForClientVPNConnections"
+        - "AWSServiceRoleForCloudFormationStackSetsOrgMember"
+        - "AWSServiceRoleForCloudFrontLogger"
+        - "AWSServiceRoleForCloudTrail"
+        - "AWSServiceRoleForECRPullThroughCache"
+        - "AWSServiceRoleForECS"
+        - "AWSServiceRoleForElastiCache"
+        - "AWSServiceRoleForElasticLoadBalancing"
+        - "AWSServiceRoleForGlobalAccelerator"
+        - "AWSServiceRoleForLambdaReplicator"
+        - "AWSServiceRoleForOrganizations"
+        - "AWSServiceRoleForRDS"
+        - "AWSServiceRoleForRedshift"
+        - "AWSServiceRoleForSSO"
+        - "AWSServiceRoleForSupport"
+        - "AWSServiceRoleForTrustedAdvisor"
+        - "AWSServiceRoleForVpcLattice"
+        - "AWSServiceRoleForDevOpsGuru"
+        - "AWSServiceRoleForAmazonOpenSearchService"
+        - "AWSServiceRoleForAPIGateway"
+        - "AWSServiceRoleForAWSCloud9"
+        - "AWSServiceRoleForKafka"
+        - "AWSServiceRoleForKafkaConnect"
+        - "AWSServiceRoleForLakeFormationDataAccess"
       IAMRolePolicyAttachment:
         - "RBAC_SCOP_DYNMRD -> SCOP_DYNAMO_READER"
         - "RBAC_SCOP_DYNMWT -> SCOP_DYNAMO_WRITER"
@@ -67,7 +94,7 @@ accounts:
         - "scmp_security_auditor -> AWSSupportAccess"
         - "stacksets-exec-d1373500c74b3a738a04f178177902a4 -> AdministratorAccess"
       IAMRolePolicy:
-        - "SamsungCloudOpsPlatform_Linked_Role -> COP-ASSET-POLIC"
+        - "SamsungCloudOpsPlatform_Linked_Role -> COP-ASSET-POLICY"
       CloudTrailTrail:
         - "mytrail"
       CloudFormationStack:
