@@ -14,4 +14,4 @@ jobs:
           chmod +x /tmp/mc
           /tmp/mc alias set minio http://minio-service.minio.svc.cluster.local:9000 ${{ secrets.MINIO_ACCESS_KEY }} ${{ secrets.MINIO_SECRET_KEY }}                    
       - run: tar cvf pack.tar ./pack/*
-      - run: /tmp/mc cp $PWD/pack.tar minio/cocktail/pack.tar --overwrite
+      - run: /tmp/mc cp $PWD/pack.tar minio/cocktail/pack.tar
