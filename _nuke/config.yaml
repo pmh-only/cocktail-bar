@@ -16,6 +16,8 @@ accounts:
         - "admin -> AdministratorAccess"
       IAMUserAccessKey:
         - "admin -> AKIAZOFRFKUQAWYBXEFV"
+      IAMVirtualMFADevice:
+        - "arn:aws:iam::648911607072:mfa/admin"
       IAMSAMLProvider:
         - "arn:aws:iam::648911607072:saml-provider/AWSSSO_93b584ed1d22a1c5_DO_NOT_DELETE"
       Route53ResourceRecordSet:
@@ -72,6 +74,9 @@ accounts:
         - "AWSServiceRoleForKafka"
         - "AWSServiceRoleForKafkaConnect"
         - "AWSServiceRoleForLakeFormationDataAccess"
+        - "AWSServiceRoleForAmazonElasticFileSystem"
+        - "AWSServiceRoleForAmazonEMRServerless"
+        - "AWSServiceRoleForAmazonSageMakerNotebooks"
       IAMRolePolicyAttachment:
         - "RBAC_SCOP_DYNMRD -> SCOP_DYNAMO_READER"
         - "RBAC_SCOP_DYNMWT -> SCOP_DYNAMO_WRITER"
@@ -155,3 +160,4 @@ resource-types:
     - RedshiftServerlessSnapshot # Deprecated service
     - RedshiftServerlessNamespace # Deprecated service
     - RedshiftServerlessWorkgroup # Deprecated service
+    - OSPackage
