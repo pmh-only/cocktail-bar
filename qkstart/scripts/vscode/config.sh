@@ -6,6 +6,8 @@ code --install-extension pkief.material-icon-theme
 code --install-extension usernamehw.errorlens
 code --install-extension remcohaszing.schemastore
 code --install-extension akamud.vscode-theme-onelight
+code --install-extension ms-toolsai.jupyter
+code --install-extension ms-azuretools.vscode-docker
 
 echo "export EDITOR='code -w'" >> ~/.bashrc
 echo "export EDITOR='code -w'" >> ~/.zshrc
