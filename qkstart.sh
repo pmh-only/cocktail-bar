@@ -12,8 +12,8 @@ ARGS="$@"
 SOURCE=$(readlink -f "$0")
 SOURCE_ROOT=$(dirname "$SOURCE")
 
-SCRIPT_PATH="$SOURCE_ROOT/qkstart/scripts"
-ASSETS_PATH="$SOURCE_ROOT/qkstart/assets"
+SCRIPT_PATH="$SOURCE_ROOT/_qkstart/scripts"
+ASSETS_PATH="$SOURCE_ROOT/_qkstart/assets"
 
 # determine given path is directory
 # $1 - absolute path for checking

@@ -10,7 +10,7 @@ is_directory() {
   fi
 }
 
-SCRIPT_PATH="$SOURCE_ROOT/qkstart/scripts"
+SCRIPT_PATH="$SOURCE_ROOT/_qkstart/scripts"
 
 ARGS=($(echo "${COMP_LINE[@]:1}"))
 ARGS_S=$(IFS=/; echo "${ARGS[*]}")
