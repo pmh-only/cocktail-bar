@@ -1,0 +1,35 @@
+sudo yum install -y postgresql15
+sudo yum install -y https://dl.2ndquadrant.com/default/release/browse/rpm/packages/centos/8/x86_64/15/postgresql15-pglogical-2.4.2-1.el8.x86_64.rpm
+
+sudo cp /usr/pgsql-15/lib/* /usr/lib64/pgsql/
+sudo cp /usr/pgsql-15/share/* /usr/share/pgsql/ -r
+sudo cp /usr/pgsql-15/bin/* /usr/bin/
+
+sudo postgresql-setup --initdb
+sudo vim /var/lib/pgsql/data/postgresql.conf
+---
+shared_preload_libraries = 'pglogical'
+max_wal_senders = 10
+max_replication_slots = 10
+wal_level = logical
+listen_addresses = '*'
+---
+
+sudo vim /var/lib/pgsql/data/pg_hba.conf
+---
+host    all             all             0.0.0.0/0               md5
+---
+
+sudo systemctl restart postgresql
+
+sudo -u postgres psql
+---
+create user admin with password 'admin123!!';
+alter user admin with superuser;
+
+create database test;
+
+\c test
+create extension pglogical;
+---
+

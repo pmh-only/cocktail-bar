@@ -1,0 +1,32 @@
+sudo yum install -y mariadb105
+
+sudo vim /etc/my.cnf.d/mariadb-server.cnf
+---
+bind-address=0.0.0.0
+---
+
+sudo vim /etc/my.cnf
+---
+[server]
+server_id=1
+log-bin=/tmp/bin-log
+binlog_format=ROW
+expire_logs_days=1
+binlog_checksum=NONE
+binlog_row_image=FULL
+---
+
+sudo mariadb
+---
+create user admin@'%' identified by 'admin123!!';
+create schema test;
+
+grant all privileges on *.* to admin@'%' WITH GRANT OPTION;
+
+set global expire_logs_days=1;
+set global binlog_format = 'ROW';
+set global net_read_timeout=300;
+set global net_write_timeout=300;
+set global wait_timeout=300;
+
+---

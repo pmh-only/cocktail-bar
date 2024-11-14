@@ -161,3 +161,10 @@ resource-types:
     - RedshiftServerlessNamespace # Deprecated service
     - RedshiftServerlessWorkgroup # Deprecated service
     - OSPackage
+    - GameLiftMatchmakingConfiguration
+    - GameLiftQueue
+    - GameLiftFleet
+    - GameLiftMatchmakingRuleSet
+    - GameLiftBuild
+    - ElasticTranscoderPreset
+    - ElasticTranscoderPipeline
