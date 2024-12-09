@@ -24,7 +24,7 @@ module "endpoints" {
       service = "dynamodb"
       service_type    = "Gateway"
       route_table_ids = flatten([module.vpc.intra_route_table_ids, module.vpc.private_route_table_ids, module.vpc.public_route_table_ids])
-      tags                = { Name = "${var.project_name}-endpoint-s3" }
+      tags                = { Name = "${var.project_name}-endpoint-dynamodb" }
     },
     autoscaling = {
       service    = "autoscaling"
@@ -110,11 +110,17 @@ module "endpoints" {
       subnet_ids = module.vpc.intra_subnets
       tags       = { Name = "${var.project_name}-endpoint-ecs" }
     },
+    ecsagent = {
+      service    = "ecs-agent"
+      private_dns_enabled = true
+      subnet_ids = module.vpc.intra_subnets
+      tags       = { Name = "${var.project_name}-endpoint-ecsagent" }
+    },
     ecstelemetry = {
       service    = "ecs-telemetry"
       private_dns_enabled = true
       subnet_ids = module.vpc.intra_subnets
-      tags       = { Name = "${var.project_name}-endpoint-ecr.esctelemetry" }
+      tags       = { Name = "${var.project_name}-endpoint-ecstelemetry" }
     },
     glue = {
       service    = "glue"

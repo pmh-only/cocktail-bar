@@ -12,10 +12,13 @@ accounts:
     filters:
       IAMUser:
         - "admin"
+        - "costview"
       IAMUserPolicyAttachment:
         - "admin -> AdministratorAccess"
+        - "costview -> GetCostAndUsage"
       IAMUserAccessKey:
         - "admin -> AKIAZOFRFKUQAWYBXEFV"
+        - "costview -> AKIAZOFRFKUQH45JMSNQ"
       IAMVirtualMFADevice:
         - "arn:aws:iam::648911607072:mfa/admin"
       IAMSAMLProvider:
@@ -36,6 +39,7 @@ accounts:
         - "arn:aws:iam::648911607072:policy/SCOP_DYNAMO_READER"
         - "arn:aws:iam::648911607072:policy/SCOP_S3_WRITER"
         - "arn:aws:iam::648911607072:policy/SCOP_S3_READER"
+        - "arn:aws:iam::648911607072:policy/GetCostAndUsage"
       IAMRole:
         - "RBAC_SCOP_DYNMRD"
         - "RBAC_SCOP_DYNMWT"
@@ -49,34 +53,8 @@ accounts:
         - "SamsungCloudOpsPlatform_Linked_Role_20230918"
         - "scmp_security_auditor"
         - "stacksets-exec-d1373500c74b3a738a04f178177902a4"
-        - "AWSServiceRoleForClientVPN"
-        - "AWSServiceRoleForClientVPNConnections"
-        - "AWSServiceRoleForCloudFormationStackSetsOrgMember"
-        - "AWSServiceRoleForCloudFrontLogger"
-        - "AWSServiceRoleForCloudTrail"
-        - "AWSServiceRoleForECRPullThroughCache"
-        - "AWSServiceRoleForECS"
-        - "AWSServiceRoleForElastiCache"
-        - "AWSServiceRoleForElasticLoadBalancing"
-        - "AWSServiceRoleForGlobalAccelerator"
-        - "AWSServiceRoleForLambdaReplicator"
-        - "AWSServiceRoleForOrganizations"
-        - "AWSServiceRoleForRDS"
-        - "AWSServiceRoleForRedshift"
-        - "AWSServiceRoleForSSO"
-        - "AWSServiceRoleForSupport"
-        - "AWSServiceRoleForTrustedAdvisor"
-        - "AWSServiceRoleForVpcLattice"
-        - "AWSServiceRoleForDevOpsGuru"
-        - "AWSServiceRoleForAmazonOpenSearchService"
-        - "AWSServiceRoleForAPIGateway"
-        - "AWSServiceRoleForAWSCloud9"
-        - "AWSServiceRoleForKafka"
-        - "AWSServiceRoleForKafkaConnect"
-        - "AWSServiceRoleForLakeFormationDataAccess"
-        - "AWSServiceRoleForAmazonElasticFileSystem"
-        - "AWSServiceRoleForAmazonEMRServerless"
-        - "AWSServiceRoleForAmazonSageMakerNotebooks"
+        - type: regex
+          value: "AWSServiceRoleFor.*"
       IAMRolePolicyAttachment:
         - "RBAC_SCOP_DYNMRD -> SCOP_DYNAMO_READER"
         - "RBAC_SCOP_DYNMWT -> SCOP_DYNAMO_WRITER"
@@ -110,6 +88,8 @@ accounts:
         - "StackSet-SamsungCloudOpsPlatformStackSet-3f9ed7f2-4e90-4486-ad27-56984de94506"
       ACMCertificate:
         - "arn:aws:acm:us-east-1:648911607072:certificate/55aa50fd-1bc8-4538-9284-df2a6245d372"
+      KMSKey:
+        - "91a8e47e-5cbf-43e5-89e0-0d2207b25cb7"
 
 settings:
   S3Object:
@@ -168,3 +148,14 @@ resource-types:
     - GameLiftBuild
     - ElasticTranscoderPreset
     - ElasticTranscoderPipeline
+    - IoTTwinMakerWorkspace
+    - IoTTwinMakerComponentType
+    - IoTTwinMakerEntity
+    - IoTTwinMakerScene
+    - IoTTwinMakerSyncJob
+    - RekognitionProject
+    - RekognitionDataset
+    - BedrockModelCustomizationJob
+    - BedrockPrompt
+    - BedrockEvaluationJob
+    - TranscribeLanguageModel

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+  </head>
+  <body>
+    <div>
+      <h1>API Response</h1>
+      <pre id="o">
+
+      </pre>
+    </div>
+    <script>
+      (async () => {
+        const data = 
+          await fetch('https://api.webapp.samsungskills2.pmh.codes/app')
+            .then((res) => res.json())
+
+        document.getElementById('o').innerText =
+          JSON.stringify(JSON.parse(data.metadata), null, 2)
+      })()
+    </script>
+  </body>
+</html>
