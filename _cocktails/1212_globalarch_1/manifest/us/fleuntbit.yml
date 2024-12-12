@@ -1,0 +1,166 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: fluentd
+  namespace: default
+  labels:
+    app: fluentd
+spec:
+  selector:
+    matchLabels:
+      app: fluentd
+  template:
+    metadata:
+      labels:
+        app: fluentd
+    spec:
+      serviceAccountName: fluentd
+      tolerations:
+        - operator: Exists
+      containers:
+      - name: fluentd
+        image: fluent/fluentd-kubernetes-daemonset:v1.17-debian-cloudwatch-1
+        env:
+          - name: K8S_NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          - name: FLUENT_CONTAINER_TAIL_PARSER_TYPE
+            value: "cri"
+          - name: FLUENT_CONTAINER_TAIL_PARSER_TIME_FORMAT
+            value: "%Y-%m-%dT%H:%M:%S.%N%:z"
+        resources:
+          limits:
+            memory: 800Mi
+          requests:
+            cpu: 100m
+            memory: 200Mi
+        volumeMounts:
+        - name: varlog
+          mountPath: /var/log
+        - name: containerlogdirectory
+          mountPath: /var/log/pods
+          readOnly: true
+        - name: fluentd-config
+          mountPath: /fluentd/etc/fluent.conf
+          subPath: fluent.conf
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: varlog
+        hostPath:
+          path: /var/log
+      - name: containerlogdirectory
+        hostPath:
+          path: /var/log/pods
+      - name: fluentd-config
+        configMap:
+          name: fluentd
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fluentd
+data:
+  fluent.conf: |
+    @include "#{ENV['FLUENTD_SYSTEMD_CONF'] || 'systemd'}.conf"
+    @include "#{ENV['FLUENTD_PROMETHEUS_CONF'] || 'prometheus'}.conf"
+    @include kubernetes.conf
+    @include conf.d/*.conf
+
+    <source>
+      @type tail
+      path /var/log/pods/default_account-*/account/*.log
+      tag /aws/us-east-1/account
+      
+      <parse>
+        @type regexp
+        expression ^(?<log>.*)$
+      </parse>
+    </source>
+    
+    <source>
+      @type tail
+      path /var/log/pods/default_event-*/event/*.log
+      tag /aws/us-east-1/event
+      
+      <parse>
+        @type regexp
+        expression ^(?<log>.*)$
+      </parse>
+    </source>
+    
+    <source>
+      @type tail
+      path /var/log/pods/default_status-*/status/*.log
+      tag /aws/us-east-1/status
+      
+      <parse>
+        @type regexp
+        expression ^(?<log>.*)$
+      </parse>
+    </source>
+
+    <source>
+      @type tail
+      path /var/log/pods/default_stress-*/stress/*.log
+      tag /aws/us-east-1/stress
+      
+      <parse>
+        @type regexp
+        expression ^(?<log>.*)$
+      </parse>
+    </source>
+
+    
+    <source>
+      @type tail
+      path /var/log/pods/default_token-*/token/*.log
+      tag /aws/us-east-1/token
+      
+      <parse>
+        @type regexp
+        expression ^(?<log>.*)$
+      </parse>
+    </source>
+
+    <match **>
+      @type cloudwatch_logs
+      use_tag_as_group true
+      log_stream_name log_stream
+      auto_create_stream true
+      region us-east-1
+    </match>
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: fluentd
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::648911607072:role/us-wsi-role-fluentd
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: fluentd
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "watch", "list"]
+- apiGroups: [""]
+  resources: ["namespaces"]
+  verbs: ["get", "watch", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+# This cluster role binding allows anyone in the "manager" group to read secrets in any namespace.
+kind: ClusterRoleBinding
+metadata:
+  name: read-secrets-global
+subjects:
+- kind: ServiceAccount
+  name: fluentd
+  namespace: default
+  apiGroup: ""
+roleRef:
+  kind: ClusterRole
+  name: fluentd
+  apiGroup: rbac.authorization.k8s.io

@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: sm
+  namespace: default
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::648911607072:role/ap-wsi-role-sm
