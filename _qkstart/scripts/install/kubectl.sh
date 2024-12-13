@@ -14,3 +14,5 @@ echo 'complete -o default -F __start_kubectl k' >>~/.bashrc
 echo 'source <(kubectl completion zsh)' >>~/.zshrc
 echo 'alias k=kubectl' >>~/.zshrc
 echo "compdef k='kubectl'" >>~/.zshrc
+
+echo "export KUBE_CONFIG_PATH=/home/$USER/.kube/config" >> ~/.zshrc
