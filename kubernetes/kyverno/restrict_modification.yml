@@ -1,0 +1,31 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: restrict-modification
+spec:
+  validationFailureAction: Enforce
+  background: false
+  rules:
+  - name: restrict-modification
+    match:
+      any:
+      - resources:
+          kinds:
+          - "*"
+          namespaces:
+          - app
+    exclude:
+      any:
+      - subjects:
+        - kind: ServiceAccount
+          name: mysa
+    validate:
+      message: "This resource is restricted to modification."
+      deny:
+        conditions:
+          any:
+            - key: "{{request.operation || 'BACKGROUND'}}"
+              operator: AnyIn
+              value:
+              - UPDATE
+              - DELETE

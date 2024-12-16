@@ -1,24 +1,18 @@
-resource "aws_rds_global_cluster" "this" {
-  global_cluster_identifier = "${var.project_name}-rds"
-  engine                    = "aurora-mysql"
-  engine_version            = "8.0.mysql_aurora.3.05.2"
-  database_name             = "dev"
-  storage_encrypted         = true
-}
-
 resource "aws_db_subnet_group" "this" {
   name        = "${var.project_name}-subnets"
   subnet_ids  = module.vpc.intra_subnets
 }
 
-module "aurora_primary" {
-  source =  "terraform-aws-modules/rds-aurora/aws"
+module "aurora_secondary" {
+  source = "terraform-aws-modules/rds-aurora/aws"
 
-  name                      = "${var.project_name}-ap-rds"
-  database_name             = aws_rds_global_cluster.this.database_name
-  engine                    = aws_rds_global_cluster.this.engine
-  engine_version            = aws_rds_global_cluster.this.engine_version
-  global_cluster_identifier = aws_rds_global_cluster.this.id
+  is_primary_cluster = false
+
+  name                      = "${var.project_name}-us-rds"
+  engine                    = "aurora-mysql"
+  engine_version            = "8.0.mysql_aurora.3.05.2"
+  global_cluster_identifier = "${var.project_name}-rds"
+  source_region             = "ap-northeast-2"
   instance_class            = "db.r6g.large"
   instances                 = { for i in range(2) : i => {} }
 
@@ -30,14 +24,10 @@ module "aurora_primary" {
     }
   }
 
-  # Global clusters do not support managed master user password
-  manage_master_user_password = false
-  master_username           = "admin"
-  master_password             = "admin123!!"
-
+  master_password = "admin123!!"
   deletion_protection = true
   skip_final_snapshot = true
-  kms_key_id = aws_kms_key.primary.arn 
+  kms_key_id = aws_kms_key.primary.arn
 
   backup_retention_period = 7
   performance_insights_enabled = true
@@ -48,7 +38,7 @@ module "aurora_primary" {
     "general",
     "slowquery"
   ]
-
+  
   create_db_cluster_parameter_group = true
   cluster_performance_insights_enabled = true
 }
@@ -92,4 +82,3 @@ data "aws_iam_policy_document" "rds" {
 resource "aws_kms_key" "primary" {
   policy = data.aws_iam_policy_document.rds.json
 }
-
