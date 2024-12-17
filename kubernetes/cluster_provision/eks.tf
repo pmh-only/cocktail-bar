@@ -3,9 +3,7 @@ module "eks" {
   version = "~> 20.0"
 
   cluster_name    = "${var.project_name}-cluster"
-  cluster_version = "1.29"
-
-  cluster_endpoint_public_access  = true
+  cluster_version = "1.31"
 
   vpc_id                   = module.vpc.vpc_id
   subnet_ids               = module.vpc.private_subnets
@@ -54,4 +52,12 @@ module "eks" {
       type = "EC2_LINUX"
     }
   }
+
+  cluster_enabled_log_types = [
+    "api",
+    "audit",
+    "authenticator",
+    "controllerManager",
+    "scheduler"
+  ]
 }

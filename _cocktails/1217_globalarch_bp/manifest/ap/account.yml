@@ -1,0 +1,113 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  account
+  namespace: default
+  labels:
+    app:  account
+spec:
+  selector:
+    matchLabels:
+      app: account
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app:  account
+    spec:
+      serviceAccountName: sm
+      nodeSelector:
+        dedicated: app
+      tolerations:
+        - key: dedicated
+          value: app
+          effect: NoSchedule
+      readinessGates:
+        - conditionType: target-health.alb.ingress.k8s.aws/ap-wsi-endpoint_account_8080
+      containers:
+      - name:  account
+        image:  648911607072.dkr.ecr.ap-northeast-2.amazonaws.com/account:2024-12-12.13.44.16
+        command:
+          - /app/account
+        args:
+          - "-SecretsManagerName=wsi-account"
+          - "-Region=ap-northeast-2"
+          - "-TokenEndpoint=http://token:8080"
+        lifecycle:
+          preStop:
+            exec:
+              command: ["sleep", "45"]
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+          limits:
+            cpu: 100m
+            memory: 100Mi
+        livenessProbe:
+          tcpSocket:
+            port: 8080
+          initialDelaySeconds: 5
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /healthcheck
+            port: 8080
+          initialDelaySeconds: 5
+          timeoutSeconds: 2
+          successThreshold: 1
+          failureThreshold: 3
+          periodSeconds: 10
+        ports:
+        - containerPort: 8080
+          name:  account
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: account
+  namespace: default
+spec:
+  selector:
+    app: account
+  type: ClusterIP
+  ports:
+  - name: account
+    protocol: TCP
+    port: 8080
+    targetPort: 8080
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: account
+  namespace: default
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: account
+  minReplicas: 2
+  maxReplicas: 64
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 50
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 50
+---

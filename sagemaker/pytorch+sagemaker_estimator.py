@@ -1,7 +1,7 @@
 from sagemaker.pytorch import PyTorch
 
 estimator = PyTorch(
-    entry_point="mnist-pytorch.py",
+    entry_point="pytorch+sagemaker_model.py",
     role=role,
     py_version="py38",
       framework_version="1.11.0",

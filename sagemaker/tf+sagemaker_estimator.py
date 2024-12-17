@@ -1,7 +1,7 @@
 from sagemaker.tensorflow import TensorFlow
 
 mnist_estimator = TensorFlow(
-    entry_point='mnist-2.py',
+    entry_point='tf+sagemaker_model.py',
     role=role,
     instance_count=2,
     instance_type='ml.c5.xlarge',

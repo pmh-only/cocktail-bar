@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: sm
+  namespace: default
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::648911607072:role/us-wsi-role-sm
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ecr
+  namespace: default
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::648911607072:role/us-wsi-role-ecr

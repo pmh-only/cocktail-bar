@@ -83,8 +83,11 @@ resource "aws_iam_role" "bastion" {
       }
     ]
   })
+}
 
-  managed_policy_arns = [
+resource "aws_iam_role_policy_attachments_exclusive" "example" {
+  role_name   = aws_iam_role.bastion.name
+  policy_arns = [
     "arn:aws:iam::aws:policy/AdministratorAccess"
   ]
 }

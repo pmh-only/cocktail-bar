@@ -127,6 +127,12 @@ module "endpoints" {
       private_dns_enabled = true
       subnet_ids = module.vpc.intra_subnets
       tags       = { Name = "${var.project_name}-endpoint-glue" }
+    },
+    secretsmanager = {
+      service    = "secretsmanager"
+      private_dns_enabled = true
+      subnet_ids = module.vpc.intra_subnets
+      tags       = { Name = "${var.project_name}-endpoint-secretsmanager" }
     }
   }
 }
