@@ -1,0 +1,157 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: app
+  labels:
+    elbv2.k8s.aws/pod-readiness-gate-inject: enabled
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  grafana
+  namespace: app
+  labels:
+    app:  grafana
+spec:
+  selector:
+    matchLabels:
+      app: grafana
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app:  grafana
+    spec:
+      nodeSelector:
+        dedicated: app
+      tolerations:
+        - key: dedicated
+          value: app
+          effect: NoSchedule
+      readinessGates:
+        - conditionType: target-health.alb.ingress.k8s.aws/grafana_grafana_3000
+      containers:
+      - name:  grafana
+        image:  grafana/grafana
+        lifecycle:
+          preStop:
+            exec:
+              command: ["sleep", "45"]
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+          limits:
+            cpu: 100m
+            memory: 100Mi
+        livenessProbe:
+          tcpSocket:
+            port: 3000
+          initialDelaySeconds: 5
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 3000
+          initialDelaySeconds: 5
+          timeoutSeconds: 2
+          successThreshold: 1
+          failureThreshold: 3
+          periodSeconds: 10
+        ports:
+        - containerPort: 3000
+          name:  grafana
+      restartPolicy: Always
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: grafana
+  namespace: app
+data:
+  key: app
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: grafana
+  namespace: app
+type: Opaque
+stringData:
+  DB_PASS: hello
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+  namespace: app
+spec:
+  selector:
+    app: grafana
+  type: ClusterIP
+  ports:
+  - name: grafana
+    protocol: TCP
+    port: 3000
+    targetPort: 3000
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: grafana
+  namespace: app
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: grafana
+  minReplicas: 2
+  maxReplicas: 64
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 30
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 30
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: grafana
+  namespace: app
+  annotations:
+    alb.ingress.kubernetes.io/load-balancer-name: grafana
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/healthcheck-path: /healthz
+    alb.ingress.kubernetes.io/healthcheck-interval-seconds: "5"
+    alb.ingress.kubernetes.io/healthcheck-timeout-seconds: "2"
+    alb.ingress.kubernetes.io/healthy-threshold-count: "2"
+    alb.ingress.kubernetes.io/unhealthy-threshold-count: "2"
+    alb.ingress.kubernetes.io/target-group-attributes: deregistration_delay.timeout_seconds=60
+spec:
+  ingressClassName: alb
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: grafana
+            port:
+              number: 3000

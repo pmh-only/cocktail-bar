@@ -1,0 +1,39 @@
+apiVersion: eks.amazonaws.com/v1
+kind: NodeClass
+metadata:
+  name: app
+spec:
+  role: project-cluster-eks-auto-20241217040217307000000001
+
+  subnetSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: project-cluster
+        kubernetes.io/role/internal-elb: "1"
+
+  securityGroupSelectorTerms:
+    - tags:
+        Name: project-cluster-node
+        
+  tags:
+    Name: project-mng-app
+    Project: project
+---
+apiVersion: eks.amazonaws.com/v1
+kind: NodeClass
+metadata:
+  name: addon
+spec:
+  role: project-cluster-eks-auto-20241217040217307000000001
+
+  subnetSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: project-cluster
+        kubernetes.io/role/internal-elb: "1"
+
+  securityGroupSelectorTerms:
+    - tags:
+        Name: project-cluster-node
+        
+  tags:
+    Name: project-mng-addon
+    Project: project

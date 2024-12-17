@@ -1,0 +1,131 @@
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: app-ondemand
+spec:
+  template:
+    metadata:
+      labels:
+        dedicated: app
+        on-demand: 'yes'
+    spec:
+      requirements:
+        - key: capacity-spread
+          operator: In
+          values:
+            - "1"
+        - key: "karpenter.sh/capacity-type"
+          operator: In
+          values: 
+            - "on-demand"
+        - key: node.kubernetes.io/instance-type
+          operator: In
+          values:
+            - c6g.xlarge
+      taints:
+      - key: dedicated
+        value: app
+        effect: "NoSchedule"
+      nodeClassRef:
+        group: eks.amazonaws.com
+        kind: NodeClass
+        name: app
+---
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: app-spot
+spec:
+  template:
+    metadata:
+      labels:
+        dedicated: app
+    spec:
+      requirements:
+        - key: capacity-spread
+          operator: In
+          values:
+            - "2"
+            - "3"
+            - "4"
+            - "5"
+        - key: "karpenter.sh/capacity-type"
+          operator: In
+          values: 
+            - "spot"
+        - key: node.kubernetes.io/instance-type
+          operator: In
+          values:
+            - c6g.xlarge
+      taints:
+      - key: dedicated
+        value: app
+        effect: "NoSchedule"
+      nodeClassRef:
+        group: eks.amazonaws.com
+        kind: NodeClass
+        name: app
+---
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: addon-ondemand
+spec:
+  template:
+    metadata:
+      labels:
+        dedicated: addon
+        on-demand: 'yes'
+    spec:
+      requirements:
+        - key: capacity-spread
+          operator: In
+          values:
+            - "1"
+        - key: "karpenter.sh/capacity-type"
+          operator: In
+          values: 
+            - "on-demand"
+        - key: node.kubernetes.io/instance-type
+          operator: In
+          values:
+            - c6g.xlarge
+      taints:
+      - key: dedicated
+        value: addon
+        effect: "NoSchedule"
+      nodeClassRef:
+        group: eks.amazonaws.com
+        kind: NodeClass
+        name: addon
+---
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: addon-spot
+spec:
+  template:
+    metadata:
+      labels:
+        dedicated: addon
+    spec:
+      requirements:
+        - key: capacity-spread
+          operator: In
+          values:
+            - "2"
+            - "3"
+            - "4"
+            - "5"
+        - key: "karpenter.sh/capacity-type"
+          operator: In
+          values: 
+            - "spot"
+        - key: node.kubernetes.io/instance-type
+          operator: In
+          values:
+            - c6g.xlarge
+      nodeClassRef:
+        group: eks.amazonaws.com
+        kind: NodeClass
+        name: addon
