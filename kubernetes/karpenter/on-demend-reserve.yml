@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: on-demend-reserve
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: on-demend-reserve
@@ -19,6 +19,20 @@ spec:
         - key: dedicated
           value: app
           effect: NoSchedule
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - topologyKey: kubernetes.io/hostname
+            labelSelector:
+              matchLabels:
+                app: on-demend-reserve
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app: on-demend-reserve
       containers:
       - name: overprovision
         image: alpine

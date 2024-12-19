@@ -1,0 +1,407 @@
+{
+  "variables": [
+      {
+          "type": "property",
+          "property": "ClusterName",
+          "inputType": "select",
+          "id": "ClusterName",
+          "label": "ClusterName",
+          "defaultValue": "project-cluster",
+          "visible": true,
+          "search": "{ContainerInsights,ClusterName}",
+          "populateFrom": "ClusterName"
+      },
+      {
+          "type": "property",
+          "property": "Namespace",
+          "inputType": "select",
+          "id": "Namespace",
+          "label": "Namespace",
+          "defaultValue": "default",
+          "visible": true,
+          "search": "{ContainerInsights,ClusterName,Namespace}",
+          "populateFrom": "Namespace"
+      }
+  ],
+  "widgets": [
+      {
+          "height": 6,
+          "width": 6,
+          "y": 0,
+          "x": 0,
+          "type": "metric",
+          "properties": {
+              "metrics": [
+                  [ { "expression": "SEARCH('{ContainerInsights,ClusterName,ContainerName,FullPodName,Namespace,PodName} Namespace=app MetricName=\"container_cpu_utilization_over_container_limit\"', 'p99', 60)", "id": "e1", "region": "ap-northeast-2", "period": 60 } ]
+              ],
+              "view": "timeSeries",
+              "stacked": false,
+              "region": "ap-northeast-2",
+              "stat": "Average",
+              "period": 60,
+              "liveData": true,
+              "yAxis": {
+                  "left": {
+                      "showUnits": false,
+                      "label": "CPU Utilization (%)",
+                      "min": 0,
+                      "max": 100
+                  },
+                  "right": {
+                      "showUnits": true
+                  }
+              },
+              "legend": {
+                  "position": "hidden"
+              },
+              "title": "ContainerCPU (1m)"
+          }
+      },
+      {
+          "height": 6,
+          "width": 6,
+          "y": 0,
+          "x": 6,
+          "type": "metric",
+          "properties": {
+              "metrics": [
+                  [ { "expression": "SEARCH('{ContainerInsights,ClusterName,ContainerName,FullPodName,Namespace,PodName} memory MetricName=\"container_memory_utilization_over_container_limit\" Namespace=\"app\"', 'p99', 60 )", "id": "e1", "region": "ap-northeast-2", "period": 60 } ]
+              ],
+              "view": "timeSeries",
+              "stacked": false,
+              "region": "ap-northeast-2",
+              "stat": "Average",
+              "period": 60,
+              "liveData": true,
+              "yAxis": {
+                  "left": {
+                      "min": 0,
+                      "showUnits": false,
+                      "label": "Memory Utilization (%)",
+                      "max": 100
+                  },
+                  "right": {
+                      "showUnits": true
+                  }
+              },
+              "legend": {
+                  "position": "hidden"
+              },
+              "title": "ContainerMemory (1m)"
+          }
+      },
+      {
+          "height": 6,
+          "width": 6,
+          "y": 0,
+          "x": 12,
+          "type": "metric",
+          "properties": {
+              "metrics": [
+                  [ { "expression": "SEARCH('{ContainerInsights,ClusterName,InstanceId,NodeName} ClusterName=\"project-cluster\" MetricName=\"node_cpu_utilization\"', 'p99', 60)", "id": "e1", "region": "ap-northeast-2", "period": 60 } ]
+              ],
+              "view": "timeSeries",
+              "stacked": false,
+              "region": "ap-northeast-2",
+              "stat": "Average",
+              "period": 60,
+              "yAxis": {
+                  "left": {
+                      "label": "CPU Utilization (%)"
+                  }
+              },
+              "liveData": true,
+              "legend": {
+                  "position": "hidden"
+              },
+              "title": "NodeCPU (1m)"
+          }
+      },
+      {
+          "height": 6,
+          "width": 6,
+          "y": 0,
+          "x": 18,
+          "type": "metric",
+          "properties": {
+              "metrics": [
+                  [ { "expression": "SEARCH('{ContainerInsights,ClusterName,InstanceId,NodeName} ClusterName=\"project-cluster\" MetricName=\"node_memory_utilization\"', 'p99', 60)", "id": "e1", "region": "ap-northeast-2", "period": 60 } ]
+              ],
+              "view": "timeSeries",
+              "stacked": false,
+              "region": "ap-northeast-2",
+              "stat": "Average",
+              "period": 60,
+              "yAxis": {
+                  "left": {
+                      "label": "Memory Utilization (%)"
+                  }
+              },
+              "liveData": true,
+              "legend": {
+                  "position": "hidden"
+              },
+              "title": "NodeMemory (1m)"
+          }
+      },
+      {
+          "height": 6,
+          "width": 6,
+          "y": 6,
+          "x": 0,
+          "type": "metric",
+          "properties": {
+              "metrics": [
+                  [ { "expression": "SEARCH('{AWS/ApplicationELB,LoadBalancer,TargetGroup} MetricName=\"RequestCount\"', 'Sum', 60)", "id": "e1", "region": "ap-northeast-2", "period": 60 } ]
+              ],
+              "view": "timeSeries",
+              "stacked": false,
+              "region": "ap-northeast-2",
+              "stat": "Average",
+              "period": 60,
+              "title": "LbRequest (1m)",
+              "yAxis": {
+                  "left": {
+                      "min": 0,
+                      "label": "Request Count",
+                      "showUnits": false
+                  }
+              },
+              "liveData": true,
+              "legend": {
+                  "position": "hidden"
+              }
+          }
+      },
+      {
+          "height": 6,
+          "width": 6,
+          "y": 6,
+          "x": 6,
+          "type": "metric",
+          "properties": {
+              "metrics": [
+                  [ { "expression": "SEARCH('{AWS/ApplicationELB,LoadBalancer,TargetGroup} MetricName=\"TargetResponseTime\"', 'Average', 60)*1000", "id": "e2", "region": "ap-northeast-2", "label": "Average", "period": 60 } ],
+                  [ { "expression": "SEARCH('{AWS/ApplicationELB,LoadBalancer,TargetGroup} MetricName=\"TargetResponseTime\"', 'p99', 60)*1000", "id": "e3", "region": "ap-northeast-2", "label": "99 Percentile", "period": 60 } ]
+              ],
+              "view": "timeSeries",
+              "stacked": false,
+              "region": "ap-northeast-2",
+              "stat": "Average",
+              "period": 60,
+              "title": "LbLatency (1m)",
+              "yAxis": {
+                  "left": {
+                      "min": 0,
+                      "label": "Latency (ms)",
+                      "showUnits": false
+                  }
+              },
+              "liveData": true,
+              "legend": {
+                  "position": "hidden"
+              }
+          }
+      },
+      {
+          "height": 6,
+          "width": 6,
+          "y": 6,
+          "x": 12,
+          "type": "metric",
+          "properties": {
+              "metrics": [
+                  [ { "expression": "SEARCH('{AWS/ApplicationELB,LoadBalancer,TargetGroup} MetricName=\"HTTPCode_Target_4XX_Count\"', 'Sum', 60)", "label": "4XX", "id": "e1", "period": 60, "region": "ap-northeast-2" } ]
+              ],
+              "view": "timeSeries",
+              "stacked": false,
+              "region": "ap-northeast-2",
+              "stat": "Average",
+              "period": 60,
+              "liveData": true,
+              "legend": {
+                  "position": "hidden"
+              },
+              "yAxis": {
+                  "left": {
+                      "label": "Request Count",
+                      "showUnits": false,
+                      "min": 0
+                  }
+              },
+              "title": "LbTarget4xxStatus (1m)"
+          }
+      },
+      {
+          "height": 6,
+          "width": 6,
+          "y": 6,
+          "x": 18,
+          "type": "metric",
+          "properties": {
+              "metrics": [
+                  [ { "expression": "SEARCH('{AWS/ApplicationELB,LoadBalancer,TargetGroup} MetricName=\"HTTPCode_Target_5XX_Count\"', 'Sum', 60)", "label": "5XX", "id": "e1", "period": 60, "region": "ap-northeast-2" } ]
+              ],
+              "view": "timeSeries",
+              "stacked": false,
+              "region": "ap-northeast-2",
+              "stat": "Average",
+              "period": 60,
+              "liveData": true,
+              "legend": {
+                  "position": "hidden"
+              },
+              "yAxis": {
+                  "left": {
+                      "label": "Request Count",
+                      "showUnits": false,
+                      "min": 0
+                  }
+              },
+              "title": "LbTarget5xxStatus (1m)"
+          }
+      },
+      {
+          "height": 6,
+          "width": 6,
+          "y": 12,
+          "x": 0,
+          "type": "metric",
+          "properties": {
+              "metrics": [
+                  [ { "expression": "SEARCH('{AWS/ApplicationELB,LoadBalancer,TargetGroup} MetricName=\"HTTPCode_ELB_5XX_Count\"', 'Sum', 60)", "label": "5XX", "id": "e1", "period": 60, "region": "ap-northeast-2" } ]
+              ],
+              "view": "timeSeries",
+              "stacked": false,
+              "region": "ap-northeast-2",
+              "stat": "Average",
+              "period": 60,
+              "liveData": true,
+              "legend": {
+                  "position": "hidden"
+              },
+              "yAxis": {
+                  "left": {
+                      "label": "Request Count",
+                      "showUnits": false,
+                      "min": 0
+                  }
+              },
+              "title": "LbFront5xxStatus (1m)"
+          }
+      },
+      {
+          "height": 12,
+          "width": 24,
+          "y": 18,
+          "x": 0,
+          "type": "log",
+          "properties": {
+              "query": "SOURCE logGroups(namePrefix: [\"/aws/containerinsights/\"], class: \"STANDARD\")  |\nfields kubernetes.container_name as app, log\n| filter not isblank(log)\n| sort @timestamp desc\n| limit 100",
+              "queryBy": "logGroupPrefix",
+              "logGroupPrefixes": {
+                  "accountIds": [
+                      "All"
+                  ],
+                  "logGroupPrefix": [
+                      "/aws/containerinsights/"
+                  ],
+                  "logClass": "STANDARD"
+              },
+              "region": "ap-northeast-2",
+              "stacked": false,
+              "title": "Brief Container Logs (Last 100)",
+              "view": "table"
+          }
+      },
+      {
+          "height": 6,
+          "width": 6,
+          "y": 12,
+          "x": 6,
+          "type": "metric",
+          "properties": {
+              "metrics": [
+                  [ { "expression": "SEARCH('{AWS/CloudFront,DistributionId,Region} MetricName=\"Requests\"', 'Sum', 60)", "id": "e1", "region": "us-east-1", "period": 60 } ]
+              ],
+              "view": "timeSeries",
+              "stacked": false,
+              "region": "ap-northeast-2",
+              "title": "CfRequest (1m)",
+              "stat": "Average",
+              "period": 60,
+              "yAxis": {
+                  "left": {
+                      "label": "Request Count",
+                      "min": 0,
+                      "showUnits": false
+                  }
+              },
+              "liveData": true,
+              "legend": {
+                  "position": "hidden"
+              }
+          }
+      },
+      {
+          "height": 6,
+          "width": 6,
+          "y": 12,
+          "x": 12,
+          "type": "metric",
+          "properties": {
+              "metrics": [
+                  [ { "expression": "SEARCH('{AWS/CloudFront,DistributionId,Region} MetricName=\"4xxErrorRate\"', 'p99', 60)", "id": "e1", "region": "us-east-1", "period": 60 } ]
+              ],
+              "view": "timeSeries",
+              "stacked": false,
+              "region": "ap-northeast-2",
+              "title": "Cf4xxStatus (1m)",
+              "stat": "Average",
+              "period": 60,
+              "yAxis": {
+                  "left": {
+                      "label": "Status Percent (%)",
+                      "min": 0,
+                      "showUnits": false,
+                      "max": 100
+                  }
+              },
+              "liveData": true,
+              "legend": {
+                  "position": "hidden"
+              }
+          }
+      },
+      {
+          "height": 6,
+          "width": 6,
+          "y": 12,
+          "x": 18,
+          "type": "metric",
+          "properties": {
+              "metrics": [
+                  [ { "expression": "SEARCH('{AWS/CloudFront,DistributionId,Region} MetricName=\"5xxErrorRate\"', 'p99', 60)", "id": "e1", "region": "us-east-1", "period": 60 } ]
+              ],
+              "view": "timeSeries",
+              "stacked": false,
+              "region": "ap-northeast-2",
+              "title": "Cf5xxStatus (1m)",
+              "stat": "Average",
+              "period": 60,
+              "yAxis": {
+                  "left": {
+                      "label": "Status Percent (%)",
+                      "min": 0,
+                      "showUnits": false,
+                      "max": 100
+                  }
+              },
+              "liveData": true,
+              "legend": {
+                  "position": "hidden"
+              }
+          }
+      }
+  ]
+}

@@ -21,18 +21,20 @@ module "eks" {
       min_size     = 3
       max_size     = 27
       desired_size = 3
-      # taints = [{
-      #   key = "dedicated"
-      #   value = "addon"
-      #   effect = "NO_SCHEDULE"
-      # }]
     }
   }
 
-  enable_cluster_creator_admin_permissions = true
+  cluster_security_group_additional_rules = {
+    bastion = {
+      protocol = "tcp"
+      from_port = "443"
+      to_port = "443"
+      source_security_group_id = aws_security_group.bastion.id
+      type="ingress"
+    }
+  }
 
   access_entries = {
-    # One access entry with a policy associated
     example = {
       kubernetes_groups = []
       principal_arn = aws_iam_role.bastion.arn
@@ -47,10 +49,6 @@ module "eks" {
         }
       }
     }
-    karpenter = {
-      principal_arn = "arn:aws:iam::${data.aws_caller_identity.caller.account_id}:role/karpenter-project-cluster-20240827024307095000000001"
-      type = "EC2_LINUX"
-    }
   }
 
   cluster_enabled_log_types = [
@@ -60,4 +58,10 @@ module "eks" {
     "controllerManager",
     "scheduler"
   ]
+}
+
+resource "aws_eks_access_entry" "karpenter" {
+  principal_arn = module.eks_blueprints_addons.karpenter.node_iam_role_arn
+  cluster_name = module.eks.cluster_name
+  type = "EC2_LINUX"
 }

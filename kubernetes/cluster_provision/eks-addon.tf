@@ -8,9 +8,6 @@ module "eks_blueprints_addons" {
   oidc_provider_arn = module.eks.oidc_provider_arn
 
   eks_addons = {
-    aws-ebs-csi-driver = {
-      most_recent = true
-    }
     coredns = {
       most_recent = true
     }
@@ -22,6 +19,10 @@ module "eks_blueprints_addons" {
     }
     amazon-cloudwatch-observability = {
       most_recent = true
+      service_account_role_arn = module.irsa_cloudwatchagent.iam_role_arn
+      configuration_values = jsonencode({
+        "containerLogs": { "enabled": false }
+      })
     }
   }
 
@@ -45,4 +46,32 @@ module "eks_blueprints_addons" {
       }
     ]
   }
+
+  aws_for_fluentbit = {  
+    enable_containerinsights = true
+    kubelet_monitoring       = true
+  
+    set = [
+      {
+        name  = "cloudWatchLogs.autoCreateGroup"
+        value = true
+      },
+      {
+        name  = "hostNetwork"
+        value = true
+      },
+      {
+        name  = "dnsPolicy"
+        value = "ClusterFirstWithHostNet"
+      },
+      {
+        name  = "tolerations[0].operator"
+        value = "Exists"
+      }
+    ]
+  }
+}
+
+output "node_iam_role_arn" {
+  value = module.eks_blueprints_addons.karpenter.node_iam_role_arn
 }
