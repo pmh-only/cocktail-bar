@@ -1,0 +1,18 @@
+{
+  "Sid": "Enable IAM User Permissions",
+  "Effect": "Allow",
+  "Principal": {
+      "Service": "cloudfront.amazonaws.com"
+  },
+  "Action": [
+      "kms:Decrypt",
+      "kms:Encrypt",
+      "kms:GenerateDataKey*"
+  ],
+  "Resource": "*",
+  "Condition": {
+    "StringEquals": {
+        "aws:SourceArn": "arn:aws:cloudfront::648911607072:distribution/E4ZAXRWDH1UMJ"
+    }
+  }
+}

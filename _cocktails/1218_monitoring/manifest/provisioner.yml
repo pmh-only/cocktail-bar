@@ -1,0 +1,94 @@
+apiVersion: karpenter.sh/v1beta1
+kind: NodePool
+metadata:
+  name: default
+  namespace: karpenter
+spec:
+  template:
+    metadata:
+      labels:
+        dedicated: app
+        on-demand: 'yes'
+    spec:
+      requirements:
+        - key: capacity-spread
+          operator: In
+          values:
+            - "1"
+        - key: "karpenter.sh/capacity-type"
+          operator: In
+          values: 
+            - "on-demand"
+        - key: node.kubernetes.io/instance-type
+          operator: In
+          values:
+            - c6g.large
+            - c6g.xlarge
+            - c6g.2xlarge
+      taints:
+      - key: dedicated
+        value: app
+        effect: "NoSchedule"
+      nodeClassRef:
+        apiVersion: karpenter.k8s.aws/v1
+        kind: EC2NodeClass
+        name: default
+  disruption:
+    consolidationPolicy: WhenUnderutilized
+    expireAfter: 720h
+---
+apiVersion: karpenter.sh/v1beta1
+kind: NodePool
+metadata:
+  name: default2
+  namespace: karpenter
+spec:
+  template:
+    metadata:
+      labels:
+        dedicated: app
+    spec:
+      requirements:
+        - key: capacity-spread
+          operator: In
+          values:
+            - "2"
+            - "3"
+            - "4"
+        - key: "karpenter.sh/capacity-type"
+          operator: In
+          values: 
+            - "spot"
+        - key: node.kubernetes.io/instance-type
+          operator: In
+          values:
+            - c6g.large
+            - c6g.xlarge
+            - c6g.2xlarge
+      taints:
+      - key: dedicated
+        value: app
+        effect: "NoSchedule"
+      nodeClassRef:
+        apiVersion: karpenter.k8s.aws/v1
+        kind: EC2NodeClass
+        name: default
+  disruption:
+    consolidationPolicy: WhenUnderutilized
+    expireAfter: 720h
+---
+apiVersion: karpenter.k8s.aws/v1beta1
+kind: EC2NodeClass
+metadata:
+  name: default
+spec:
+  tags:
+    Name: project-mng-app
+  amiFamily: Bottlerocket
+  role: karpenter-project-cluster-20241218235543956100000005
+  subnetSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: "project-cluster"
+  securityGroupSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: "project-cluster"

@@ -1,0 +1,158 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: app
+  labels:
+    elbv2.k8s.aws/pod-readiness-gate-inject: enabled
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  app
+  namespace: app
+  labels:
+    app:  app
+spec:
+  selector:
+    matchLabels:
+      app: app
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app:  app
+    spec:
+      nodeSelector:
+        dedicated: app
+      tolerations:
+        - key: dedicated
+          value: app
+          effect: NoSchedule
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: capacity-spread
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app: app
+      readinessGates:
+        - conditionType: target-health.alb.ingress.k8s.aws/app_app_80
+      containers:
+      - name:  app
+        image:  nginx:latest
+        lifecycle:
+          preStop:
+            exec:
+              command: ["sleep", "45"]
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+          limits:
+            cpu: 100m
+            memory: 100Mi
+        livenessProbe:
+          tcpSocket:
+            port: 80
+          initialDelaySeconds: 5
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          timeoutSeconds: 2
+          successThreshold: 1
+          failureThreshold: 3
+          periodSeconds: 10
+        ports:
+        - containerPort: 80
+          name:  app
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app
+  namespace: app
+spec:
+  selector:
+    app: app
+  type: ClusterIP
+  ports:
+  - name: app
+    protocol: TCP
+    port: 80
+    targetPort: 80
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: app
+  namespace: app
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: app
+  minReplicas: 2
+  maxReplicas: 64
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 30
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 30
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: app
+  namespace: app
+  annotations:
+    alb.ingress.kubernetes.io/load-balancer-name: app
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/healthcheck-path: /
+    alb.ingress.kubernetes.io/healthcheck-interval-seconds: "5"
+    alb.ingress.kubernetes.io/healthcheck-timeout-seconds: "2"
+    alb.ingress.kubernetes.io/healthy-threshold-count: "2"
+    alb.ingress.kubernetes.io/unhealthy-threshold-count: "2"
+    alb.ingress.kubernetes.io/target-group-attributes: >-
+      deregistration_delay.timeout_seconds=60
+    alb.ingress.kubernetes.io/load-balancer-attributes: >-
+      deletion_protection.enabled=true,
+      access_logs.s3.enabled=true,
+      access_logs.s3.bucket=project-logbucket20241219020456227500000001,
+      access_logs.s3.prefix=accesslog,
+      connection_logs.s3.enabled=true,
+      connection_logs.s3.bucket=project-logbucket20241219020456227500000001,
+      connection_logs.s3.prefix=connectionlog
+    alb.ingress.kubernetes.io/actions.response-403: >
+      {"type":"fixed-response","fixedResponseConfig":{"contentType":"text/plain","statusCode":"403","messageBody":"403 error text"}}
+spec:
+  ingressClassName: alb
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: app
+            port:
+              number: 80
