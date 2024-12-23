@@ -9,4 +9,5 @@ alias ti="terraform init"
 alias ta="terraform apply"
 alias taa="terraform apply --auto-approve"
 alias to="terraform output"
+alias qi="q i"
 EOF
