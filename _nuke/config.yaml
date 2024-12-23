@@ -1,5 +1,8 @@
 regions:
-  - all
+  # - all
+  - global
+  - us-east-1
+  - ap-northeast-2
 
 blocklist:
   - 1234567890
