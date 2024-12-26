@@ -1,0 +1,173 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: skills
+  labels:
+    elbv2.k8s.aws/pod-readiness-gate-inject: enabled
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::648911607072:role/skills-role-secretsmanager
+  name: secretsmanager
+  namespace: skills
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  user
+  namespace: skills
+  labels:
+    app:  user
+spec:
+  selector:
+    matchLabels:
+      app: user
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app:  user
+    spec:
+      serviceAccountName: secretsmanager
+      nodeSelector:
+        dedicated: app
+      tolerations:
+        - key: dedicated
+          value: app
+          effect: NoSchedule
+      readinessGates:
+        - conditionType: target-health.alb.ingress.k8s.aws/user_user_8080
+      containers:
+      - name:  user
+        image:  648911607072.dkr.ecr.ap-northeast-2.amazonaws.com/user:5
+        lifecycle:
+          preStop:
+            exec:
+              command: ["sleep", "45"]
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+          limits:
+            cpu: 100m
+            memory: 100Mi
+        livenessProbe:
+          tcpSocket:
+            port: 8080
+          initialDelaySeconds: 5
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          timeoutSeconds: 2
+          successThreshold: 1
+          failureThreshold: 3
+          periodSeconds: 10
+        env:
+        - name: MONGODB_HOST
+          value: skills-mongodb-cluster.cluster-cemltsgrnhrl.ap-northeast-2.docdb.amazonaws.com
+        - name: MONGODB_PORT
+          value: '27018'
+        - name: MONGODB_USERNAME
+          value: docdb
+        - name: MONGODB_PASSWORD
+          value: admin123!!
+        - name: AWS_REGION
+          value: ap-northeast-2
+        - name: AWS_SECRET_NAME
+          value: skills-secret
+        - name: TOKEN_ENDPOINT
+          value: http://token.skills.svc.cluster.local:8080
+        ports:
+        - containerPort: 8080
+          name:  user
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user
+  namespace: skills
+spec:
+  selector:
+    app: user
+  type: ClusterIP
+  ports:
+  - name: user
+    protocol: TCP
+    port: 8080
+    targetPort: 8080
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: user
+  namespace: skills
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: user
+  minReplicas: 2
+  maxReplicas: 64
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 10
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 10
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: user
+  namespace: skills
+  annotations:
+    alb.ingress.kubernetes.io/load-balancer-name: skills-user-alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/healthcheck-path: /health
+    alb.ingress.kubernetes.io/healthcheck-interval-seconds: "5"
+    alb.ingress.kubernetes.io/healthcheck-timeout-seconds: "2"
+    alb.ingress.kubernetes.io/healthy-threshold-count: "2"
+    alb.ingress.kubernetes.io/unhealthy-threshold-count: "2"
+    alb.ingress.kubernetes.io/target-group-attributes: >-
+      deregistration_delay.timeout_seconds=60
+    alb.ingress.kubernetes.io/load-balancer-attributes: >-
+      deletion_protection.enabled=true,
+    # access_logs.s3.enabled=true,
+    # access_logs.s3.bucket=project-logbucket20241219020456227500000001,
+    # access_logs.s3.prefix=accesslog,
+    # connection_logs.s3.enabled=true,
+    # connection_logs.s3.bucket=project-logbucket20241219020456227500000001,
+    # connection_logs.s3.prefix=connectionlog
+spec:
+  ingressClassName: alb
+  rules:
+  - http:
+      paths:
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: user
+            port:
+              number: 8080
