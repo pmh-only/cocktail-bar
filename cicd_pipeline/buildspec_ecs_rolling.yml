@@ -4,7 +4,7 @@ phases:
   pre_build:
     commands:
       # Define variables
-      - REGISTRY_URI=$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+      - REGISTRY_URI=$AWS_CCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
       - REPOSITORY_URI=$REGISTRY_URI/$IMAGE_REPO_NAME
       - IMAGE_TAG=$(TZ=Asia/Seoul date +"%Y-%m-%d.%H.%M.%S")
       

@@ -3,7 +3,7 @@ FROM alpine
 ARG user=1000
 ARG group=1000
 
-RUN apk add --no-cache openjdk21-jre
+RUN apk add --no-cache openjdk21-jre curl
 
 USER $user:$group
 WORKDIR /app

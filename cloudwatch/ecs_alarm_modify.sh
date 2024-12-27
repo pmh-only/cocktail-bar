@@ -1,0 +1,13 @@
+aws cloudwatch put-metric-alarm \
+  --alarm-name "TargetTracking-project-node-2024122004512217120000000f-AlarmLow-64615098-5fcb-4336-b99f-b3b71c665889" \
+  --metric-name "CapacityProviderReservation" \
+  --namespace "AWS/ECS/ManagedScaling" \
+  --statistic "Average" \
+  --period 60 \
+  --evaluation-periods 1 \
+  --threshold 100 \
+  --comparison-operator "LessThanThreshold" \
+  --alarm-actions "arn:aws:autoscaling:ap-northeast-2:648911607072:scalingPolicy:2c2bb4c8-c9ee-473b-9007-82414ddf259e:autoScalingGroupName/project-node-2024122004512217120000000f:policyName/ECSManagedAutoScalingPolicy-2c8a4f9d-f516-4867-839c-8912ffd50c7a" \
+  --dimensions "Name=CapacityProviderName,Value=EC2" "Name=ClusterName,Value=project-cluster" \
+  --actions-enabled \
+  --region "ap-northeast-2"

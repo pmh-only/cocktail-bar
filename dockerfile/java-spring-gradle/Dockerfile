@@ -18,7 +18,7 @@ FROM alpine as runtime
 ARG user=1000
 ARG group=1000
 
-RUN apk add --no-cache openjdk21-jre
+RUN apk add --no-cache openjdk21-jre curl
 
 WORKDIR /app
 USER $user:$group

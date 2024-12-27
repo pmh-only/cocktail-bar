@@ -1,4 +1,6 @@
-FROM scratch
+FROM alpine
+
+RUN apk add --no-cache curl
 
 ARG user=1000
 ARG group=1000

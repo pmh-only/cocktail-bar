@@ -64,8 +64,16 @@ module "eks_blueprints_addons" {
         value = "ClusterFirstWithHostNet"
       },
       {
-        name  = "tolerations[0].operator"
-        value = "Exists"
+        name  = "tolerations[0].key"
+        value = "dedicated"
+      },
+      {
+        name  = "tolerations[0].value"
+        value = "app"
+      },
+      {
+        name  = "tolerations[0].effect"
+        value = "NoSchedule"
       }
     ]
   }

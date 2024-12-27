@@ -11,7 +11,9 @@ COPY . /app/
 ENV CGO_ENABLED=0
 RUN go build -o /app/main
 
-FROM scratch AS runtime
+FROM alpine AS runtime
+
+RUN apk add --no-cache curl
 
 ARG user=1000
 ARG group=1000

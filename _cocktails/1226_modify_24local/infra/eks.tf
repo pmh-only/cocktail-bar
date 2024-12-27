@@ -68,6 +68,11 @@ module "eks" {
           }
         }
       ]
+
+      iam_role_additional_policies = {
+        CloudWatchLogsFullAccess = "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess"
+      }
+
       subnet_ids = module.vpc.private_subnets
     }
   }
@@ -95,8 +100,11 @@ module "eks" {
             type       = "cluster"
           }
         }
+     
       }
     }
+
+    p
   }
 
   cluster_enabled_log_types = [
@@ -106,4 +114,13 @@ module "eks" {
     "controllerManager",
     "scheduler"
   ]
+}
+
+resource "aws_security_group_rule" "dns53" {
+  type = "ingress"
+  from_port = 53
+  to_port = 53
+  protocol = "udp"
+  cidr_blocks = [module.eks.cluster_primary_security_group_id]
+  security_group_id = module.eks.node_security_group_id
 }

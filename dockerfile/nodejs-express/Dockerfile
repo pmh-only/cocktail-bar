@@ -13,7 +13,7 @@ RUN npm i
 
 FROM alpine as runtime
 
-RUN apk add --no-cache nodejs
+RUN apk add --no-cache nodejs curl
 
 ARG user=1000
 ARG group=1000
