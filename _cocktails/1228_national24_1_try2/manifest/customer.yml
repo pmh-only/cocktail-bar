@@ -1,0 +1,188 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: wsc2024
+  labels:
+    elbv2.k8s.aws/pod-readiness-gate-inject: enabled
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  customer
+  namespace: wsc2024
+  labels:
+    app:  customer
+spec:
+  selector:
+    matchLabels:
+      app: customer
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app:  customer
+    spec:
+      nodeSelector:
+        app: db
+      tolerations:
+        - key: dedicated
+          value: app
+          effect: NoSchedule
+      readinessGates:
+        - conditionType: target-health.alb.ingress.k8s.aws/customer_customer_8080
+      containers:
+      - name:  customer
+        image:  648911607072.dkr.ecr.us-east-1.amazonaws.com/customer-repo:latest
+        lifecycle:
+          preStop:
+            exec:
+              command: ["sleep", "45"]
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+          limits:
+            cpu: 100m
+            memory: 100Mi
+        livenessProbe:
+          tcpSocket:
+            port: 8080
+          initialDelaySeconds: 5
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /healthcheck
+            port: 8080
+          initialDelaySeconds: 5
+          timeoutSeconds: 2
+          successThreshold: 1
+          failureThreshold: 3
+          periodSeconds: 10
+        env:
+        - name: MYSQL_USER
+          value: admin
+        - name: MYSQL_HOST
+          value: wsc2024-db-cluster.cluster-cvhavhqrsngf.us-east-1.rds.amazonaws.com
+        - name: MYSQL_PORT
+          value: '3307'
+        - name: MYSQL_DBNAME
+          value: wsc2024_db
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: customer
+              key: MYSQL_PASSWORD
+        ports:
+        - containerPort: 8080
+          name:  customer
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: customer
+  namespace: wsc2024
+type: Opaque
+stringData:
+  MYSQL_PASSWORD: "Skill53##"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: customer
+  namespace: wsc2024
+spec:
+  selector:
+    app: customer
+  type: ClusterIP
+  ports:
+  - name: customer
+    protocol: TCP
+    port: 8080
+    targetPort: 8080
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: customer
+  namespace: wsc2024
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: customer
+  minReplicas: 2
+  maxReplicas: 64
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 30
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 30
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: customer
+  namespace: wsc2024
+  annotations:
+    alb.ingress.kubernetes.io/load-balancer-name: wsc2024-alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/healthcheck-path: /healthcheck
+    alb.ingress.kubernetes.io/healthcheck-interval-seconds: "5"
+    alb.ingress.kubernetes.io/healthcheck-timeout-seconds: "2"
+    alb.ingress.kubernetes.io/healthy-threshold-count: "2"
+    alb.ingress.kubernetes.io/unhealthy-threshold-count: "2"
+    alb.ingress.kubernetes.io/target-group-attributes: >-
+      deregistration_delay.timeout_seconds=60
+    alb.ingress.kubernetes.io/load-balancer-attributes: >-
+      deletion_protection.enabled=true,
+      access_logs.s3.enabled=true,
+      access_logs.s3.bucket=wsc2024-ma-logbucket20241228050156673500000002,
+      access_logs.s3.prefix=accesslog,
+      connection_logs.s3.enabled=true,
+      connection_logs.s3.bucket=wsc2024-ma-logbucket20241228050156673500000002,
+      connection_logs.s3.prefix=connectionlog
+    alb.ingress.kubernetes.io/actions.response-403: >
+      {"type":"fixed-response","fixedResponseConfig":{"contentType":"text/plain","statusCode":"403","messageBody":"403 error text"}}
+spec:
+  ingressClassName: alb
+  rules:
+  - http:
+      paths:
+      - path: /v1/customer
+        pathType: Exact
+        backend:
+          service:
+            name: customer
+            port:
+              number: 8080
+      - path: /v1/product
+        pathType: Exact
+        backend:
+          service:
+            name: product
+            port:
+              number: 8080
+      - path: /v1/order
+        pathType: Exact
+        backend:
+          service:
+            name: order
+            port:
+              number: 8080

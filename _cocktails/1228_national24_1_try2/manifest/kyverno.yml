@@ -1,0 +1,82 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-labels-prod
+spec:
+  validationFailureAction: Enforce
+  background: false
+  rules:
+  - name: check-for-labels
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+          namespaces:
+          - prod
+    validate:
+      message: "The label `cloudhrdk.com/env` must be prod in prod namespace"
+      pattern:
+        metadata:
+          labels:
+            cloudhrdk.com/env: "prod"
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-labels-beta
+spec:
+  validationFailureAction: Enforce
+  background: false
+  rules:
+  - name: check-for-labels
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+          namespaces:
+          - beta
+    validate:
+      message: "The label `cloudhrdk.com/env` must be beta in beta namespace"
+      pattern:
+        metadata:
+          labels:
+            cloudhrdk.com/env: "beta"
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: block-latest-tag
+spec:
+  validationFailureAction: Enforce
+  background: false
+  rules:
+  - name: require-image-tag
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+          namespaces:
+          - prod
+    validate:
+      message: "An image tag is required."
+      pattern:
+        spec:
+          containers:
+          - image: "*:*"
+  - name: validate-image-tag
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+          namespaces:
+          - prod
+    validate:
+      message: "Using a mutable image tag e.g. 'latest' is not allowed."
+      pattern:
+        spec:
+          containers:
+          - image: "!*:latest"
