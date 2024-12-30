@@ -29,109 +29,109 @@ module "endpoints" {
     autoscaling = {
       service    = "autoscaling"
       private_dns_enabled = true
-      subnet_ids = module.vpc.intra_subnets
+      subnet_ids = length(module.vpc.intra_subnets) > 0 ? module.vpc.intra_subnets : module.vpc.private_subnets
       tags       = { Name = "${var.project_name}-endpoint-autoscaling" }
     },
     logs = {
       service    = "logs"
       private_dns_enabled = true
-      subnet_ids = module.vpc.intra_subnets
+      subnet_ids = length(module.vpc.intra_subnets) > 0 ? module.vpc.intra_subnets : module.vpc.private_subnets
       tags       = { Name = "${var.project_name}-endpoint-logs" }
     },
     ec2 = {
       service    = "ec2"
       private_dns_enabled = true
-      subnet_ids = module.vpc.intra_subnets
+      subnet_ids = length(module.vpc.intra_subnets) > 0 ? module.vpc.intra_subnets : module.vpc.private_subnets
       tags       = { Name = "${var.project_name}-endpoint-ec2" }
     },
     sts = {
       service    = "sts"
       private_dns_enabled = true
-      subnet_ids = module.vpc.intra_subnets
+      subnet_ids = length(module.vpc.intra_subnets) > 0 ? module.vpc.intra_subnets : module.vpc.private_subnets
       tags       = { Name = "${var.project_name}-endpoint-sts" }
     },
     ssm = {
       service    = "ssm"
       private_dns_enabled = true
-      subnet_ids = module.vpc.intra_subnets
+      subnet_ids = length(module.vpc.intra_subnets) > 0 ? module.vpc.intra_subnets : module.vpc.private_subnets
       tags       = { Name = "${var.project_name}-endpoint-ssm" }
     },
     sqs = {
       service    = "sqs"
       private_dns_enabled = true
-      subnet_ids = module.vpc.intra_subnets
+      subnet_ids = length(module.vpc.intra_subnets) > 0 ? module.vpc.intra_subnets : module.vpc.private_subnets
       tags       = { Name = "${var.project_name}-endpoint-sqs" }
     },
     sns = {
       service    = "sns"
       private_dns_enabled = true
-      subnet_ids = module.vpc.intra_subnets
+      subnet_ids = length(module.vpc.intra_subnets) > 0 ? module.vpc.intra_subnets : module.vpc.private_subnets
       tags       = { Name = "${var.project_name}-endpoint-sns" }
     },
     ec2 = {
       service    = "ec2"
       private_dns_enabled = true
-      subnet_ids = module.vpc.intra_subnets
+      subnet_ids = length(module.vpc.intra_subnets) > 0 ? module.vpc.intra_subnets : module.vpc.private_subnets
       tags       = { Name = "${var.project_name}-endpoint-ec2" }
     },
     ssmmessages = {
       service    = "ssmmessages"
       private_dns_enabled = true
-      subnet_ids = module.vpc.intra_subnets
+      subnet_ids = length(module.vpc.intra_subnets) > 0 ? module.vpc.intra_subnets : module.vpc.private_subnets
       tags       = { Name = "${var.project_name}-endpoint-ssmmessages" }
     },
     ec2messages = {
       service    = "ec2messages"
       private_dns_enabled = true
-      subnet_ids = module.vpc.intra_subnets
+      subnet_ids = length(module.vpc.intra_subnets) > 0 ? module.vpc.intra_subnets : module.vpc.private_subnets
       tags       = { Name = "${var.project_name}-endpoint-ec2messages" }
     },
     ecrapi = {
       service    = "ecr.api"
       private_dns_enabled = true
-      subnet_ids = module.vpc.intra_subnets
+      subnet_ids = length(module.vpc.intra_subnets) > 0 ? module.vpc.intra_subnets : module.vpc.private_subnets
       tags       = { Name = "${var.project_name}-endpoint-ecr.api" }
     },
     ecrdkr = {
       service    = "ecr.dkr"
       private_dns_enabled = true
-      subnet_ids = module.vpc.intra_subnets
+      subnet_ids = length(module.vpc.intra_subnets) > 0 ? module.vpc.intra_subnets : module.vpc.private_subnets
       tags       = { Name = "${var.project_name}-endpoint-ecr.dkr" }
     },
     rds = {
       service    = "rds"
       private_dns_enabled = true
-      subnet_ids = module.vpc.intra_subnets
+      subnet_ids = length(module.vpc.intra_subnets) > 0 ? module.vpc.intra_subnets : module.vpc.private_subnets
       tags       = { Name = "${var.project_name}-endpoint-rds" }
     },
     ecs = {
       service    = "ecs"
       private_dns_enabled = true
-      subnet_ids = module.vpc.intra_subnets
+      subnet_ids = length(module.vpc.intra_subnets) > 0 ? module.vpc.intra_subnets : module.vpc.private_subnets
       tags       = { Name = "${var.project_name}-endpoint-ecs" }
     },
     ecsagent = {
       service    = "ecs-agent"
       private_dns_enabled = true
-      subnet_ids = module.vpc.intra_subnets
+      subnet_ids = length(module.vpc.intra_subnets) > 0 ? module.vpc.intra_subnets : module.vpc.private_subnets
       tags       = { Name = "${var.project_name}-endpoint-ecsagent" }
     },
     ecstelemetry = {
       service    = "ecs-telemetry"
       private_dns_enabled = true
-      subnet_ids = module.vpc.intra_subnets
+      subnet_ids = length(module.vpc.intra_subnets) > 0 ? module.vpc.intra_subnets : module.vpc.private_subnets
       tags       = { Name = "${var.project_name}-endpoint-ecstelemetry" }
     },
     glue = {
       service    = "glue"
       private_dns_enabled = true
-      subnet_ids = module.vpc.intra_subnets
+      subnet_ids = length(module.vpc.intra_subnets) > 0 ? module.vpc.intra_subnets : module.vpc.private_subnets
       tags       = { Name = "${var.project_name}-endpoint-glue" }
     },
     secretsmanager = {
       service    = "secretsmanager"
       private_dns_enabled = true
-      subnet_ids = module.vpc.intra_subnets
+      subnet_ids = length(module.vpc.intra_subnets) > 0 ? module.vpc.intra_subnets : module.vpc.private_subnets
       tags       = { Name = "${var.project_name}-endpoint-secretsmanager" }
     }
   }
