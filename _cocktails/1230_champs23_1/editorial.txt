@@ -1,0 +1,7 @@
+* coredns has taints with fargate compute type
+  ㄴ so we need to add toleration for that
+
+* ALB Readiness Gate is unable to use at first time
+  ㄴ so we need to restart deployment at least once
+
+* If EKS cluster is fargate only, use wildcar(*) to pod selection
