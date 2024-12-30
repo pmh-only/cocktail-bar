@@ -47,7 +47,7 @@ data "aws_ami" "al2023" {
   }
   filter {
     name   = "name"
-    values = ["al2023-ami-2023*"]
+    values = ["al2023-ami-2023*"] #amzn2-ami-hvm-*-x86_64-gp2
   }
 }
 

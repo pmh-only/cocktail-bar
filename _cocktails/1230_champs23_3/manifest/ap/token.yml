@@ -1,0 +1,105 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  token
+  namespace: dev
+  labels:
+    app:  token
+spec:
+  selector:
+    matchLabels:
+      app: token
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app:  token
+    spec:
+      serviceAccountName: dynamodb
+      nodeSelector:
+        app: apps
+      tolerations:
+        - key: dedicated
+          value: app
+          effect: NoSchedule
+      containers:
+      - name:  token
+        image: 648911607072.dkr.ecr.ap-northeast-2.amazonaws.com/token:v1
+        args: ["-redisEndpoint", "clustercfg.ap-unicorn-redis-cluster.afaync.apn2.cache.amazonaws.com:6379"]
+        lifecycle:
+          preStop:
+            exec:
+              command: ["sleep", "45"]
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+          limits:
+            cpu: 100m
+            memory: 100Mi
+        livenessProbe:
+          tcpSocket:
+            port: 8080
+          initialDelaySeconds: 5
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /healthcheck
+            port: 8080
+          initialDelaySeconds: 5
+          timeoutSeconds: 2
+          successThreshold: 1
+          failureThreshold: 3
+          periodSeconds: 10
+        ports:
+        - containerPort: 8080
+          name:  token
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: token
+  namespace: dev
+spec:
+  selector:
+    app: token
+  type: ClusterIP
+  ports:
+  - name: token
+    protocol: TCP
+    port: 8080
+    targetPort: 8080
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: token
+  namespace: dev
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: token
+  minReplicas: 2
+  maxReplicas: 64
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 30
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 30
