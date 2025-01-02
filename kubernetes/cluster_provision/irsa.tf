@@ -16,18 +16,21 @@ module "irsa_cloudwatchagent" {
   }
 }
 
-resource "aws_iam_policy" "secretsmanager" {
-  name = "${var.project_name}-policy-secretsmanager"
-  policy = data.aws_iam_policy_document.secretsmanager.json  
-}
+module "irsa_dynamodb" {
+  source    = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  role_name = "${var.project_name}-role-dynamodb"
 
-data "aws_iam_policy_document" "secretsmanager" {
-  statement {
-    actions = [
-      "secretsmanager:*"
-    ]
+  role_policy_arns = {
+    policy = "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess"
+  }
 
-    resources = ["*"]
+  oidc_providers = {
+    cluster-oidc-provider = {
+      provider_arn               = module.eks.oidc_provider_arn
+      namespace_service_accounts = [
+        "dev:dynamodb"
+      ]
+    }
   }
 }
 
@@ -36,18 +39,51 @@ module "irsa_secretsmanager" {
   role_name = "${var.project_name}-role-secretsmanager"
 
   role_policy_arns = {
-    policy = aws_iam_policy.secretsmanager.arn
+    policy = "arn:aws:iam::aws:policy/SecretsManagerReadWrite"
   }
 
   oidc_providers = {
     cluster-oidc-provider = {
       provider_arn               = module.eks.oidc_provider_arn
       namespace_service_accounts = [
-        "default:secretsmanager"
+        "dev:secretsmanager"
       ]
     }
   }
 }
+
+# resource "aws_iam_policy" "secretsmanager" {
+#   name = "${var.project_name}-policy-secretsmanager"
+#   policy = data.aws_iam_policy_document.secretsmanager.json  
+# }
+
+# data "aws_iam_policy_document" "secretsmanager" {
+#   statement {
+#     actions = [
+#       "secretsmanager:*"
+#     ]
+
+#     resources = ["*"]
+#   }
+# }
+
+# module "irsa_secretsmanager" {
+#   source    = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+#   role_name = "${var.project_name}-role-secretsmanager"
+
+#   role_policy_arns = {
+#     policy = aws_iam_policy.secretsmanager.arn
+#   }
+
+#   oidc_providers = {
+#     cluster-oidc-provider = {
+#       provider_arn               = module.eks.oidc_provider_arn
+#       namespace_service_accounts = [
+#         "default:secretsmanager"
+#       ]
+#     }
+#   }
+# }
 
 # resource "aws_iam_policy" "fluentd" {
 #   name = "project-policy-fluentd"

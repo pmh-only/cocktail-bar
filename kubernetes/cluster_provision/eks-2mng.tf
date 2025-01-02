@@ -3,48 +3,49 @@ module "eks" {
   version = "~> 20.0"
 
   cluster_name    = "${var.project_name}-cluster"
-  cluster_version = "1.29"
+  cluster_version = "1.31"
 
   vpc_id                   = module.vpc.vpc_id
   subnet_ids               = module.vpc.private_subnets
   control_plane_subnet_ids = module.vpc.private_subnets
 
   eks_managed_node_groups = {
-    wsc2024-other-ng = {
-      name = "wsc2024-other-ng"
-      ami_type       = "BOTTLEROCKET_x86_64"
-      instance_types = ["t3.medium"]
-      iam_role_name = "wsc2024-other-ng"
+    tools = {
+      name = "${var.project_name}-nodegroup-tools"
+      ami_type       = "BOTTLEROCKET_ARM_64"
+      instance_types = ["c6g.large"]
+      iam_role_name = "${var.project_name}-ng-tools"
+      use_name_prefix = false
 
-      min_size     = 2
+      min_size     = 1
       max_size     = 27
-      desired_size = 2
+      desired_size = 1
 
       launch_template_tags = {
-        Name = "wsc2024-other-node"
+        Name = "${var.project_name}-node-tools"
       }
 
       labels = {
-        app = "other"
+        dedicated = "tools"
       }
     }
 
-    wsc2024-db-application-ng = {
-      name = "wsc2024-db-application-ng"
-      ami_type       = "BOTTLEROCKET_x86_64"
-      instance_types = ["t3.medium"]
-      iam_role_name = "wsc2024-db-application-ng"
+    apps = {
+      name = "${var.project_name}-nodegroup-apps"
+      ami_type       = "BOTTLEROCKET_ARM_64"
+      instance_types = ["c6g.xlarge"]
+      iam_role_name = "${var.project_name}-ng-apps"
 
-      min_size     = 2
+      min_size     = 0
       max_size     = 27
-      desired_size = 2
+      desired_size = 0
 
       launch_template_tags = {
-        Name = "wsc2024-db-application-node"
+        Name = "${var.project_name}-node-apps"
       }
 
       labels = {
-        app = "db"
+        dedicated = "apps"
       }
       
       taints = {
@@ -62,7 +63,7 @@ module "eks" {
       protocol = "tcp"
       from_port = "443"
       to_port = "443"
-      cidr_blocks = ["172.16.0.0/16"]
+      cidr_blocks = ["10.0.0.0/8"]
       type="ingress"
     }
   }
@@ -70,7 +71,7 @@ module "eks" {
   access_entries = {
     example = {
       kubernetes_groups = []
-      principal_arn = "arn:aws:iam::648911607072:role/wsc2024-bastion-role"
+      principal_arn = "arn:aws:iam::648911607072:role/us-unicorn-role-bastion"
 
       policy_associations = {
         example = {
