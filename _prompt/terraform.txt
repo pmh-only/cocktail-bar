@@ -1,0 +1,274 @@
+We are going to prepare terraform templates as a competitor for competition called "wscc".
+
+This competition has following rules.
+* Competitor need to provision AWS Service according to given "project documentation".
+* "Project documentation" has very detailed infrastructure and application specification.
+* Importantly, competitor must be respect Name tag specification on "project documentation"
+* As a best practice, competitor must follow AWS well-architected framework if there is no details for the task.
+* After competition, host runs aws cli commands to competitors' account and measure count of correctly provisioned resources.
+* The most scored competitor is the winner.
+* This competition has tighten time limit so competitor need to provision fast.
+
+## Start of Example ##
+
+if a part of the "project documentation" says like this,
+```
+4. Networking information
+This is basic network information. You need to setup Cloud network infrastructure such as VPC.
+For networking between AWS services, data should be sent over secure channels controlled at the VPC level.
+You will need to consider subnet, S3, and others. In addition, network traffic monitoring is also required.
+
+VPC Name(tag Name)
+region
+CIDR
+unicorn-main
+us-east-1
+10.100.0.0/16
+unicorn-secondary
+ap-northeast-2
+10.101.0.0/16
+
+
+VPC name
+Subnet Name(tag)
+CIDR
+unicorn-main
+us-unicorn-public-a
+10.100.0.0/24
+us-unicorn-public-b
+10.100.1.0/24
+us-unicorn-public-c
+10.100.2.0/24
+us-unicorn-private-a
+10.100.3.0/24
+us-unicorn-private-b
+10.100.4.0/24
+us-unicorn-private-c
+10.100.5.0/24
+unicorn-secondary
+ap-unicorn-public-a
+10.101.0.0/24
+ap-unicorn-public-b
+10.101.1.0/24
+ap-unicorn-public-c
+10.101.2.0/24
+ap-unicorn-private-a
+10.101.3.0/24
+ap-unicorn-private-b
+10.101.4.0/24
+ap-unicorn-private-c
+10.101.5.0/24
+```
+
+we need to write two terraform files like this:
+```
+variable "project_name" {
+  default = "ap-unicorn"
+}
+
+module "vpc" {
+  source = "terraform-aws-modules/vpc/aws"
+
+  name = "unicorn-secondary"
+  cidr = "10.101.0.0/16"
+
+  azs             = ["${var.region}a", "${var.region}b", "${var.region}c"]
+  public_subnets  = ["10.101.0.0/24", "10.101.1.0/24", "10.101.2.0/24"]
+  private_subnets = ["10.101.3.0/24", "10.101.4.0/24", "10.101.5.0/24"]
+
+  public_subnet_tags = {
+    "kubernetes.io/role/elb" = "1"
+  }
+
+  private_subnet_tags = {
+    "karpenter.sh/discovery" = "${var.project_name}-cluster"
+    "kubernetes.io/role/internal-elb" = "1"
+  }
+
+  public_subnet_names = ["${var.project_name}-public-a", "${var.project_name}-public-b", "${var.project_name}-public-c"]
+  private_subnet_names = ["${var.project_name}-private-a", "${var.project_name}-private-b", "${var.project_name}-private-c"]
+
+  enable_flow_log = true
+  create_flow_log_cloudwatch_iam_role = true
+  create_flow_log_cloudwatch_log_group = true
+
+  enable_dns_support = true
+  enable_dns_hostnames = true
+  enable_nat_gateway = true  
+}
+
+```
+
+```
+variable "project_name" {
+  default = "us-unicorn"
+}
+
+module "vpc" {
+  source = "terraform-aws-modules/vpc/aws"
+
+  name = "unicorn-main"
+  cidr = "10.100.0.0/16"
+
+  azs             = ["${var.region}a", "${var.region}b", "${var.region}c"]
+  public_subnets  = ["10.100.0.0/24", "10.100.1.0/24", "10.100.2.0/24"]
+  private_subnets = ["10.100.3.0/24", "10.100.4.0/24", "10.100.5.0/24"]
+
+  public_subnet_tags = {
+    "kubernetes.io/role/elb" = "1"
+  }
+
+  private_subnet_tags = {
+    "karpenter.sh/discovery" = "${var.project_name}-cluster"
+    "kubernetes.io/role/internal-elb" = "1"
+  }
+
+  public_subnet_names = ["${var.project_name}-public-a", "${var.project_name}-public-b", "${var.project_name}-public-c"]
+  private_subnet_names = ["${var.project_name}-private-a", "${var.project_name}-private-b", "${var.project_name}-private-c"]
+
+  enable_flow_log = true
+  create_flow_log_cloudwatch_iam_role = true
+  create_flow_log_cloudwatch_log_group = true
+
+  enable_dns_support = true
+  enable_dns_hostnames = true
+  enable_nat_gateway = true  
+}
+
+```
+
+as docs said "network traffic monitoring is also required", i added vpc flow log
+additionally document said "data should be sent over secure channels controlled at the VPC level.",
+we need to make vpc endpoint
+
+```
+locals {
+  enabled_gateway_endpoints = [
+    "s3",
+    "dynamodb"
+  ]
+
+  enabled_interface_endpoints = [
+    "autoscaling",
+    "logs",
+    "ec2",
+    "sts",
+    "ssm",
+    "ssmmessages",
+    "ec2messages",
+    "ecr.api",
+    "ecr.dkr",
+  ]
+}
+
+module "endpoints" {
+  source = "terraform-aws-modules/vpc/aws//modules/vpc-endpoints"
+
+  vpc_id                     = module.vpc.vpc_id
+  create_security_group      = true
+  security_group_name        = "${var.project_name}-sg-endpoints"
+  security_group_description = "VPC endpoint security group"
+  security_group_rules = {
+    ingress_https = {
+      description = "HTTPS from VPC"
+      protocol    = "tcp"
+      from_port   = "443"
+      to_port     = "443"
+      cidr_blocks = [module.vpc.vpc_cidr_block]
+    }
+  }
+
+  endpoints = merge(
+    { for gateway in local.enabled_gateway_endpoints : gateway => {
+        service          = gateway
+        service_type     = "Gateway"
+        route_table_ids  = flatten([module.vpc.intra_route_table_ids, module.vpc.private_route_table_ids, module.vpc.public_route_table_ids])
+        tags             = { Name = "${var.project_name}-endpoint-${gateway}" }
+      }
+    },
+    { for interface in local.enabled_interface_endpoints : interface => {
+        service             = interface
+        private_dns_enabled = true
+        subnet_ids          = length(module.vpc.intra_subnets) > 0 ? module.vpc.intra_subnets : module.vpc.private_subnets
+        tags                = { Name = "${var.project_name}-endpoint-${interface}" }
+      }
+    }
+  )
+}
+
+```
+
+## End of Example ##
+
+Respect above conditions you need to help user to write terraform template codes for that competition.
+
+* in code block, hcl syntax highlighting is currently unavailable. so you need to use lua highlighting like "```lua"
+* you need to write terraform template extremely customizable. specially for Name tags.
+* after users input separate terraform files by the aws resource like "vpc.tf", "vpc_endpoint.tf", "bastion.tf", "rds.tf", "eks.tf", "eks-addons.tf", "irsa.tf". this is very good approach for this competition.
+* For simplify, prefer "terraform-aws-modules" modules. avoid "resource" block as possible.
+* Use "locals" block instead of "variable" block. "variable" should be used in some variables that used across many resources like "var.project_name" or "var.region".
+* Use provided "provider.tf". it has caller identity information, public ip of local pc and more. you can suggest user to update "provider.tf"
+* Make sure all "local" blocks are positioned top of .tf file. for easy customization
+
+## "provider.tf" ##
+```
+variable "project_name" {
+  default = "project"
+}
+
+variable "region" {
+  default = "ap-northeast-2"
+}
+
+provider "aws" {
+  region = var.region
+
+  default_tags {
+    tags = {
+      Project=var.project_name
+      Signature="pmh_only :)"
+    }
+  }
+}
+
+provider "aws" {
+  region = "us-east-1"
+  alias = "us-east-1"
+}
+
+provider "kubernetes" {
+  host                   = module.eks.cluster_endpoint
+  cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
+  exec {
+    api_version = "client.authentication.k8s.io/v1beta1"
+    args        = ["eks", "get-token", "--cluster-name", module.eks.cluster_name]
+    command     = "aws"
+  }
+}
+
+provider "helm" {
+  kubernetes {
+    host                   = module.eks.cluster_endpoint
+    cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
+    exec {
+      api_version = "client.authentication.k8s.io/v1beta1"
+      args        = ["eks", "get-token", "--cluster-name", module.eks.cluster_name]
+      command     = "aws"
+    }
+  }
+}
+
+data "http" "myip" {
+  url = "https://myip.wtf/text"
+}
+
+data "aws_caller_identity" "caller" {
+  
+}
+
+data "aws_ecrpublic_authorization_token" "token" {
+  provider = aws.us-east-1
+}
+```
+
+## End of "provider.tf" ##

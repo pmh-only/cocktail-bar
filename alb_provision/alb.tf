@@ -1,11 +1,3 @@
-module "s3_bucket_for_logs" {
-  source = "terraform-aws-modules/s3-bucket/aws"
-  bucket_prefix = "${var.project_name}-logbucket"
-
-  force_destroy = true
-  attach_elb_log_delivery_policy = true
-}
-
 module "alb" {
   source = "terraform-aws-modules/alb/aws"
 
@@ -31,7 +23,7 @@ module "alb" {
   }
 
   access_logs = {
-    bucket = module.s3_bucket_for_logs.s3_bucket_id
+    bucket = module.log_bucket.s3_bucket_id
   }
 
   listeners = {

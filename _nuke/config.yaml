@@ -8,10 +8,10 @@ blocklist:
   - 1234567890
 
 bypass-alias-check-accounts:
-  - 648911607072
+  - 976139933880
 
 accounts:
-  648911607072:
+  976139933880:
     filters:
       IAMUser:
         - "admin"
@@ -20,12 +20,14 @@ accounts:
         - "admin -> AdministratorAccess"
         - "costview -> GetCostAndUsage"
       IAMUserAccessKey:
+        - property: AccessKeyId
+          value: "AKIA6GRTZLC4HZBHPTNN"
         - "admin -> AKIAZOFRFKUQAWYBXEFV"
         - "costview -> AKIAZOFRFKUQH45JMSNQ"
       IAMVirtualMFADevice:
-        - "arn:aws:iam::648911607072:mfa/admin"
+        - "arn:aws:iam::976139933880:mfa/admin"
       IAMSAMLProvider:
-        - "arn:aws:iam::648911607072:saml-provider/AWSSSO_93b584ed1d22a1c5_DO_NOT_DELETE"
+        - "arn:aws:iam::976139933880:saml-provider/AWSSSO_93b584ed1d22a1c5_DO_NOT_DELETE"
       Route53ResourceRecordSet:
         - "samsungskills2.pmh.codes."
         - "_a6d0d215e3fb85c4d5d2372846f01f34.samsungskills2.pmh.codes."
@@ -37,12 +39,12 @@ accounts:
         - "admin -> admin-mfa-3R7XKZW6PVCYLJK76JDH4FDP7Y"
         - "admin -> admin"
       IAMPolicy:
-        - "arn:aws:iam::648911607072:policy/SCOP_PRD_INFRAMANAGEMENT_PERMISSION_BOUNDARY_PL"
-        - "arn:aws:iam::648911607072:policy/SCOP_DYNAMO_WRITER"
-        - "arn:aws:iam::648911607072:policy/SCOP_DYNAMO_READER"
-        - "arn:aws:iam::648911607072:policy/SCOP_S3_WRITER"
-        - "arn:aws:iam::648911607072:policy/SCOP_S3_READER"
-        - "arn:aws:iam::648911607072:policy/GetCostAndUsage"
+        - "arn:aws:iam::976139933880:policy/SCOP_PRD_INFRAMANAGEMENT_PERMISSION_BOUNDARY_PL"
+        - "arn:aws:iam::976139933880:policy/SCOP_DYNAMO_WRITER"
+        - "arn:aws:iam::976139933880:policy/SCOP_DYNAMO_READER"
+        - "arn:aws:iam::976139933880:policy/SCOP_S3_WRITER"
+        - "arn:aws:iam::976139933880:policy/SCOP_S3_READER"
+        - "arn:aws:iam::976139933880:policy/GetCostAndUsage"
       IAMRole:
         - "RBAC_SCOP_DYNMRD"
         - "RBAC_SCOP_DYNMWT"
@@ -90,7 +92,7 @@ accounts:
         - "StackSet-SamsungCloudMgmtPlatformStackSet-d7e04c54-5e4a-4ac8-a509-fe2d1e871373"
         - "StackSet-SamsungCloudOpsPlatformStackSet-3f9ed7f2-4e90-4486-ad27-56984de94506"
       ACMCertificate:
-        - "arn:aws:acm:us-east-1:648911607072:certificate/55aa50fd-1bc8-4538-9284-df2a6245d372"
+        - "arn:aws:acm:us-east-1:976139933880:certificate/55aa50fd-1bc8-4538-9284-df2a6245d372"
       KMSKey:
         - "91a8e47e-5cbf-43e5-89e0-0d2207b25cb7"
 

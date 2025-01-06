@@ -28,6 +28,12 @@ module "eks" {
       labels = {
         dedicated = "tools"
       }
+
+      metadata_options = {
+        http_endpoint = "enabled"
+        http_put_response_hop_limit = 1
+        http_tokens = "required"
+      }
     }
 
     apps = {
@@ -54,6 +60,12 @@ module "eks" {
           value = "app"
           effect = "NO_SCHEDULE"
         }
+      }
+
+      metadata_options = {
+        http_endpoint = "enabled"
+        http_put_response_hop_limit = 1
+        http_tokens = "required"
       }
     }
   }

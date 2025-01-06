@@ -1,5 +1,5 @@
 variable "project_name" {
-  default = "project"
+  default = "project-app1"
 }
 
 variable "region" {
@@ -12,7 +12,6 @@ provider "aws" {
   default_tags {
     tags = {
       Project=var.project_name
-      Signature="pmh_only :)"
     }
   }
 }
