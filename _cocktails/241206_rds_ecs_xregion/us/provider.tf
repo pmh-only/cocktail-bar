@@ -11,7 +11,7 @@ provider "aws" {
 
   default_tags {
     tags = {
-      Project=var.project_name
+      Project = var.project_name
     }
   }
 }
@@ -27,7 +27,7 @@ data "http" "myip" {
 }
 
 data "aws_caller_identity" "caller" {
-  
+
 }
 
 data "aws_ecrpublic_authorization_token" "token" {

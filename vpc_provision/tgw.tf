@@ -68,10 +68,10 @@ locals {
   tgw_attachments_map = {
     for idx, vpc_id in local.tgw_target_vpcs :
     idx => {
-      vpc_id                 = vpc_id
-      attachment_name        = local.tgw_attachment_names[idx]
+      vpc_id          = vpc_id
+      attachment_name = local.tgw_attachment_names[idx]
       # Subnet IDs come from data.aws_subnets
-      subnet_ids             = (length(data.aws_subnets.target_vpc_subnets_intra[vpc_id].ids) > 0) ? data.aws_subnets.target_vpc_subnets_intra[vpc_id].ids : data.aws_subnets.target_vpc_subnets_private[vpc_id].ids
+      subnet_ids = (length(data.aws_subnets.target_vpc_subnets_intra[vpc_id].ids) > 0) ? data.aws_subnets.target_vpc_subnets_intra[vpc_id].ids : data.aws_subnets.target_vpc_subnets_private[vpc_id].ids
       # VPC CIDR from data.aws_vpc
       destination_cidr_block = data.aws_vpc.target_vpc[vpc_id].cidr_block
     }
@@ -103,15 +103,15 @@ module "tgw" {
   source  = "terraform-aws-modules/transit-gateway/aws"
   version = "~> 2.0"
 
-  name                                      = local.tgw_name
-  transit_gateway_cidr_blocks               = ["10.99.0.0/24"]
-  enable_auto_accept_shared_attachments     = false
-  enable_multicast_support                  = false
-  enable_default_route_table_association    = false
-  enable_default_route_table_propagation    = false
-  create_tgw_routes                         = false
-  enable_dns_support                        = true
-  share_tgw                                 = false
+  name                                   = local.tgw_name
+  transit_gateway_cidr_blocks            = ["10.99.0.0/24"]
+  enable_auto_accept_shared_attachments  = false
+  enable_multicast_support               = false
+  enable_default_route_table_association = false
+  enable_default_route_table_propagation = false
+  create_tgw_routes                      = false
+  enable_dns_support                     = true
+  share_tgw                              = false
 
   # Dynamically built from local.dynamic_vpc_attachments
   vpc_attachments = local.dynamic_vpc_attachments

@@ -1,5 +1,5 @@
 module "bucket_logbucket_logbucket" {
-  source = "terraform-aws-modules/s3-bucket/aws"
+  source        = "terraform-aws-modules/s3-bucket/aws"
   bucket_prefix = "${var.project_name}-log4logbucket"
 
   force_destroy = true
@@ -9,8 +9,8 @@ module "bucket_logbucket_logbucket" {
 
   lifecycle_rule = [
     {
-      id = "garbage_collector"
-      enabled = true
+      id                                     = "garbage_collector"
+      enabled                                = true
       abort_incomplete_multipart_upload_days = 1
 
       noncurrent_version_expiration = {
@@ -27,7 +27,7 @@ module "bucket_logbucket_logbucket" {
       }
     }
   }
-  
+
 
   attach_deny_insecure_transport_policy = true
 }

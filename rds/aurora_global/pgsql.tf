@@ -7,12 +7,12 @@ resource "aws_rds_global_cluster" "this" {
 }
 
 resource "aws_db_subnet_group" "this" {
-  name        = "${var.project_name}-subnets"
-  subnet_ids  = module.vpc.intra_subnets
+  name       = "${var.project_name}-subnets"
+  subnet_ids = module.vpc.intra_subnets
 }
 
 module "aurora_primary" {
-  source =  "terraform-aws-modules/rds-aurora/aws"
+  source = "terraform-aws-modules/rds-aurora/aws"
 
   name                      = "${var.project_name}-ap-rds"
   database_name             = aws_rds_global_cluster.this.database_name
@@ -32,32 +32,32 @@ module "aurora_primary" {
 
   # Global clusters do not support managed master user password
   manage_master_user_password = false
-  master_username           = "postgres"
+  master_username             = "postgres"
   master_password             = "admin123!!"
 
   deletion_protection = true
   skip_final_snapshot = true
-  kms_key_id = aws_kms_key.primary.arn 
+  kms_key_id          = aws_kms_key.primary.arn
 
-  availability_zones = module.vpc.azs
-  backup_retention_period = 7
+  availability_zones           = module.vpc.azs
+  backup_retention_period      = 7
   performance_insights_enabled = true
-  monitoring_interval = 30
+  monitoring_interval          = 30
   enabled_cloudwatch_logs_exports = [
     "postgresql",
     "upgrade"
   ]
 
-  create_db_cluster_parameter_group = true
+  create_db_cluster_parameter_group    = true
   cluster_performance_insights_enabled = true
-  
-  db_cluster_parameter_group_family = "aurora-postgresql14"
-  db_parameter_group_family = "aurora-postgresql14"
+
+  db_cluster_parameter_group_family           = "aurora-postgresql14"
+  db_parameter_group_family                   = "aurora-postgresql14"
   db_cluster_db_instance_parameter_group_name = "aurora-postgresql14"
 }
 
 module "aurora_secondary" {
-  source =  "terraform-aws-modules/rds-aurora/aws"
+  source = "terraform-aws-modules/rds-aurora/aws"
 
   name                      = "${var.project_name}-ap-rds"
   engine                    = "aurora-postgresql"
@@ -79,22 +79,22 @@ module "aurora_secondary" {
 
   deletion_protection = true
   skip_final_snapshot = true
-  kms_key_id = aws_kms_key.primary.arn 
+  kms_key_id          = aws_kms_key.primary.arn
 
-  availability_zones = module.vpc.azs
-  backup_retention_period = 7
+  availability_zones           = module.vpc.azs
+  backup_retention_period      = 7
   performance_insights_enabled = true
-  monitoring_interval = 30
+  monitoring_interval          = 30
   enabled_cloudwatch_logs_exports = [
     "postgresql",
     "upgrade"
   ]
 
-  create_db_cluster_parameter_group = true
+  create_db_cluster_parameter_group    = true
   cluster_performance_insights_enabled = true
-  
-  db_cluster_parameter_group_family = "aurora-postgresql14"
-  db_parameter_group_family = "aurora-postgresql14"
+
+  db_cluster_parameter_group_family           = "aurora-postgresql14"
+  db_parameter_group_family                   = "aurora-postgresql14"
   db_cluster_db_instance_parameter_group_name = "aurora-postgresql14"
 }
 

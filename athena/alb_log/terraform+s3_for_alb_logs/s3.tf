@@ -5,7 +5,7 @@ module "s3_bucket_for_logs" {
   force_destroy = true
 
   lifecycle_rule = [{
-    id = "log"
+    id      = "log"
     enabled = true
 
     transition = [{
@@ -14,23 +14,23 @@ module "s3_bucket_for_logs" {
     }]
   }]
 
-  attach_elb_log_delivery_policy = true  # Required for ALB logs
-  attach_lb_log_delivery_policy  = true  # Required for ALB/NLB logs
+  attach_elb_log_delivery_policy        = true # Required for ALB logs
+  attach_lb_log_delivery_policy         = true # Required for ALB/NLB logs
   attach_deny_insecure_transport_policy = true
-  attach_require_latest_tls_policy = true
+  attach_require_latest_tls_policy      = true
 }
 
 resource "aws_s3_object" "access_log" {
   bucket = module.s3_bucket_for_logs.s3_bucket_id
-  key = "access_log/"
+  key    = "access_log/"
 }
 
 resource "aws_s3_object" "connection_log" {
   bucket = module.s3_bucket_for_logs.s3_bucket_id
-  key = "connection_log/"
+  key    = "connection_log/"
 }
 
 resource "aws_s3_object" "results" {
   bucket = module.s3_bucket_for_logs.s3_bucket_id
-  key = "results/"
+  key    = "results/"
 }

@@ -1,6 +1,6 @@
 locals {
   # Number of Availability Zones
-  az_count = 2 # Adjust this as needed
+  az_count             = 2  # Adjust this as needed
   az_override_suffixes = [] # Example: ["a", "b"]
 
   # VPC Configuration
@@ -17,7 +17,7 @@ locals {
 
   # Switches to enable or disable tagging for specific route tables
   enable_separate_public_rtb = false
-  enable_separate_intra_rtb = false
+  enable_separate_intra_rtb  = false
 
   # Subnet Allocation Pattern
   subnet_patterns = {
@@ -31,26 +31,26 @@ locals {
   # $2 - Availability zone (one letter)
   name_formats = {
     subnet = {
-      public  = "$1-subnet-public-$2",    # Example: project-subnet-public-a
-      private = "$1-subnet-private-$2",   # Example: project-subnet-private-a
-      intra   = "$1-subnet-protected-$2"  # Example: project-subnet-protected-a
+      public  = "$1-subnet-public-$2",   # Example: project-subnet-public-a
+      private = "$1-subnet-private-$2",  # Example: project-subnet-private-a
+      intra   = "$1-subnet-protected-$2" # Example: project-subnet-protected-a
     },
     route_table = {
-      public  = "$1-rtb-public",       # Example: project-rtb-public-a
-      private = "$1-rtb-private-$2",      # Example: project-rtb-private-a
-      intra   = "$1-rtb-protected",    # Example: project-rtb-protected-a
-      default = "$1-rtb-default"          # Example: project-rtb-default
+      public  = "$1-rtb-public",     # Example: project-rtb-public-a
+      private = "$1-rtb-private-$2", # Example: project-rtb-private-a
+      intra   = "$1-rtb-protected",  # Example: project-rtb-protected-a
+      default = "$1-rtb-default"     # Example: project-rtb-default
     },
-    nat_gateway = "$1-natgw-$2",          # Example: project-natgw-a
-    igw         = "$1-igw"                # Example: project-igw
+    nat_gateway = "$1-natgw-$2", # Example: project-natgw-a
+    igw         = "$1-igw"       # Example: project-igw
   }
 }
 
 locals {
   # Determine final AZs
-  valid_azs = [for az in data.aws_availability_zones.available.names : az if !strcontains(az, "wlz")]
+  valid_azs   = [for az in data.aws_availability_zones.available.names : az if !strcontains(az, "wlz")]
   az_override = [for suffix in local.az_override_suffixes : "${var.region}${suffix}"]
-  final_azs = length(local.az_override_suffixes) > 0 ? local.az_override : local.valid_azs
+  final_azs   = length(local.az_override_suffixes) > 0 ? local.az_override : local.valid_azs
 
   # Slice the final AZs to limit to the required count
   azs = slice(local.final_azs, 0, local.az_count)
@@ -60,7 +60,7 @@ locals {
 
   # Route Table Names
   route_table_names = {
-    public  = local.enable_public_subnets ? [
+    public = local.enable_public_subnets ? [
       for idx, az in local.azs : replace(
         replace(local.name_formats.route_table.public, "$1", var.project_name),
         "$2",
@@ -74,7 +74,7 @@ locals {
         local.az_suffixes[idx]
       )
     ] : [],
-    intra   = local.enable_intra_subnets ? [
+    intra = local.enable_intra_subnets ? [
       for idx, az in local.azs : replace(
         replace(local.name_formats.route_table.intra, "$1", var.project_name),
         "$2",
@@ -86,7 +86,7 @@ locals {
 
   # Subnet Names
   subnet_names = {
-    public  = local.enable_public_subnets ? [
+    public = local.enable_public_subnets ? [
       for idx, az in local.azs : replace(
         replace(local.name_formats.subnet.public, "$1", var.project_name),
         "$2",
@@ -100,7 +100,7 @@ locals {
         local.az_suffixes[idx]
       )
     ] : [],
-    intra   = local.enable_intra_subnets ? [
+    intra = local.enable_intra_subnets ? [
       for idx, az in local.azs : replace(
         replace(local.name_formats.subnet.intra, "$1", var.project_name),
         "$2",
@@ -123,7 +123,7 @@ locals {
 
   # Subnet CIDRs by Type
   subnet_cidrs_by_type = {
-    public  = local.enable_public_subnets ? flatten([
+    public = local.enable_public_subnets ? flatten([
       for az_idx in range(0, length(local.azs)) : [
         for i in range(0, local.subnet_patterns.public.count_per_az) :
         cidrsubnet(local.vpc_cidr, 8, local.subnet_patterns.public.start_index + (az_idx * local.subnet_patterns.public.count_per_az) + i)
@@ -162,13 +162,13 @@ module "vpc" {
 
   public_subnet_tags = local.enable_public_subnets ? {
     "kubernetes.io/role/elb" = "1",
-    Type = "public"
+    Type                     = "public"
   } : {}
 
   private_subnet_tags = local.enable_private_subnets ? {
-    "karpenter.sh/discovery" = local.karpenter_discovery_tag,
+    "karpenter.sh/discovery"          = local.karpenter_discovery_tag,
     "kubernetes.io/role/internal-elb" = "1",
-    Type = "private"
+    Type                              = "private"
   } : {}
 
   intra_subnet_tags = local.enable_intra_subnets ? {
@@ -184,16 +184,16 @@ module "vpc" {
   private_route_table_tags = local.enable_private_subnets ? { Name = local.route_table_names.private[0] } : {}
   intra_route_table_tags   = local.enable_intra_subnets ? { Name = local.route_table_names.intra[0] } : {}
 
-  create_multiple_intra_route_tables = local.enable_separate_intra_rtb
+  create_multiple_intra_route_tables  = local.enable_separate_intra_rtb
   create_multiple_public_route_tables = local.enable_separate_public_rtb
 
   igw_tags = { Name = local.igw_name }
 
-  enable_flow_log                       = true
-  create_flow_log_cloudwatch_iam_role   = true
-  create_flow_log_cloudwatch_log_group  = true
+  enable_flow_log                      = true
+  create_flow_log_cloudwatch_iam_role  = true
+  create_flow_log_cloudwatch_log_group = true
 
-  enable_dns_support  = true
+  enable_dns_support   = true
   enable_dns_hostnames = true
   enable_nat_gateway   = true
 }

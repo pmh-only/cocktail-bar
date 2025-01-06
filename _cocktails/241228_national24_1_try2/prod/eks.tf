@@ -11,10 +11,10 @@ module "eks" {
 
   eks_managed_node_groups = {
     wsc2024-other-ng = {
-      name = "wsc2024-other-ng"
+      name           = "wsc2024-other-ng"
       ami_type       = "BOTTLEROCKET_x86_64"
       instance_types = ["t3.medium"]
-      iam_role_name = "wsc2024-other-ng"
+      iam_role_name  = "wsc2024-other-ng"
 
       min_size     = 2
       max_size     = 27
@@ -30,10 +30,10 @@ module "eks" {
     }
 
     wsc2024-db-application-ng = {
-      name = "wsc2024-db-application-ng"
+      name           = "wsc2024-db-application-ng"
       ami_type       = "BOTTLEROCKET_x86_64"
       instance_types = ["t3.medium"]
-      iam_role_name = "wsc2024-db-application-ng"
+      iam_role_name  = "wsc2024-db-application-ng"
 
       min_size     = 2
       max_size     = 27
@@ -46,11 +46,11 @@ module "eks" {
       labels = {
         app = "db"
       }
-      
+
       taints = {
         dedicated = {
-          key = "dedicated"
-          value = "app"
+          key    = "dedicated"
+          value  = "app"
           effect = "NO_SCHEDULE"
         }
       }
@@ -59,18 +59,18 @@ module "eks" {
 
   cluster_security_group_additional_rules = {
     bastion = {
-      protocol = "tcp"
-      from_port = "443"
-      to_port = "443"
+      protocol    = "tcp"
+      from_port   = "443"
+      to_port     = "443"
       cidr_blocks = ["10.0.0.0/24"]
-      type="ingress"
+      type        = "ingress"
     }
   }
 
   access_entries = {
     example = {
       kubernetes_groups = []
-      principal_arn = "arn:aws:iam::648911607072:role/wsc2024-bastion-role"
+      principal_arn     = "arn:aws:iam::648911607072:role/wsc2024-bastion-role"
 
       policy_associations = {
         example = {

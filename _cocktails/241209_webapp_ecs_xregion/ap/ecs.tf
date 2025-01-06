@@ -9,11 +9,11 @@ module "ecs_cluster" {
   autoscaling_capacity_providers = {
     # Spot instances
     worker = {
-      auto_scaling_group_arn         = module.autoscaling["worker"].autoscaling_group_arn
+      auto_scaling_group_arn = module.autoscaling["worker"].autoscaling_group_arn
 
       managed_scaling = {
-        status                    = "ENABLED"
-        target_capacity           = 50
+        status          = "ENABLED"
+        target_capacity = 50
       }
     }
   }

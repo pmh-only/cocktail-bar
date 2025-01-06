@@ -47,17 +47,17 @@ module "endpoints" {
 
   endpoints = merge(
     { for gateway in local.enabled_gateway_endpoints : gateway => {
-        service          = gateway
-        service_type     = "Gateway"
-        route_table_ids  = flatten([module.vpc.intra_route_table_ids, module.vpc.private_route_table_ids, module.vpc.public_route_table_ids])
-        tags             = { Name = "${var.project_name}-endpoint-${gateway}" }
+      service         = gateway
+      service_type    = "Gateway"
+      route_table_ids = flatten([module.vpc.intra_route_table_ids, module.vpc.private_route_table_ids, module.vpc.public_route_table_ids])
+      tags            = { Name = "${var.project_name}-endpoint-${gateway}" }
       }
     },
     { for interface in local.enabled_interface_endpoints : interface => {
-        service             = interface
-        private_dns_enabled = true
-        subnet_ids          = length(module.vpc.intra_subnets) > 0 ? module.vpc.intra_subnets : module.vpc.private_subnets
-        tags                = { Name = "${var.project_name}-endpoint-${interface}" }
+      service             = interface
+      private_dns_enabled = true
+      subnet_ids          = length(module.vpc.intra_subnets) > 0 ? module.vpc.intra_subnets : module.vpc.private_subnets
+      tags                = { Name = "${var.project_name}-endpoint-${interface}" }
       }
     }
   )

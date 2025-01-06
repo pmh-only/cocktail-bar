@@ -1,5 +1,5 @@
 module "bucket" {
-  source = "terraform-aws-modules/s3-bucket/aws"
+  source        = "terraform-aws-modules/s3-bucket/aws"
   bucket_prefix = "${var.project_name}-frontend"
 
   force_destroy = true
@@ -15,11 +15,11 @@ module "bucket" {
       }
     }
   }
-  
+
   lifecycle_rule = [
     {
-      id = "garbage_collector"
-      enabled = true
+      id                                     = "garbage_collector"
+      enabled                                = true
       abort_incomplete_multipart_upload_days = 1
 
       noncurrent_version_expiration = {

@@ -8,7 +8,7 @@ module "irsa_cloudwatchagent" {
 
   oidc_providers = {
     cluster-oidc-provider = {
-      provider_arn               = module.eks.oidc_provider_arn
+      provider_arn = module.eks.oidc_provider_arn
       namespace_service_accounts = [
         "amazon-cloudwatch:cloudwatch-agent"
       ]

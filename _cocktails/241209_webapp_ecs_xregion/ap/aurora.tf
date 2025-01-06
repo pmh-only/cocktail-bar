@@ -7,12 +7,12 @@ resource "aws_rds_global_cluster" "this" {
 }
 
 resource "aws_db_subnet_group" "this" {
-  name        = "${var.project_name}-subnets"
-  subnet_ids  = module.vpc.intra_subnets
+  name       = "${var.project_name}-subnets"
+  subnet_ids = module.vpc.intra_subnets
 }
 
 module "aurora_primary" {
-  source =  "terraform-aws-modules/rds-aurora/aws"
+  source = "terraform-aws-modules/rds-aurora/aws"
 
   name                      = "${var.project_name}-ap-rds"
   database_name             = aws_rds_global_cluster.this.database_name
@@ -32,12 +32,12 @@ module "aurora_primary" {
 
   # Global clusters do not support managed master user password
   manage_master_user_password = false
-  master_username           = "admin"
+  master_username             = "admin"
   master_password             = "admin123!!"
 
   deletion_protection = true
   skip_final_snapshot = true
-  kms_key_id = aws_kms_key.primary.arn 
+  kms_key_id          = aws_kms_key.primary.arn
 }
 
 data "aws_iam_policy_document" "rds" {

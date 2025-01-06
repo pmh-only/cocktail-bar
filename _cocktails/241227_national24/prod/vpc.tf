@@ -16,14 +16,14 @@ module "vpc" {
     "kubernetes.io/role/internal-elb" = "1"
   }
 
-  public_subnet_names = ["${var.project_name}-load-sn-a", "${var.project_name}-load-sn-b"]
+  public_subnet_names  = ["${var.project_name}-load-sn-a", "${var.project_name}-load-sn-b"]
   private_subnet_names = ["${var.project_name}-app-sn-a", "${var.project_name}-app-sn-b"]
 
-  enable_flow_log = true
-  create_flow_log_cloudwatch_iam_role = true
+  enable_flow_log                      = true
+  create_flow_log_cloudwatch_iam_role  = true
   create_flow_log_cloudwatch_log_group = true
 
-  enable_dns_support = true
+  enable_dns_support   = true
   enable_dns_hostnames = true
-  enable_nat_gateway = true  
+  enable_nat_gateway   = true
 }

@@ -1,5 +1,5 @@
 module "bucket" {
-  source = "terraform-aws-modules/s3-bucket/aws"
+  source        = "terraform-aws-modules/s3-bucket/aws"
   bucket_prefix = "${var.project_name}-logbucket"
 
   attach_elb_log_delivery_policy = true
@@ -8,11 +8,11 @@ module "bucket" {
   versioning = {
     enabled = true
   }
-  
+
   lifecycle_rule = [
     {
-      id = "garbage_collector"
-      enabled = true
+      id                                     = "garbage_collector"
+      enabled                                = true
       abort_incomplete_multipart_upload_days = 1
 
       noncurrent_version_expiration = {

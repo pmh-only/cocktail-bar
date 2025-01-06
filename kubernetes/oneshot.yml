@@ -171,6 +171,7 @@ metadata:
       deregistration_delay.timeout_seconds=60
     alb.ingress.kubernetes.io/load-balancer-attributes: >-
       deletion_protection.enabled=true,
+      cross_zone_load_balancing.enabled=true,
     # access_logs.s3.enabled=true,
     # access_logs.s3.bucket=project-logbucket20241219020456227500000001,
     # access_logs.s3.prefix=accesslog,

@@ -35,7 +35,7 @@ module "eks" {
     # One access entry with a policy associated
     example = {
       kubernetes_groups = []
-      principal_arn = aws_iam_role.bastion.arn
+      principal_arn     = aws_iam_role.bastion.arn
 
       policy_associations = {
         example = {
@@ -49,7 +49,7 @@ module "eks" {
     }
     karpenter = {
       principal_arn = "arn:aws:iam::${data.aws_caller_identity.caller.account_id}:role/karpenter-us-wsi-eks-cluster-20241212020922793000000002"
-      type = "EC2_LINUX"
+      type          = "EC2_LINUX"
     }
   }
 }

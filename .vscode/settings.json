@@ -237,5 +237,18 @@
       "cluster.yml",
       "cluster.yaml"
     ]
+  },
+
+  // ----
+
+  "emeraldwalk.runonsave": {
+    "autoClearConsole": true,
+    "commands": [
+      {
+        "match": ".tf",
+        "cmd": "terraform fmt -recursive",
+        "isAsync": false
+      }
+    ]
   }
 }

@@ -5,8 +5,8 @@ locals {
   bastion_instance_name = "${var.project_name}-bastion"
   bastion_ip_name       = "${var.project_name}-bastion"
 
-  keypair_file_path     = "./temp/keypair.pem"
-  ssh_port = 2222
+  keypair_file_path = "./temp/keypair.pem"
+  ssh_port          = 2222
 
   ingress_port_from_my_ip = true
   ingress_ports = [
@@ -24,8 +24,8 @@ locals {
 
   bastion_instance_type = "t3.small"
 
-  ami_architecture = "x86_64"  # Possible values: "arm64", "x86_64"
-  ami_os           = "al2" # Possible values: "al2023", "al2"
+  ami_architecture = "x86_64" # Possible values: "arm64", "x86_64"
+  ami_os           = "al2"    # Possible values: "al2023", "al2"
 }
 
 locals {
@@ -87,7 +87,7 @@ resource "local_file" "keypair" {
 }
 
 resource "aws_iam_role" "bastion" {
-  name               = local.bastion_role_name
+  name = local.bastion_role_name
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -112,18 +112,18 @@ resource "aws_iam_instance_profile" "bastion" {
 }
 
 resource "aws_instance" "bastion" {
-  subnet_id              = module.vpc.public_subnets[0]
-  security_groups        = [aws_security_group.bastion.id]
-  ami                    = data.aws_ssm_parameter.bastion_ami.value
-  iam_instance_profile   = aws_iam_instance_profile.bastion.name
-  key_name               = aws_key_pair.keypair.key_name
-  instance_type          = local.bastion_instance_type
-  tags                   = { Name = local.bastion_instance_name }
+  subnet_id            = module.vpc.public_subnets[0]
+  security_groups      = [aws_security_group.bastion.id]
+  ami                  = data.aws_ssm_parameter.bastion_ami.value
+  iam_instance_profile = aws_iam_instance_profile.bastion.name
+  key_name             = aws_key_pair.keypair.key_name
+  instance_type        = local.bastion_instance_type
+  tags                 = { Name = local.bastion_instance_name }
 
   root_block_device {
-    volume_type           = "gp3"
-    volume_size           = 8
-    encrypted             = true
+    volume_type = "gp3"
+    volume_size = 8
+    encrypted   = true
   }
 
   user_data = <<-EOT

@@ -1,5 +1,5 @@
 module "eks_blueprints_addons" {
-  source = "aws-ia/eks-blueprints-addons/aws"
+  source  = "aws-ia/eks-blueprints-addons/aws"
   version = "~> 1.0" #ensure to update this to the latest/desired version
 
   cluster_name      = module.eks.cluster_name
@@ -19,14 +19,14 @@ module "eks_blueprints_addons" {
     }
   }
 
-  enable_karpenter = true
-  enable_cert_manager = true
-  enable_cluster_autoscaler = true
-  enable_metrics_server = true
+  enable_karpenter                    = true
+  enable_cert_manager                 = true
+  enable_cluster_autoscaler           = true
+  enable_metrics_server               = true
   enable_aws_load_balancer_controller = true
-  enable_external_secrets = true
-  enable_argocd = true
-  
+  enable_external_secrets             = true
+  enable_argocd                       = true
+
   aws_load_balancer_controller = {
     set = [
       {

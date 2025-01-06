@@ -11,7 +11,7 @@ provider "aws" {
 
   default_tags {
     tags = {
-      Project="wsc2024"
+      Project = "wsc2024"
     }
   }
 }
@@ -19,7 +19,7 @@ provider "aws" {
 
 provider "aws" {
   region = "us-east-1"
-  alias = "us-east-1"
+  alias  = "us-east-1"
 }
 
 provider "kubernetes" {
@@ -49,7 +49,7 @@ data "http" "myip" {
 }
 
 data "aws_caller_identity" "caller" {
-  
+
 }
 
 data "aws_ecrpublic_authorization_token" "token" {

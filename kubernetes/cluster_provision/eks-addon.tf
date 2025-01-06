@@ -1,5 +1,5 @@
 module "eks_blueprints_addons" {
-  source = "aws-ia/eks-blueprints-addons/aws"
+  source  = "aws-ia/eks-blueprints-addons/aws"
   version = "~> 1.0"
 
   cluster_name      = module.eks.cluster_name
@@ -18,26 +18,26 @@ module "eks_blueprints_addons" {
       most_recent = true
     }
     amazon-cloudwatch-observability = {
-      most_recent = true
+      most_recent              = true
       service_account_role_arn = module.irsa_cloudwatchagent.iam_role_arn
       configuration_values = jsonencode({
-        "containerLogs": { "enabled": false }
+        "containerLogs" : { "enabled" : false }
       })
     }
   }
 
-  enable_karpenter = true
-  enable_cert_manager = true
-  enable_metrics_server = true
-  enable_cluster_autoscaler = true
+  enable_karpenter                    = true
+  enable_cert_manager                 = true
+  enable_metrics_server               = true
+  enable_cluster_autoscaler           = true
   enable_aws_load_balancer_controller = true
-  enable_external_secrets = true
-  enable_aws_for_fluentbit = true
-  enable_fargate_fluentbit = true
+  enable_external_secrets             = true
+  enable_aws_for_fluentbit            = true
+  enable_fargate_fluentbit            = true
   fargate_fluentbit = {
     flb_log_cw = true
   }
-  
+
   aws_load_balancer_controller = {
     set = [
       {
@@ -47,10 +47,10 @@ module "eks_blueprints_addons" {
     ]
   }
 
-  aws_for_fluentbit = {  
+  aws_for_fluentbit = {
     enable_containerinsights = true
     kubelet_monitoring       = true
-  
+
     set = [
       {
         name  = "cloudWatchLogs.autoCreateGroup"

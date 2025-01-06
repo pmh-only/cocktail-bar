@@ -2,10 +2,10 @@ module "ecs_service" {
   source = "terraform-aws-modules/ecs/aws//modules/service"
 
   force_new_deployment = true
-  force_delete = true
+  force_delete         = true
 
-  name        = "${var.project_name}-myapp"
-  cluster_arn = module.ecs.cluster_arn
+  name                     = "${var.project_name}-myapp"
+  cluster_arn              = module.ecs.cluster_arn
   requires_compatibilities = ["EC2"]
   capacity_provider_strategy = {
     EC2 = {
@@ -19,7 +19,7 @@ module "ecs_service" {
   memory = 128
 
   runtime_platform = {
-    cpu_architecture = "X86_64"
+    cpu_architecture        = "X86_64"
     operating_system_family = "LINUX"
   }
 
@@ -43,7 +43,7 @@ module "ecs_service" {
       ]
 
       readonly_root_filesystem = false
-      memory_reservation = 128
+      memory_reservation       = 128
     }
   }
 
@@ -77,15 +77,15 @@ module "ecs_service" {
   ordered_placement_strategy = [
     {
       field = "attribute:ecs.availability-zone"
-      type = "spread"
+      type  = "spread"
     },
     {
       field = "memory"
-      type = "binpack"
+      type  = "binpack"
     }
   ]
 
-  desired_count = 2
+  desired_count            = 2
   autoscaling_max_capacity = 64
   autoscaling_min_capacity = 2
   autoscaling_policies = {
@@ -95,9 +95,9 @@ module "ecs_service" {
         predefined_metric_specification = {
           predefined_metric_type = "ECSServiceAverageCPUUtilization"
         }
-        scale_in_cooldown = 60
+        scale_in_cooldown  = 60
         scale_out_cooldown = 0
-        target_value=75
+        target_value       = 75
       }
     },
     memory = {
@@ -106,9 +106,9 @@ module "ecs_service" {
         predefined_metric_specification = {
           predefined_metric_type = "ECSServiceAverageMemoryUtilization"
         }
-        scale_in_cooldown = 60
+        scale_in_cooldown  = 60
         scale_out_cooldown = 0
-        target_value = 75
+        target_value       = 75
       }
     }
   }

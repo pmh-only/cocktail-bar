@@ -11,10 +11,10 @@ module "eks2" {
 
   eks_managed_node_groups = {
     prod-1000 = {
-      name = "prod-1000-ng"
+      name           = "prod-1000-ng"
       ami_type       = "BOTTLEROCKET_x86_64"
       instance_types = ["t3.medium"]
-      iam_role_name = "prod-1000-ng"
+      iam_role_name  = "prod-1000-ng"
 
       min_size     = 2
       max_size     = 27
@@ -28,18 +28,18 @@ module "eks2" {
 
   cluster_security_group_additional_rules = {
     bastion = {
-      protocol = "tcp"
-      from_port = "443"
-      to_port = "443"
+      protocol    = "tcp"
+      from_port   = "443"
+      to_port     = "443"
       cidr_blocks = ["10.0.0.0/24"]
-      type="ingress"
+      type        = "ingress"
     }
   }
 
   access_entries = {
     example = {
       kubernetes_groups = []
-      principal_arn = "arn:aws:iam::648911607072:role/wsc2024-bastion-role"
+      principal_arn     = "arn:aws:iam::648911607072:role/wsc2024-bastion-role"
 
       policy_associations = {
         example = {

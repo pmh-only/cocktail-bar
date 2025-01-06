@@ -3,11 +3,11 @@ module "elasticache_primary" {
 
   replication_group_id                    = "${var.project_name}-ap-redis"
   create_primary_global_replication_group = true
-  global_replication_group_id = "${var.project_name}-redis"
-  cluster_mode_enabled = true
-  cluster_mode = "enabled"
+  global_replication_group_id             = "${var.project_name}-redis"
+  cluster_mode_enabled                    = true
+  cluster_mode                            = "enabled"
 
-  engine = "redis"
+  engine         = "redis"
   engine_version = "7.1"
   node_type      = "cache.r7g.large"
 
@@ -21,24 +21,24 @@ module "elasticache_primary" {
 
   subnet_ids = module.vpc.intra_subnets
 
-  create_parameter_group = true
-  parameter_group_family = "redis7"
-  num_node_groups = 3
+  create_parameter_group  = true
+  parameter_group_family  = "redis7"
+  num_node_groups         = 3
   replicas_per_node_group = 2
 
-  multi_az_enabled = true
-  snapshot_retention_limit = 7  
+  multi_az_enabled         = true
+  snapshot_retention_limit = 7
 
   log_delivery_configuration = {
-    "slow-log": {
-      "cloudwatch_log_group_name": "${var.project_name}-redis/slowlog",
-      "destination_type": "cloudwatch-logs",
-      "log_format": "json"
+    "slow-log" : {
+      "cloudwatch_log_group_name" : "${var.project_name}-redis/slowlog",
+      "destination_type" : "cloudwatch-logs",
+      "log_format" : "json"
     },
-    "engine-log": {
-      "cloudwatch_log_group_name": "${var.project_name}-redis/enginelog",
-      "destination_type": "cloudwatch-logs",
-      "log_format": "json"
+    "engine-log" : {
+      "cloudwatch_log_group_name" : "${var.project_name}-redis/enginelog",
+      "destination_type" : "cloudwatch-logs",
+      "log_format" : "json"
     }
   }
 }

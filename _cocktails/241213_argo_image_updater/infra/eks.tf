@@ -5,7 +5,7 @@ module "eks" {
   cluster_name    = "${var.project_name}-eks-cluster"
   cluster_version = "1.29"
 
-  cluster_endpoint_public_access  = true
+  cluster_endpoint_public_access = true
 
   vpc_id                   = module.vpc.vpc_id
   subnet_ids               = module.vpc.private_subnets
@@ -37,7 +37,7 @@ module "eks" {
     # One access entry with a policy associated
     example = {
       kubernetes_groups = []
-      principal_arn = aws_iam_role.bastion.arn
+      principal_arn     = aws_iam_role.bastion.arn
 
       policy_associations = {
         example = {
@@ -51,7 +51,7 @@ module "eks" {
     }
     karpenter = {
       principal_arn = "arn:aws:iam::${data.aws_caller_identity.caller.account_id}:role/karpenter-us-wsi-eks-cluster-20241213075611351300000031"
-      type = "EC2_LINUX"
+      type          = "EC2_LINUX"
     }
   }
 

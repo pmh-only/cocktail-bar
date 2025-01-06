@@ -8,7 +8,7 @@ module "irsa_cloudwatchagent" {
 
   oidc_providers = {
     cluster-oidc-provider = {
-      provider_arn               = module.eks.oidc_provider_arn
+      provider_arn = module.eks.oidc_provider_arn
       namespace_service_accounts = [
         "amazon-cloudwatch:cloudwatch-agent"
       ]
@@ -26,7 +26,7 @@ module "irsa_dynamodb" {
 
   oidc_providers = {
     cluster-oidc-provider = {
-      provider_arn               = module.eks.oidc_provider_arn
+      provider_arn = module.eks.oidc_provider_arn
       namespace_service_accounts = [
         "wsc2024:dynamodb"
       ]
@@ -35,8 +35,8 @@ module "irsa_dynamodb" {
 }
 
 resource "aws_iam_policy" "secretsmanager" {
-  name = "${var.project_name}-policy-secretsmanager"
-  policy = data.aws_iam_policy_document.secretsmanager.json  
+  name   = "${var.project_name}-policy-secretsmanager"
+  policy = data.aws_iam_policy_document.secretsmanager.json
 }
 
 data "aws_iam_policy_document" "secretsmanager" {
@@ -59,7 +59,7 @@ module "irsa_secretsmanager" {
 
   oidc_providers = {
     cluster-oidc-provider = {
-      provider_arn               = module.eks.oidc_provider_arn
+      provider_arn = module.eks.oidc_provider_arn
       namespace_service_accounts = [
         "default:secretsmanager"
       ]

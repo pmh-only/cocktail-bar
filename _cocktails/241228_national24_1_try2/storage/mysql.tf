@@ -1,17 +1,17 @@
 resource "aws_db_subnet_group" "this" {
-  name        = "${var.project_name}-subnets"
-  subnet_ids  = module.vpc.intra_subnets
+  name       = "${var.project_name}-subnets"
+  subnet_ids = module.vpc.intra_subnets
 }
 
 module "aurora_primary" {
-  source =  "terraform-aws-modules/rds-aurora/aws"
+  source = "terraform-aws-modules/rds-aurora/aws"
 
-  name                      = "wsc2024-db-cluster"
-  database_name             = "wsc2024_db"
-  engine                    = "aurora-mysql"
-  engine_version            = "8.0.mysql_aurora.3.05.2"
-  instance_class            = "db.t3.medium"
-  instances                 = { for i in range(2) : i => {} }
+  name           = "wsc2024-db-cluster"
+  database_name  = "wsc2024_db"
+  engine         = "aurora-mysql"
+  engine_version = "8.0.mysql_aurora.3.05.2"
+  instance_class = "db.t3.medium"
+  instances      = { for i in range(2) : i => {} }
 
   port = 3307
 
@@ -28,16 +28,16 @@ module "aurora_primary" {
 
   # Global clusters do not support managed master user password
   manage_master_user_password = false
-  master_username           = "admin"
+  master_username             = "admin"
   master_password             = "Skill53##"
 
   deletion_protection = true
   skip_final_snapshot = true
-  kms_key_id = aws_kms_key.primary.arn 
+  kms_key_id          = aws_kms_key.primary.arn
 
-  backup_retention_period = 7
+  backup_retention_period      = 7
   performance_insights_enabled = false
-  monitoring_interval = 30
+  monitoring_interval          = 30
   enabled_cloudwatch_logs_exports = [
     "audit",
     "error",
@@ -45,10 +45,10 @@ module "aurora_primary" {
     "slowquery"
   ]
 
-  create_db_cluster_parameter_group = true
-  cluster_performance_insights_enabled = true
-  db_cluster_parameter_group_family = "aurora-mysql8.0"
-  db_parameter_group_family = "aurora-mysql8.0"
+  create_db_cluster_parameter_group           = true
+  cluster_performance_insights_enabled        = true
+  db_cluster_parameter_group_family           = "aurora-mysql8.0"
+  db_parameter_group_family                   = "aurora-mysql8.0"
   db_cluster_db_instance_parameter_group_name = "aurora-mysql8.0"
 
   backtrack_window = 14400

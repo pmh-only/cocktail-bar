@@ -16,9 +16,9 @@ module "eks" {
   eks_managed_node_groups = {
     skills-eks-addon-nodegroup = {
       use_name_prefix = false
-      ami_type       = "BOTTLEROCKET_ARM_64"
-      instance_types = ["t4g.large"]
-      iam_role_name = "skills-eks-app-nodegroup"
+      ami_type        = "BOTTLEROCKET_ARM_64"
+      instance_types  = ["t4g.large"]
+      iam_role_name   = "skills-eks-app-nodegroup"
 
       min_size     = 2
       max_size     = 27
@@ -31,9 +31,9 @@ module "eks" {
 
     skills-eks-app-nodegroup = {
       use_name_prefix = false
-      ami_type       = "BOTTLEROCKET_ARM_64"
-      instance_types = ["m6g.large"]
-      iam_role_name = "skills-eks-app-nodegroup"
+      ami_type        = "BOTTLEROCKET_ARM_64"
+      instance_types  = ["m6g.large"]
+      iam_role_name   = "skills-eks-app-nodegroup"
 
       min_size     = 2
       max_size     = 27
@@ -49,8 +49,8 @@ module "eks" {
 
       taints = {
         dedicated = {
-          key = "dedicated"
-          value = "app"
+          key    = "dedicated"
+          value  = "app"
           effect = "NO_SCHEDULE"
         }
       }
@@ -79,18 +79,18 @@ module "eks" {
 
   cluster_security_group_additional_rules = {
     bastion = {
-      protocol = "tcp"
-      from_port = "443"
-      to_port = "443"
+      protocol                 = "tcp"
+      from_port                = "443"
+      to_port                  = "443"
       source_security_group_id = aws_security_group.bastion.id
-      type="ingress"
+      type                     = "ingress"
     }
   }
 
   access_entries = {
     example = {
       kubernetes_groups = []
-      principal_arn = aws_iam_role.bastion.arn
+      principal_arn     = aws_iam_role.bastion.arn
 
       policy_associations = {
         example = {
@@ -100,11 +100,9 @@ module "eks" {
             type       = "cluster"
           }
         }
-     
+
       }
     }
-
-    p
   }
 
   cluster_enabled_log_types = [
@@ -117,10 +115,10 @@ module "eks" {
 }
 
 resource "aws_security_group_rule" "dns53" {
-  type = "ingress"
-  from_port = 53
-  to_port = 53
-  protocol = "udp"
-  cidr_blocks = [module.eks.cluster_primary_security_group_id]
+  type              = "ingress"
+  from_port         = 53
+  to_port           = 53
+  protocol          = "udp"
+  cidr_blocks       = [module.eks.cluster_primary_security_group_id]
   security_group_id = module.eks.node_security_group_id
 }

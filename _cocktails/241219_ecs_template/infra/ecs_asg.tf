@@ -3,15 +3,15 @@ data "aws_ssm_parameter" "bottlerocket_ecs" {
 }
 
 module "autoscaling" {
-  source  = "terraform-aws-modules/autoscaling/aws"
+  source = "terraform-aws-modules/autoscaling/aws"
 
   name = "${var.project_name}-node"
 
   image_id      = data.aws_ssm_parameter.bottlerocket_ecs.value
   instance_type = "t3.small"
 
-  security_groups                 = [module.autoscaling_sg.security_group_id]
-  user_data                       = base64encode(<<-EOT
+  security_groups = [module.autoscaling_sg.security_group_id]
+  user_data = base64encode(<<-EOT
     [settings.ecs]
     cluster = "${var.project_name}-cluster"
     enable-spot-instance-draining = true
@@ -22,7 +22,7 @@ module "autoscaling" {
   ignore_desired_capacity_changes = true
 
   create_iam_instance_profile = true
-  iam_role_name = "${var.project_name}-role-node"
+  iam_role_name               = "${var.project_name}-role-node"
   iam_role_policies = {
     AmazonEC2ContainerServiceforEC2Role = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
     AmazonSSMManagedInstanceCore        = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
@@ -58,10 +58,10 @@ module "autoscaling" {
 }
 
 module "autoscaling_sg" {
-  source  = "terraform-aws-modules/security-group/aws"
+  source = "terraform-aws-modules/security-group/aws"
 
-  name        = "${var.project_name}-sg-node"
-  vpc_id      = module.vpc.vpc_id
+  name   = "${var.project_name}-sg-node"
+  vpc_id = module.vpc.vpc_id
 
   egress_rules = ["all-all"]
 }

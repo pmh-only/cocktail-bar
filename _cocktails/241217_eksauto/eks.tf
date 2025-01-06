@@ -6,17 +6,17 @@ module "eks" {
   cluster_version = "1.31"
 
   cluster_compute_config = {
-    enabled    = true
+    enabled = true
   }
 
-  vpc_id     = module.vpc.vpc_id
-  subnet_ids = module.vpc.private_subnets
+  vpc_id                   = module.vpc.vpc_id
+  subnet_ids               = module.vpc.private_subnets
   control_plane_subnet_ids = module.vpc.intra_subnets
 
   access_entries = {
     bastion = {
       kubernetes_groups = []
-      principal_arn = aws_iam_role.bastion.arn
+      principal_arn     = aws_iam_role.bastion.arn
 
       policy_associations = {
         example = {
@@ -29,9 +29,9 @@ module "eks" {
       }
     }
     node = {
-      type = "EC2"
+      type              = "EC2"
       kubernetes_groups = ["system:nodes"]
-      principal_arn = "arn:aws:iam::648911607072:role/project-cluster-eks-auto-20241217040217307000000001"
+      principal_arn     = "arn:aws:iam::648911607072:role/project-cluster-eks-auto-20241217040217307000000001"
     }
   }
 

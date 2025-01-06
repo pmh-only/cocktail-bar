@@ -29,8 +29,8 @@ module "alb" {
 
   listeners = {
     http = {
-      port            = 80
-      protocol        = "HTTP"
+      port     = 80
+      protocol = "HTTP"
       forward = {
         target_group_key = "myapp"
       }
@@ -39,11 +39,11 @@ module "alb" {
 
   target_groups = {
     myapp = {
-      name      = "${var.project_name}-myapp"
+      name              = "${var.project_name}-myapp"
       create_attachment = false
-      protocol         = "HTTP"
-      port             = 8080
-      target_type      = "ip"
+      protocol          = "HTTP"
+      port              = 8080
+      target_type       = "ip"
     }
   }
 }

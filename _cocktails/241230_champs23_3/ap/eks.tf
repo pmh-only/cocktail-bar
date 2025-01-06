@@ -12,10 +12,10 @@ module "eks" {
   eks_managed_node_groups = {
     ap-unicorn-nodegroup-tools = {
       use_name_prefix = false
-      name = "ap-unicorn-nodegroup-tools"
-      ami_type       = "BOTTLEROCKET_ARM_64"
-      instance_types = ["c6g.large"]
-      iam_role_name = "nodegroup-tools"
+      name            = "ap-unicorn-nodegroup-tools"
+      ami_type        = "BOTTLEROCKET_ARM_64"
+      instance_types  = ["c6g.large"]
+      iam_role_name   = "nodegroup-tools"
 
       min_size     = 1
       max_size     = 27
@@ -28,10 +28,10 @@ module "eks" {
 
     ap-unicorn-nodegroup-apps = {
       use_name_prefix = false
-      name = "ap-unicorn-nodegroup-apps"
-      ami_type       = "BOTTLEROCKET_ARM_64"
-      instance_types = ["c6g.xlarge"]
-      iam_role_name = "nodegroup-apps"
+      name            = "ap-unicorn-nodegroup-apps"
+      ami_type        = "BOTTLEROCKET_ARM_64"
+      instance_types  = ["c6g.xlarge"]
+      iam_role_name   = "nodegroup-apps"
 
       min_size     = 0
       max_size     = 27
@@ -44,11 +44,11 @@ module "eks" {
       labels = {
         app = "apps"
       }
-      
+
       taints = {
         dedicated = {
-          key = "dedicated"
-          value = "app"
+          key    = "dedicated"
+          value  = "app"
           effect = "NO_SCHEDULE"
         }
       }
@@ -57,18 +57,18 @@ module "eks" {
 
   cluster_security_group_additional_rules = {
     bastion = {
-      protocol = "tcp"
-      from_port = "443"
-      to_port = "443"
+      protocol    = "tcp"
+      from_port   = "443"
+      to_port     = "443"
       cidr_blocks = ["10.0.0.0/8"]
-      type="ingress"
+      type        = "ingress"
     }
   }
 
   access_entries = {
     example = {
       kubernetes_groups = []
-      principal_arn = "arn:aws:iam::648911607072:role/us-unicorn-role-bastion"
+      principal_arn     = "arn:aws:iam::648911607072:role/us-unicorn-role-bastion"
 
       policy_associations = {
         example = {

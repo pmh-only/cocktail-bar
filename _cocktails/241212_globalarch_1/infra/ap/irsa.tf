@@ -1,6 +1,6 @@
 resource "aws_iam_policy" "sm" {
-  name = "project-ap-policy-sm"
-  policy = data.aws_iam_policy_document.sm.json  
+  name   = "project-ap-policy-sm"
+  policy = data.aws_iam_policy_document.sm.json
 }
 
 data "aws_iam_policy_document" "sm" {
@@ -23,7 +23,7 @@ module "irsa" {
 
   oidc_providers = {
     cluster-oidc-provider = {
-      provider_arn               = module.eks.oidc_provider_arn
+      provider_arn = module.eks.oidc_provider_arn
       namespace_service_accounts = [
         "default:sm"
       ]
@@ -32,8 +32,8 @@ module "irsa" {
 }
 
 resource "aws_iam_policy" "fluentd" {
-  name = "${var.project_name}-policy-fluentd"
-  policy = data.aws_iam_policy_document.fluentd.json  
+  name   = "${var.project_name}-policy-fluentd"
+  policy = data.aws_iam_policy_document.fluentd.json
 }
 
 data "aws_iam_policy_document" "fluentd" {
@@ -61,7 +61,7 @@ module "irsa2" {
 
   oidc_providers = {
     cluster-oidc-provider = {
-      provider_arn               = module.eks.oidc_provider_arn
+      provider_arn = module.eks.oidc_provider_arn
       namespace_service_accounts = [
         "default:fluentd"
       ]
