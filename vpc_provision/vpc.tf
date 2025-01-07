@@ -15,6 +15,7 @@ locals {
   enable_private_subnets = true
   enable_intra_subnets   = true
 
+
   # Switches to enable or disable tagging for specific route tables
   enable_separate_public_rtb = false
   enable_separate_intra_rtb  = false
@@ -211,12 +212,7 @@ resource "null_resource" "change_public_rtb_name" {
   depends_on = [module.vpc]
 
   provisioner "local-exec" {
-    command = <<EOT
-      aws ec2 create-tags \
-        --resources ${module.vpc.public_route_table_ids[count.index]} \
-        --tags Key=Name,Value=${local.route_table_names.public[count.index]} \
-        --region ${var.region}
-    EOT
+    command = "aws ec2 create-tags --resources ${module.vpc.public_route_table_ids[count.index]} --tags Key=Name,Value=${local.route_table_names.public[count.index]} --region ${var.region}"
   }
 }
 
@@ -231,12 +227,7 @@ resource "null_resource" "change_private_rtb_name" {
   depends_on = [module.vpc]
 
   provisioner "local-exec" {
-    command = <<EOT
-      aws ec2 create-tags \
-        --resources ${module.vpc.private_route_table_ids[count.index]} \
-        --tags Key=Name,Value=${local.route_table_names.private[count.index]} \
-        --region ${var.region}
-    EOT
+    command = "aws ec2 create-tags --resources ${module.vpc.private_route_table_ids[count.index]} --tags Key=Name,Value=${local.route_table_names.private[count.index]} --region ${var.region}"
   }
 }
 
@@ -251,12 +242,8 @@ resource "null_resource" "change_intra_rtb_name" {
   depends_on = [module.vpc]
 
   provisioner "local-exec" {
-    command = <<EOT
-      aws ec2 create-tags \
-        --resources ${module.vpc.intra_route_table_ids[count.index]} \
-        --tags Key=Name,Value=${local.route_table_names.intra[count.index]} \
-        --region ${var.region}
-    EOT
+
+    command = "aws ec2 create-tags --resources ${module.vpc.intra_route_table_ids[count.index]} --tags Key=Name,Value=${local.route_table_names.intra[count.index]} --region ${var.region}"
   }
 }
 
@@ -271,12 +258,7 @@ resource "null_resource" "change_nat_gateway_name" {
   depends_on = [module.vpc]
 
   provisioner "local-exec" {
-    command = <<EOT
-      aws ec2 create-tags \
-        --resources ${module.vpc.natgw_ids[count.index]} \
-        --tags Key=Name,Value=${local.nat_gateway_names[count.index]} \
-        --region ${var.region}
-    EOT
+    command = "aws ec2 create-tags --resources ${module.vpc.natgw_ids[count.index]} --tags Key=Name,Value=${local.nat_gateway_names.private[count.index]} --region ${var.region}"
   }
 }
 
