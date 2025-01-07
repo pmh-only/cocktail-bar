@@ -12,5 +12,5 @@ jobs:
         with:
           path: './pack'
       - run: mc alias set minio http://minio-service.minio.svc.cluster.local:9000 ${{ secrets.MINIO_ACCESS_KEY }} ${{ secrets.MINIO_SECRET_KEY }}                    
-      - run: tar cvf pack.tar ./pack/.
+      - run: tar cvf pack.tar ./pack/. --exclude .git
       - run: mc cp $PWD/pack.tar minio/releases/cocktail.tar
