@@ -45,6 +45,7 @@ accounts:
         - "arn:aws:iam::648911607072:policy/SCOP_S3_WRITER"
         - "arn:aws:iam::648911607072:policy/SCOP_S3_READER"
         - "arn:aws:iam::648911607072:policy/GetCostAndUsage"
+        - "arn:aws:iam::648911607072:policy/SamsungCloudOpsPlatform_Linked_Policy_20230918"
       IAMRole:
         - "RBAC_SCOP_DYNMRD"
         - "RBAC_SCOP_DYNMWT"

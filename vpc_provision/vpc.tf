@@ -198,7 +198,7 @@ module "vpc" {
 
   enable_dns_support   = true
   enable_dns_hostnames = true
-  enable_nat_gateway   = true
+  enable_nat_gateway   = local.enable_private_subnets
 }
 
 resource "null_resource" "change_public_rtb_name" {
@@ -248,7 +248,7 @@ resource "null_resource" "change_intra_rtb_name" {
 }
 
 resource "null_resource" "change_nat_gateway_name" {
-  count = length(local.nat_gateway_names)
+  count = local.enable_private_subnets ? length(local.nat_gateway_names) : 0
 
   triggers = {
     timestamp = timestamp()

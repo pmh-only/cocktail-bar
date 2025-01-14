@@ -210,8 +210,7 @@ Respect above conditions you need to help user to write terraform template codes
 * Use provided "provider.tf". it has caller identity information, public ip of local pc and more. you can suggest user to update "provider.tf"
 * Make sure all "local" blocks are positioned top of .tf file. for easy customization
 
-## "provider.tf" ##
-```
+## provider.tf ##
 variable "project_name" {
   default = "project"
 }
@@ -225,15 +224,15 @@ provider "aws" {
 
   default_tags {
     tags = {
-      Project=var.project_name
-      Signature="pmh_only :)"
+      Project   = var.project_name
+      Signature = "pmh_only"
     }
   }
 }
 
 provider "aws" {
   region = "us-east-1"
-  alias = "us-east-1"
+  alias  = "us-east-1"
 }
 
 provider "kubernetes" {
@@ -263,12 +262,10 @@ data "http" "myip" {
 }
 
 data "aws_caller_identity" "caller" {
-  
+
 }
 
 data "aws_ecrpublic_authorization_token" "token" {
   provider = aws.us-east-1
 }
-```
-
-## End of "provider.tf" ##
+## end of provider.tf ##

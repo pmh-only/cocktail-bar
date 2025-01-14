@@ -1,0 +1,13 @@
+#if($input.json('$.Item.id.S') != '""')
+{
+  "success": true,
+  "data": {
+    "id": $input.json('$.Item.id.S'),
+    "name": $input.json('$.Item.name.S')
+  }
+}
+#else
+{
+  "success": false
+}
+#end

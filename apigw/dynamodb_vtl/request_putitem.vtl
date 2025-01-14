@@ -1,0 +1,11 @@
+{
+   "Item": { 
+      "id" : {
+         "S": $input.json('$.id')
+      },
+      "name" : {
+         "S": $input.json('$.name')
+      }
+   },
+   "TableName": "items"
+}
