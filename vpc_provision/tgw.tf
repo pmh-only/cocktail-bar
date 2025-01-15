@@ -97,6 +97,22 @@ locals {
       }
     }
   }
+
+  dynamic_vpc_propagations_list = flatten([
+    for src_idx, src_attachment_id in module.tgw.ec2_transit_gateway_vpc_attachment_ids : [
+      for dst_idx, dst_route_table_id in aws_ec2_transit_gateway_route_table.tgw_route_tables :
+      {
+        name               = "${src_idx}-${dst_idx}"
+        src_attachment_id  = src_attachment_id
+        dst_route_table_id = dst_route_table_id.id
+      } if src_idx != dst_idx
+    ]
+  ])
+
+  dynamic_vpc_propagations = {
+    for idx, propagation in local.dynamic_vpc_propagations_list :
+    propagation.name => propagation
+  }
 }
 
 module "tgw" {
@@ -134,12 +150,8 @@ resource "aws_ec2_transit_gateway_route_table_association" "tgw_route_tables_ass
 }
 
 resource "aws_ec2_transit_gateway_route_table_propagation" "tgw_route_tables_propagation" {
-  for_each = local.tgw_route_table_names_map
+  for_each = local.dynamic_vpc_propagations
 
-  depends_on = [
-    aws_ec2_transit_gateway_route_table_association.tgw_route_tables_association
-  ]
-
-  transit_gateway_attachment_id  = module.tgw.ec2_transit_gateway_vpc_attachment_ids[tonumber(each.key)]
-  transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.tgw_route_tables[each.key].id
+  transit_gateway_attachment_id  = each.value.src_attachment_id
+  transit_gateway_route_table_id = each.value.dst_route_table_id
 }

@@ -258,7 +258,7 @@ resource "null_resource" "change_nat_gateway_name" {
   depends_on = [module.vpc]
 
   provisioner "local-exec" {
-    command = "aws ec2 create-tags --resources ${module.vpc.natgw_ids[count.index]} --tags Key=Name,Value=${local.nat_gateway_names.private[count.index]} --region ${var.region}"
+    command = "aws ec2 create-tags --resources ${module.vpc.natgw_ids[count.index]} --tags Key=Name,Value=${local.nat_gateway_names[count.index]} --region ${var.region}"
   }
 }
 
