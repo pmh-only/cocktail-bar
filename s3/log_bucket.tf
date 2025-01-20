@@ -23,6 +23,18 @@ module "log_bucket" {
   attach_elb_log_delivery_policy        = true
 }
 
+resource "aws_s3_bucket_logging" "logging4logbucket" {
+  target_bucket = module.log_bucket.s3_bucket_id
+  bucket = module.log_bucket.s3_bucket_id
+
+  target_prefix = ""
+  target_object_key_format {
+    partitioned_prefix {
+      partition_date_source = "EventTime"
+    }
+  }
+}
+
 output "log_bucket" {
   value = module.log_bucket.s3_bucket_id
 }
