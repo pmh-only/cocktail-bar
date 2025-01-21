@@ -29,8 +29,7 @@ module "bucket" {
   ]
 
   logging = {
-    target_bucket = module.s3_bucket_for_logs.s3_bucket_id
-    target_prefix = "s3/"
+    target_bucket = module.log_bucket.s3_bucket_id
     target_object_key_format = {
       partitioned_prefix = {
         partition_date_source = "EventTime"
