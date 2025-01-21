@@ -4,7 +4,7 @@ phases:
   pre_build:
     commands:
       # Define variables
-      - REGISTRY_URI=$AWS_CCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+      - REGISTRY_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
       - REPOSITORY_URI=$REGISTRY_URI/$IMAGE_REPO_NAME
       - IMAGE_TAG=$(TZ=Asia/Seoul date +"%Y-%m-%d.%H.%M.%S")
       
@@ -17,6 +17,7 @@ phases:
       
   post_build:
     commands:
+      # - docker run -v /var/run/docker.sock:/var/run/docker.sock public.ecr.aws/aquasecurity/trivy image --exit-code 1 --severity MEDIUM,HIGH,CRITICAL $REPOSITORY_URI:$IMAGE_TAG
       - docker push $REPOSITORY_URI:$IMAGE_TAG
       - >-
         printf '[{"name": "app", "imageUri": "%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
