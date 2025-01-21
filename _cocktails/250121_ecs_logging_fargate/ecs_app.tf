@@ -7,14 +7,7 @@ module "ecs_service" {
   name        = "${var.project_name}-myapp"
   cluster_arn = module.ecs.cluster_arn
 
-  requires_compatibilities = ["EC2"]
-  capacity_provider_strategy = {
-    EC2 = {
-      capacity_provider = module.ecs.autoscaling_capacity_providers["EC2"].name
-      weight            = 1
-      base              = 1
-    }
-  }
+  requires_compatibilities = ["FARGATE"]
 
   tasks_iam_role_policies = {
     CloudWatchLogsFullAccess = "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess"
@@ -24,21 +17,30 @@ module "ecs_service" {
     CloudWatchLogsFullAccess = "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess"
   }
 
-  cpu    = 128
-  memory = 128
+  # CPU value 	    Memory value
+  # 256 (.25 vCPU) 	512 MiB, 1 GB, 2 GB
+  # 512 (.5 vCPU) 	1 GB, 2 GB, 3 GB, 4 GB
+  # 1024 (1 vCPU) 	2 GB, 3 GB, 4 GB, 5 GB, 6 GB, 7 GB, 8 GB
+  # 2048 (2 vCPU) 	Between 4 GB and 16 GB in 1 GB increments
+  # 4096 (4 vCPU) 	Between 8 GB and 30 GB in 1 GB increments
+  # 8192 (8 vCPU)   Between 16 GB and 60 GB in 4 GB increments
+  # 16384 (16vCPU)  Between 32 GB and 120 GB in 8 GB increments
+
+  cpu    = 256
+  memory = 512
 
   # cpuArchitecture
   # Valid Values: X86_64 | ARM64
 
   runtime_platform = {
-    cpu_architecture        = "X86_64"
+    cpu_architecture        = "ARM64"
     operating_system_family = "LINUX"
   }
 
   container_definitions = {
     myapp = {
-      cpu       = 128 - 25
-      memory    = 128 - 25
+      cpu       = 256 - 25
+      memory    = 512 - 25
       essential = true
       image     = "public.ecr.aws/nginx/nginx:alpine"
 
@@ -60,7 +62,7 @@ module "ecs_service" {
       }
 
       readonly_root_filesystem = false
-      memory_reservation       = 128 - 25
+      memory_reservation       = 512 - 25
     }
 
     log_router = {
@@ -90,7 +92,7 @@ module "ecs_service" {
               Name cloudwatch
               Match *
               region ap-northeast-2
-              log_group_name /ecs/${var.project_name}-cluster/myapp
+              log_group_name /ecs/${var.project_name}-cluster/myapp2
               log_stream_name $${TASK_ID}
               auto_create_group true
             EOF
@@ -114,7 +116,7 @@ module "ecs_service" {
       log_configuration = {
         logDriver = "awslogs"
         options = {
-          awslogs-group         = "/ecs/${var.project_name}-cluster/myapp-logroute"
+          awslogs-group         = "/ecs/${var.project_name}-cluster/myapp2-logroute"
           awslogs-region        = var.region
           awslogs-stream-prefix = "ecs"
           awslogs-create-group  = "true"
@@ -160,13 +162,6 @@ module "ecs_service" {
       cidr_blocks = ["0.0.0.0/0"]
     }
   }
-
-  ordered_placement_strategy = [
-    {
-      field = "memory"
-      type  = "binpack"
-    }
-  ]
 
   desired_count            = 2
   autoscaling_max_capacity = 64
