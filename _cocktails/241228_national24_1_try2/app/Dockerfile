@@ -1,4 +1,4 @@
-FROM alpine
+FROM public.ecr.aws/docker/library/alpine
 
 RUN apk add --no-cache curl gcompat
 

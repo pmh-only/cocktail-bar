@@ -1,4 +1,4 @@
-FROM alpine as build
+FROM public.ecr.aws/docker/library/alpine as build
 
 RUN apk add --no-cache nodejs
 RUN apk add --no-cache npm
@@ -16,7 +16,7 @@ COPY src src
 
 RUN npx tsc
 
-FROM alpine as resolve
+FROM public.ecr.aws/docker/library/alpine as resolve
 
 RUN apk add --no-cache nodejs
 RUN apk add --no-cache npm
@@ -29,7 +29,7 @@ COPY package.json \
 
 RUN npm i --omit=dev
 
-FROM alpine as runtime
+FROM public.ecr.aws/docker/library/alpine as runtime
 
 RUN apk add --no-cache nodejs curl
 

@@ -1,4 +1,4 @@
-FROM alpine AS build
+FROM public.ecr.aws/docker/library/alpine AS build
 
 RUN apk add --no-cache go
 
@@ -11,7 +11,7 @@ COPY . /app/
 ENV CGO_ENABLED=0
 RUN go build -o /app/main
 
-FROM alpine AS runtime
+FROM public.ecr.aws/docker/library/alpine AS runtime
 
 RUN apk add --no-cache curl
 

@@ -1,4 +1,4 @@
-FROM alpine
+FROM public.ecr.aws/docker/library/alpine
 
 ARG user=1000
 ARG group=1000

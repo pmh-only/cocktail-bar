@@ -1,4 +1,4 @@
-FROM alpine as build
+FROM public.ecr.aws/docker/library/alpine as build
 
 RUN apk add --no-cache python3
 RUN apk add --no-cache py3-pip
@@ -9,7 +9,7 @@ RUN pip install -t .lib flask
 
 # ---
 
-FROM alpine as runtime
+FROM public.ecr.aws/docker/library/alpine as runtime
 
 ARG user=1000
 ARG group=1000
