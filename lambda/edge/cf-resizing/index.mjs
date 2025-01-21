@@ -5,34 +5,40 @@ export const handler = async (event) => {
   const request = event.Records[0].cf.request
   const searchParams = new URLSearchParams(request.querystring)
 
-  const width = parseInt(searchParams.get('width')) || undefined
-  const height = parseInt(searchParams.get('height')) || undefined
+  const width = parseInt(searchParams.get('width'))
+  const height = parseInt(searchParams.get('height'))
 
-  const client = new S3Client({});
+  if (!request.uri.startsWith('/images'))
+    return request
+
+  if (Number.isNaN(width) && Number.isNaN(height))
+    return request
+
+  const client = new S3Client({
+    region: 'ap-northeast-2'
+  })
+  
   const command = new GetObjectCommand({
-    Bucket: 'shutupandtakemybucket',
+    Bucket: 'project-frontend20250121063308540100000002',
     Key: request.uri.replace('/', '')
   })
-
+  
   const object = await client.send(command)
     .catch(() => undefined)
 
-  if (object === undefined) {
-    return {
-      body: 'no object!!!',
-      headers: {
-        'Content-Type': [{
-          value: 'text/plain'
-        }]
-      },
-      status: '200'
-    }
-  }
+  if (object === undefined)
+    return request
+
+  if (!object.ContentType.startsWith('image/'))
+    return request
 
   const objectBody = await object.Body.transformToByteArray()
   
   const result = await sharp(objectBody)
-    .resize(width, height)
+    .resize({
+      width: Number.isNaN(width) ? undefined : width,
+      height: Number.isNaN(height) ? undefined : height
+    })
     .toBuffer()
 
   return {
