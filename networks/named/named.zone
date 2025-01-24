@@ -1,0 +1,13 @@
+$TTL 300    ; default TTL for zone
+@         IN      SOA   ns1.skill53.local. hostmaster.skill53.local. (
+                                2003080800 ; serial number
+                                12h        ; refresh
+                                15m        ; update retry
+                                3w         ; expiry
+                                2h         ; minimum
+                                )
+
+           IN      NS      ns1.skill53.local.
+ns1        IN      A       127.0.0.1
+www        IN      A       10.3.2.220
+malicious  IN      A       10.3.2.224

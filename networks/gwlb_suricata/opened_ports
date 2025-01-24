@@ -1,0 +1,11 @@
+For both GWLB eni
+For inbound
+
+TCP 80     (GWLB Healthcheck)
+
+---
+
+For both inbound/outbound
+For both GWLB eni
+
+UDP 6081   (GENEVE)
