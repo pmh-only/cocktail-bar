@@ -5,6 +5,14 @@ metadata:
   labels:
     elbv2.k8s.aws/pod-readiness-gate-inject: enabled
 ---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: <APP>
+  namespace: <NAMESPACE>
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::111122223333:role/my-role
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -26,6 +34,7 @@ spec:
       labels:
         app:  <APP>
     spec:
+      serviceAccountName: <APP>
       nodeSelector:
         dedicated: app
       tolerations:
