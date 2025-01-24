@@ -1,0 +1,8 @@
+For both inbound/outbound
+For both tunnels
+
+ESP        (50, IPSec)
+
+UDP 500    (IKE)
+UDP 4500   (NAT Trav.)
+TCP 179    (BGP)

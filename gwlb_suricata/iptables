@@ -1,0 +1,17 @@
+iptables -t nat -F
+iptables -t mangle -F
+iptables -F
+iptables -X
+
+# Set the default policies for each of the built-in chains to ACCEPT:
+iptables -P INPUT ACCEPT
+iptables -P FORWARD ACCEPT
+iptables -P OUTPUT ACCEPT
+
+iptables -I FORWARD -j NFQUEUE
+
+iptables -t nat -A PREROUTING -p udp -s <GWLB_1_IP> -d <APPLICANT_IP> -i eth0 -j DNAT --to-destination <GWLB_1_IP>:6081
+iptables -t nat -A POSTROUTING -p udp --dport 6081 -s <GWLB_1_IP> -d <GWLB_1_IP> -o eth0 -j MASQUERADE
+
+iptables -t nat -A PREROUTING -p udp -s <GWLB_2_IP> -d <APPLICANT_IP> -i eth0 -j DNAT --to-destination <GWLB_2_IP>:6081
+iptables -t nat -A POSTROUTING -p udp --dport 6081 -s <GWLB_2_IP> -d <GWLB_2_IP> -o eth0 -j MASQUERADE
