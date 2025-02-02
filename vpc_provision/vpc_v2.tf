@@ -1,10 +1,10 @@
 locals {
   az_count    = 2
-  az_override = ["a", "c"] # Example: ["a", "b"]
+  az_override = [] # Example: ["a", "b"]
 
   # Enable/disable NAT Gateways and Internet Gateway via locals.
-  enable_natgw = false
-  enable_igw   = false
+  enable_natgw = true
+  enable_igw   = true
 
   # Naming format strings; placeholders: 
   # $1 = project_name, $2 = AZ (lowercase), $3 = AZ (uppercase)
@@ -21,13 +21,39 @@ locals {
   # First intra subnet will be vpc endpoint placement subnet if enabled.
   subnets = [
     {
+      type                            = "public"
+      separate_rtb_per_az             = true
+      create_rds_subnet_group         = false
+      create_elasticache_subnet_group = false
+      create_redshift_subnet_group    = false
+      name                            = "$1-subnet-public-$2"
+      rtb_name                        = "$1-rtb-public-$2"
+      cidr_pattern = {
+        start_index     = 0
+        step_per_subnet = 1
+      }
+    },
+    {
+      type                            = "private"
+      separate_rtb_per_az             = true
+      create_rds_subnet_group         = false
+      create_elasticache_subnet_group = false
+      create_redshift_subnet_group    = false
+      name                            = "$1-subnet-private-$2"
+      rtb_name                        = "$1-rtb-private-$2"
+      cidr_pattern = {
+        start_index     = 10
+        step_per_subnet = 1
+      }
+    },
+    {
       type                            = "intra"
       separate_rtb_per_az             = true
       create_rds_subnet_group         = true
       create_elasticache_subnet_group = false
       create_redshift_subnet_group    = false
-      name                            = "$1-protect-sn-$2"
-      rtb_name                        = "$1-rtb-protect-$2"
+      name                            = "$1-subnet-protected-$2"
+      rtb_name                        = "$1-rtb-protected-$2"
       cidr_pattern = {
         start_index     = 20
         step_per_subnet = 1
