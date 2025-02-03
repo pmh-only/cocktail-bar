@@ -14,51 +14,113 @@ locals {
   natgw_name       = "$1-natgw-$2"
   default_rtb_name = "$1-rtb-default"
 
-  karpenter_discovery_tag = "$1-cluster"
+  eks_discovery_tag = "$1-cluster"
 
   # Define one or more subnet groups.
-  # First public subnet will be nat placement subnet if enabled.
-  # First intra subnet will be vpc endpoint placement subnet if enabled.
+  # type=public, Attach Internet Gateway Route
+  # type=private, Attach NAT Gateway Route
+  # type=intra, No internet connections
   subnets = [
     {
-      type                            = "public"
-      separate_rtb_per_az             = true
+      type = "public"
+
+      separate_rtb_per_az = true
+
       create_rds_subnet_group         = false
       create_elasticache_subnet_group = false
       create_redshift_subnet_group    = false
-      name                            = "$1-subnet-public-$2"
-      rtb_name                        = "$1-rtb-public-$2"
+
+      create_vpc_endpoint = false
+      create_client_vpn   = false
+
+      tag_karpenter      = false
+      tag_tgw_attachment = false
+      tag_alb_public     = true
+      tag_alb_private    = false
+
+      name     = "$1-subnet-public-$2"
+      rtb_name = "$1-rtb-public-$2"
       cidr_pattern = {
         start_index     = 0
         step_per_subnet = 1
       }
     },
     {
-      type                            = "private"
-      separate_rtb_per_az             = true
+      type = "private"
+
+      separate_rtb_per_az = true
+
       create_rds_subnet_group         = false
       create_elasticache_subnet_group = false
       create_redshift_subnet_group    = false
-      name                            = "$1-subnet-private-$2"
-      rtb_name                        = "$1-rtb-private-$2"
+
+      create_vpc_endpoint = false
+      create_client_vpn   = false
+
+      tag_karpenter      = true
+      tag_tgw_attachment = false
+      tag_alb_public     = false
+      tag_alb_private    = true
+
+      name     = "$1-subnet-private-$2"
+      rtb_name = "$1-rtb-private-$2"
       cidr_pattern = {
         start_index     = 10
         step_per_subnet = 1
       }
     },
     {
-      type                            = "intra"
-      separate_rtb_per_az             = true
+      type = "intra"
+
+      separate_rtb_per_az = true
+
       create_rds_subnet_group         = true
       create_elasticache_subnet_group = false
       create_redshift_subnet_group    = false
-      name                            = "$1-subnet-protected-$2"
-      rtb_name                        = "$1-rtb-protected-$2"
+
+      create_vpc_endpoint = true
+      create_client_vpn   = true
+
+      tag_karpenter      = false
+      tag_tgw_attachment = true
+      tag_alb_public     = false
+      tag_alb_private    = false
+
+      name     = "$1-subnet-protected-$2"
+      rtb_name = "$1-rtb-protected-$2"
       cidr_pattern = {
         start_index     = 20
         step_per_subnet = 1
       }
     }
+  ]
+
+  enabled_gateway_endpoints = [
+    "s3",
+    "dynamodb"
+  ]
+
+  enabled_interface_endpoints = [
+    "autoscaling",
+    "logs",
+    "ec2",
+    "sts",
+    "ssm",
+    # "sqs",
+    # "sns",
+    # "glue",
+    "ssmmessages",
+    "ec2messages",
+    "ecr.api",
+    "ecr.dkr",
+    # "rds",
+    # "ecs",
+    # "ecs-agent",
+    # "ecs-telemetry",
+    "secretsmanager",
+    # "vpc-lattice",
+    # "elasticloadbalancing",
+    # "elasticfilesystem"
   ]
 }
 
@@ -97,7 +159,7 @@ locals {
 }
 
 ###############################################################################
-# Build a Mapping of Public Subnets Per AZ
+# Build a Mapping of Subnets
 ###############################################################################
 
 locals {
@@ -110,6 +172,9 @@ locals {
   intra_subnets_per_az = { for az in local.final_azs :
     az => [for item in local.all_subnets : item if item.group.type == "intra" && item.az == az]
   }
+
+  endpoint_subnets = [for item in local.all_subnets : item if item.group.create_vpc_endpoint == true]
+  vpn_subnets      = [for item in local.all_subnets : item if item.group.create_client_vpn == true]
 }
 
 ###############################################################################
@@ -148,6 +213,14 @@ resource "aws_subnet" "this" {
   tags = {
     Name = replace(replace(replace(each.value.group.name, "$1", var.project_name), "$2", each.value.az_suffix), "$3", upper(each.value.az_suffix))
     Type = each.value.group.type
+
+    Peer                              = each.value.group.tag_tgw_attachment ? "true" : "false"
+    "kubernetes.io/role/elb"          = each.value.group.tag_alb_public ? "1" : "0"
+    "kubernetes.io/role/internal-elb" = each.value.group.tag_alb_private ? "1" : "0"
+
+    "karpenter.sh/discovery" = each.value.group.tag_karpenter ? replace(replace(replace(local.eks_discovery_tag, "$1", var.project_name), "$2", ""), "$3", "") : "nothing"
+
+    "kubernetes.io/cluster/${replace(replace(replace(local.eks_discovery_tag, "$1", var.project_name), "$2", ""), "$3", "")}" = "owned"
   }
 }
 
@@ -249,28 +322,28 @@ resource "aws_route" "public_igw" {
 
 resource "aws_db_subnet_group" "rds" {
   for_each   = { for idx, s in local.subnets : idx => s if s.type == "intra" && lookup(s, "create_rds_subnet_group", false) }
-  name       = "${var.project_name}-rds-subnet-group-${each.key}"
+  name       = "${var.project_name}-subnets-${each.key}"
   subnet_ids = [for item in local.all_subnets : aws_subnet.this[item.key].id if item.group.type == "intra" && tostring(item.group_index) == each.key]
   tags = {
-    Name = "${var.project_name}-rds-subnet-group-${each.key}"
+    Name = "${var.project_name}-subnets-${each.key}"
   }
 }
 
 resource "aws_elasticache_subnet_group" "elasticache" {
   for_each   = { for idx, s in local.subnets : idx => s if s.type == "intra" && lookup(s, "create_elasticache_subnet_group", false) }
-  name       = "${var.project_name}-elasticache-subnet-group-${each.key}"
+  name       = "${var.project_name}-subnets-${each.key}"
   subnet_ids = [for item in local.all_subnets : aws_subnet.this[item.key].id if item.group.type == "intra" && tostring(item.group_index) == each.key]
   tags = {
-    Name = "${var.project_name}-elasticache-subnet-group-${each.key}"
+    Name = "${var.project_name}-subnets-${each.key}"
   }
 }
 
 resource "aws_redshift_subnet_group" "redshift" {
   for_each   = { for idx, s in local.subnets : idx => s if s.type == "intra" && lookup(s, "create_redshift_subnet_group", false) }
-  name       = "${var.project_name}-redshift-subnet-group-${each.key}"
+  name       = "${var.project_name}-subnets-${each.key}"
   subnet_ids = [for item in local.all_subnets : aws_subnet.this[item.key].id if item.group.type == "intra" && tostring(item.group_index) == each.key]
   tags = {
-    Name = "${var.project_name}-redshift-subnet-group-${each.key}"
+    Name = "${var.project_name}-subnets-${each.key}"
   }
 }
 
@@ -283,6 +356,82 @@ resource "aws_default_route_table" "default" {
   tags = {
     Name = replace(replace(replace(local.default_rtb_name, "$1", var.project_name), "$2", ""), "$3", "")
   }
+}
+
+###############################################################################
+# VPC Endpoints
+###############################################################################
+
+module "endpoints" {
+  source = "terraform-aws-modules/vpc/aws//modules/vpc-endpoints"
+
+  vpc_id                     = aws_vpc.this.id
+  create_security_group      = true
+  security_group_name        = "${var.project_name}-sg-endpoints"
+  security_group_description = "VPC endpoint security group"
+  security_group_rules = {
+    ingress_https = {
+      description = "HTTPS from VPC"
+      protocol    = "tcp"
+      from_port   = "443"
+      to_port     = "443"
+      cidr_blocks = [aws_vpc.this.cidr_block]
+    }
+  }
+
+  endpoints = merge(
+    { for gateway in local.enabled_gateway_endpoints : gateway => {
+      service         = gateway
+      service_type    = "Gateway"
+      route_table_ids = values(aws_route_table.this)[*].id
+      tags            = { Name = "${var.project_name}-endpoint-${gateway}" }
+      }
+    },
+    { for interface in local.enabled_interface_endpoints : interface => {
+      service             = interface
+      private_dns_enabled = true
+      subnet_ids          = [for item in local.endpoint_subnets : aws_subnet.this[item.key].id]
+      tags                = { Name = "${var.project_name}-endpoint-${interface}" }
+      } if length(local.endpoint_subnets) > 0
+    }
+  )
+}
+
+###############################################################################
+# Client VPN
+###############################################################################
+
+module "ec2_client_vpn" {
+  source = "cloudposse/ec2-client-vpn/aws"
+  name   = "${var.project_name}-vpn"
+
+  enabled = length(local.vpn_subnets) > 0
+
+  vpc_id             = aws_vpc.this.id
+  client_cidr        = "10.254.0.0/16"
+  organization_name  = "${var.project_name}-org"
+  associated_subnets = [for item in local.vpn_subnets : aws_subnet.this[item.key].id]
+
+  logging_enabled     = true
+  logging_stream_name = "vpnlog"
+  split_tunnel        = true
+
+  authorization_rules = [
+    {
+      authorize_all_groups = true
+      target_network_cidr  = local.vpc_cidr
+      description          = "Authorized VPC Range"
+    }
+  ]
+
+  export_client_certificate = true
+}
+
+resource "local_sensitive_file" "client_configuration" {
+  count = length(local.vpn_subnets) > 0 ? 1 : 0
+
+  filename = "./temp/vpn.ovpn"
+  content  = module.ec2_client_vpn.full_client_configuration
 }
 
 ###############################################################################

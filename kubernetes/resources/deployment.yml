@@ -19,8 +19,6 @@ spec:
       labels:
         app:  <APP>
     spec:
-      readinessGates:
-        - conditionType: target-health.alb.ingress.k8s.aws/<APP>_<APP>_8080
       containers:
       - name:  <APP>
         image:  <IMAGE>

@@ -3,21 +3,21 @@ locals {
 
   # VPCs for which we want TGW attachments
   tgw_target_vpcs = [
-    "vpc-0c49d17afb02f1255",
-    "vpc-089cd104f70275d5e",
+    "vpc-0961398cc83eb08af",
+    # "vpc-089cd104f70275d5e",
   ]
 
   # Corresponding names for each TGW attachment
   # The index here must match the index of the VPC IDs above
   tgw_attachment_names = [
     "${var.project_name}-tgw-attach-vpc1",
-    "${var.project_name}-tgw-attach-vpc2",
+    # "${var.project_name}-tgw-attach-vpc2",
   ]
 
   # Names for TGW route tables
   tgw_route_table_names = [
     "${var.project_name}-tgw-rtb-vpc1",
-    "${var.project_name}-tgw-rtb-vpc2",
+    # "${var.project_name}-tgw-rtb-vpc2",
   ]
 }
 
@@ -58,7 +58,34 @@ data "aws_subnets" "target_vpc_subnets_intra" {
   }
 }
 
+data "aws_subnets" "target_vpc_subnets_peering" {
+  for_each = data.aws_vpc.target_vpc
+
+  filter {
+    name   = "vpc-id"
+    values = [each.value.id]
+  }
+
+  filter {
+    name   = "tag:Peer"
+    values = ["true"]
+  }
+}
+
 locals {
+  tgw_attachment_subnets = {
+    for idx, vpc_id in local.tgw_target_vpcs :
+    idx =>
+
+    length(data.aws_subnets.target_vpc_subnets_peering[vpc_id].ids) > 0 ?
+    data.aws_subnets.target_vpc_subnets_peering[vpc_id].ids :
+
+    length(data.aws_subnets.target_vpc_subnets_intra[vpc_id].ids) > 0 ?
+    data.aws_subnets.target_vpc_subnets_intra[vpc_id].ids :
+
+    data.aws_subnets.target_vpc_subnets_private[vpc_id].ids
+  }
+
   # Turn list of route table names into a map of index => name
   tgw_route_table_names_map = {
     for idx, name in local.tgw_route_table_names :
@@ -71,7 +98,7 @@ locals {
       vpc_id          = vpc_id
       attachment_name = local.tgw_attachment_names[idx]
       # Subnet IDs come from data.aws_subnets
-      subnet_ids = (length(data.aws_subnets.target_vpc_subnets_intra[vpc_id].ids) > 0) ? data.aws_subnets.target_vpc_subnets_intra[vpc_id].ids : data.aws_subnets.target_vpc_subnets_private[vpc_id].ids
+      subnet_ids = local.tgw_attachment_subnets[idx]
       # VPC CIDR from data.aws_vpc
       destination_cidr_block = data.aws_vpc.target_vpc[vpc_id].cidr_block
     }
@@ -84,6 +111,10 @@ locals {
     idx => {
       vpc_id     = attachment_data.vpc_id
       subnet_ids = attachment_data.subnet_ids
+
+      security_group_referencing_support              = true
+      transit_gateway_default_route_table_association = false
+      transit_gateway_default_route_table_propagation = false
 
       tgw_routes = [
         {
@@ -125,6 +156,7 @@ module "tgw" {
   enable_multicast_support               = false
   enable_default_route_table_association = false
   enable_default_route_table_propagation = false
+  enable_sg_referencing_support          = true
   create_tgw_routes                      = false
   enable_dns_support                     = true
   share_tgw                              = false

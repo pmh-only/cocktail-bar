@@ -1,9 +1,21 @@
+#################################
+
 variable "project_name" {
   default = "project"
 }
 
 variable "region" {
   default = "ap-northeast-2"
+}
+
+#################################
+
+terraform {
+  required_providers {
+    awsutils = {
+      source = "cloudposse/awsutils"
+    }
+  }
 }
 
 provider "aws" {
@@ -20,6 +32,10 @@ provider "aws" {
 provider "aws" {
   region = "us-east-1"
   alias  = "us-east-1"
+}
+
+provider "awsutils" {
+  region = var.region
 }
 
 provider "kubernetes" {
