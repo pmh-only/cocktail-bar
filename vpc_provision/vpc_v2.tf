@@ -33,7 +33,9 @@ locals {
       create_vpc_endpoint = false
       create_client_vpn   = false
 
-      tag_karpenter      = false
+      create_eks_controlplane = false
+      tag_eks_node            = false
+
       tag_tgw_attachment = false
       tag_alb_public     = true
       tag_alb_private    = false
@@ -57,7 +59,9 @@ locals {
       create_vpc_endpoint = false
       create_client_vpn   = false
 
-      tag_karpenter      = true
+      create_eks_controlplane = false
+      tag_eks_node            = true
+
       tag_tgw_attachment = false
       tag_alb_public     = false
       tag_alb_private    = true
@@ -81,7 +85,9 @@ locals {
       create_vpc_endpoint = true
       create_client_vpn   = true
 
-      tag_karpenter      = false
+      create_eks_controlplane = true
+      tag_eks_node            = false
+
       tag_tgw_attachment = true
       tag_alb_public     = false
       tag_alb_private    = false
@@ -175,6 +181,9 @@ locals {
 
   endpoint_subnets = [for item in local.all_subnets : item if item.group.create_vpc_endpoint == true]
   vpn_subnets      = [for item in local.all_subnets : item if item.group.create_client_vpn == true]
+
+  eks_node_subnets         = [for item in local.all_subnets : item if item.group.tag_eks_node == true]
+  eks_controlplane_subnets = [for item in local.all_subnets : item if item.group.create_eks_controlplane == true]
 }
 
 ###############################################################################
@@ -218,7 +227,7 @@ resource "aws_subnet" "this" {
     "kubernetes.io/role/elb"          = each.value.group.tag_alb_public ? "1" : "0"
     "kubernetes.io/role/internal-elb" = each.value.group.tag_alb_private ? "1" : "0"
 
-    "karpenter.sh/discovery" = each.value.group.tag_karpenter ? replace(replace(replace(local.eks_discovery_tag, "$1", var.project_name), "$2", ""), "$3", "") : "nothing"
+    "karpenter.sh/discovery" = each.value.group.tag_eks_node ? replace(replace(replace(local.eks_discovery_tag, "$1", var.project_name), "$2", ""), "$3", "") : "nothing"
 
     "kubernetes.io/cluster/${replace(replace(replace(local.eks_discovery_tag, "$1", var.project_name), "$2", ""), "$3", "")}" = "owned"
   }

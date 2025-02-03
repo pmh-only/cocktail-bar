@@ -7,7 +7,12 @@ module "eks" {
 
   vpc_id                   = module.vpc.vpc_id
   subnet_ids               = module.vpc.private_subnets
-  control_plane_subnet_ids = module.vpc.private_subnets
+  control_plane_subnet_ids = module.vpc.intra_subnets
+
+  # V2
+  # vpc_id                   = aws_vpc.this.id
+  # subnet_ids               = [for item in local.eks_node_subnets : aws_subnet.this[item.key].id]
+  # control_plane_subnet_ids = [for item in local.eks_controlplane_subnets : aws_subnet.this[item.key].id]
 
   eks_managed_node_groups = {
     tools = {

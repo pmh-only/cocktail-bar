@@ -1,0 +1,67 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: wsc-prod
+  labels:
+    elbv2.k8s.aws/pod-readiness-gate-inject: enabled
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: wsc-prod-lb
+  namespace: wsc-prod
+  annotations:
+    alb.ingress.kubernetes.io/load-balancer-name: wsc-prod-lb
+    alb.ingress.kubernetes.io/scheme: internal
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/healthcheck-path: /healthcheck
+    alb.ingress.kubernetes.io/healthcheck-interval-seconds: "5"
+    alb.ingress.kubernetes.io/healthcheck-timeout-seconds: "2"
+    alb.ingress.kubernetes.io/healthy-threshold-count: "2"
+    alb.ingress.kubernetes.io/unhealthy-threshold-count: "2"
+    alb.ingress.kubernetes.io/target-group-attributes: >-
+      deregistration_delay.timeout_seconds=60
+    alb.ingress.kubernetes.io/load-balancer-attributes: >-
+      deletion_protection.enabled=true,
+      access_logs.s3.enabled=true,
+      access_logs.s3.bucket=wsc-log20250203035843064400000001,
+      access_logs.s3.prefix=accesslog,
+      connection_logs.s3.enabled=true,
+      connection_logs.s3.bucket=wsc-log20250203035843064400000001,
+      connection_logs.s3.prefix=connectionlog
+    alb.ingress.kubernetes.io/actions.response-200: >
+      {"type":"fixed-response","fixedResponseConfig":{"contentType":"text/plain","statusCode":"200","messageBody":"success"}}
+spec:
+  ingressClassName: alb
+  rules:
+  - http:
+      paths:
+      - path: /v1/customer
+        pathType: Exact
+        backend:
+          service:
+            name: customer
+            port:
+              number: 8080
+      - path: /v1/product
+        pathType: Exact
+        backend:
+          service:
+            name: product
+            port:
+              number: 8080
+      - path: /v1/order
+        pathType: Exact
+        backend:
+          service:
+            name: order
+            port:
+              number: 8080
+      - path: /_lb/healthz
+        pathType: Exact
+        backend:
+          service:
+            name: response-200
+            port:
+              name: use-annotation
+

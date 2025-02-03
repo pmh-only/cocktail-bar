@@ -1,12 +1,14 @@
 #!/bin/bash
 
-curl https://dfsdfsdfds.free.beeceptor.com \
+curl https://d382w9uy20fydd.cloudfront.net/v1/customer \
   -X POST \
   -H "Content-Type: application/json" \
-  -d "$(cat <<-EOF
+  --data-binary @- <<-EOF
 
     {
-      "hello" : "world!"
+      "id": "00001",
+      "name": "00001",
+      "gender": "00001"
     }
 
-    EOF )"
+EOF
