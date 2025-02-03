@@ -26,6 +26,10 @@ module "alb" {
     bucket = module.log_bucket.s3_bucket_id
   }
 
+  connection_logs = {
+    bucket = module.log_bucket.s3_bucket_id
+  }
+
   listeners = {
     http = {
       port     = 80

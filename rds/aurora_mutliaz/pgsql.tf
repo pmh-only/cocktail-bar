@@ -30,7 +30,12 @@ module "aurora_primary" {
   skip_final_snapshot = true
   kms_key_id          = aws_kms_key.primary.arn
 
-  availability_zones           = module.vpc.azs
+  availability_zones = [
+    "${var.region}a",
+    "${var.region}b",
+    "${var.region}c"
+  ]
+
   backup_retention_period      = 7
   performance_insights_enabled = false
   monitoring_interval          = 30
