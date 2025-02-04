@@ -20,7 +20,7 @@ module "eks" {
 
   eks_managed_node_groups = {
     project-mng-addon = {
-      ami_type       = "BOTTLEROCKET_x86_64"
+      ami_type       = "BOTTLEROCKET_x86_64" # BOTTLEROCKET_ARM_64 or BOTTLEROCKET_x86_64
       instance_types = ["c5.large"]
 
       min_size     = 3

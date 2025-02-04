@@ -7,6 +7,7 @@ module "ecs_service" {
   name        = "${var.project_name}-myapp"
   cluster_arn = module.ecs.cluster_arn
 
+  # EC2
   requires_compatibilities = ["EC2"]
   capacity_provider_strategy = {
     EC2 = {
@@ -31,7 +32,7 @@ module "ecs_service" {
   # Valid Values: X86_64 | ARM64
 
   runtime_platform = {
-    cpu_architecture        = "X86_64"
+    cpu_architecture        = "ARM64"
     operating_system_family = "LINUX"
   }
 
@@ -43,7 +44,10 @@ module "ecs_service" {
       image     = "public.ecr.aws/nginx/nginx:alpine"
 
       health_check = {
-        command = ["CMD-SHELL", "curl -f http://localhost:80/ || exit 1"]
+        command  = ["CMD-SHELL", "curl -f http://localhost:80/ || exit 1"]
+        interval = 5
+        timeout  = 2
+        retries  = 1
       }
 
       port_mappings = [
@@ -142,9 +146,14 @@ module "ecs_service" {
     }
   }
 
-  subnet_ids = module.vpc.private_subnets
+  # subnet_ids = module.vpc.private_subnets
+
+  # V2
+  subnet_ids = [for subnet in local.ecs_cluster_subnets : aws_subnet.this[subnet.key].id]
+
+
   security_group_rules = {
-    alb_ingress_3000 = {
+    alb_ingress = {
       type                     = "ingress"
       from_port                = 80
       to_port                  = 80
@@ -162,6 +171,10 @@ module "ecs_service" {
   }
 
   ordered_placement_strategy = [
+    {
+      field = "attribute:ecs.availability-zone"
+      type  = "spread"
+    },
     {
       field = "memory"
       type  = "binpack"

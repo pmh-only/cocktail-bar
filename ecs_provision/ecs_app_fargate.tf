@@ -45,7 +45,10 @@ module "ecs_service" {
       image     = "public.ecr.aws/nginx/nginx:alpine"
 
       health_check = {
-        command = ["CMD-SHELL", "curl -f http://localhost:80/ || exit 1"]
+        command  = ["CMD-SHELL", "curl -f http://localhost:80/ || exit 1"]
+        interval = 5
+        timeout  = 2
+        retries  = 1
       }
 
       port_mappings = [
@@ -144,7 +147,11 @@ module "ecs_service" {
     }
   }
 
-  subnet_ids = module.vpc.private_subnets
+  # subnet_ids = module.vpc.private_subnets
+
+  # V2
+  subnet_ids = [for subnet in local.ecs_cluster_subnets : aws_subnet.this[subnet.key].id]
+
   security_group_rules = {
     alb_ingress_3000 = {
       type                     = "ingress"

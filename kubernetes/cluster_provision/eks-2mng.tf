@@ -17,7 +17,7 @@ module "eks" {
   eks_managed_node_groups = {
     tools = {
       name            = "${var.project_name}-nodegroup-tools"
-      ami_type        = "BOTTLEROCKET_ARM_64"
+      ami_type        = "BOTTLEROCKET_ARM_64" # BOTTLEROCKET_ARM_64 or BOTTLEROCKET_x86_64
       instance_types  = ["c6g.large"]
       iam_role_name   = "${var.project_name}-ng-tools"
       use_name_prefix = false
@@ -43,7 +43,7 @@ module "eks" {
 
     apps = {
       name           = "${var.project_name}-nodegroup-apps"
-      ami_type       = "BOTTLEROCKET_ARM_64"
+      ami_type       = "BOTTLEROCKET_ARM_64" # BOTTLEROCKET_ARM_64 or BOTTLEROCKET_x86_64
       instance_types = ["c6g.xlarge"]
       iam_role_name  = "${var.project_name}-ng-apps"
 

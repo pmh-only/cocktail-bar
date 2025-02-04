@@ -1,9 +1,27 @@
+locals {
+  alb_internal = false
+}
+
 module "alb" {
   source = "terraform-aws-modules/alb/aws"
 
-  name    = "${var.project_name}-alb"
-  vpc_id  = module.vpc.vpc_id
-  subnets = module.vpc.public_subnets
+  name     = "${var.project_name}-alb"
+  internal = local.alb_internal
+
+  # vpc_id  = module.vpc.vpc_id
+  # subnets = local.alb_internal ? module.vpc.private_subnets : module.vpc.public_subnets
+
+  # V2
+  vpc_id = aws_vpc.this.id
+  subnets = [
+    for subnet in local.all_subnets :
+    aws_subnet.this[subnet.key].id
+
+    if local.alb_internal ? subnet.group.tag_alb_private : subnet.group.tag_alb_public
+  ]
+
+  enable_cross_zone_load_balancing = true
+  enable_zonal_shift               = true
 
   security_group_ingress_rules = {
     all_http = {
@@ -34,8 +52,13 @@ module "alb" {
     http = {
       port     = 80
       protocol = "HTTP"
-      forward = {
-        target_group_key = "myapp"
+      weighted_forward = {
+        target_groups = [
+          {
+            target_group_key = "myapp"
+            weight           = 1
+          }
+        ]
       }
     }
   }
@@ -47,6 +70,21 @@ module "alb" {
       protocol          = "HTTP"
       port              = 80
       target_type       = "ip"
+
+      deregistration_delay              = 60
+      load_balancing_cross_zone_enabled = true
+
+      health_check = {
+        enabled             = true
+        interval            = 5
+        path                = "/"
+        port                = "traffic-port"
+        healthy_threshold   = 2
+        unhealthy_threshold = 2
+        timeout             = 2
+        protocol            = "HTTP"
+        matcher             = "200"
+      }
     }
   }
 }

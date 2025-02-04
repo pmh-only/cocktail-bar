@@ -13,19 +13,21 @@ module "ecs" {
     value = "enhanced"
   }]
 
-  fargate_capacity_providers = {
-    FARGATE = {
-      default_capacity_provider_strategy = {
-        weight = 20
-      }
-    }
-    FARGATE_SPOT = {
-      default_capacity_provider_strategy = {
-        weight = 80
-      }
-    }
-  }
+  # FARGATE
+  # fargate_capacity_providers = {
+  #   FARGATE = {
+  #     default_capacity_provider_strategy = {
+  #       weight = 20
+  #     }
+  #   }
+  #   FARGATE_SPOT = {
+  #     default_capacity_provider_strategy = {
+  #       weight = 80
+  #     }
+  #   }
+  # }
 
+  # EC2
   autoscaling_capacity_providers = {
     EC2 = {
       auto_scaling_group_arn         = module.autoscaling.autoscaling_group_arn
