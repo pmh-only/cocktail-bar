@@ -1,10 +1,7 @@
 locals {
   ecr_repositories = [
-    "stress",
-    "unicorn",
-    "token",
-    "location",
-    "status"
+    "match-ecr",
+    "stress-ecr",
   ]
 }
 
