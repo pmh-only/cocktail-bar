@@ -25,3 +25,5 @@ phases:
 artifacts:
   files: 
     - imageDetail.json
+    - appsepc.yaml
+    - taskdef.json

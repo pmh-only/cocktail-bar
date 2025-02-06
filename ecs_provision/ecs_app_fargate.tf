@@ -182,7 +182,7 @@ module "ecs_service" {
         }
         scale_in_cooldown  = 60
         scale_out_cooldown = 0
-        target_value       = 75
+        target_value       = 50
       }
     },
     memory = {
@@ -193,7 +193,7 @@ module "ecs_service" {
         }
         scale_in_cooldown  = 60
         scale_out_cooldown = 0
-        target_value       = 75
+        target_value       = 50
       }
     }
   }
