@@ -35,6 +35,7 @@ accounts:
         - "admin -> admin-mfa-3R7XKZW6PVCYLJK76JDH4FDP7Y"
         - "admin -> admin"
       IAMPolicy:
+        - "arn:aws:iam::648911607072:policy/SCOP_IAM_POLICY"
         - "arn:aws:iam::648911607072:policy/SCOP_PRD_INFRAMANAGEMENT_PERMISSION_BOUNDARY_PL"
         - "arn:aws:iam::648911607072:policy/SCOP_DYNAMO_WRITER"
         - "arn:aws:iam::648911607072:policy/SCOP_DYNAMO_READER"

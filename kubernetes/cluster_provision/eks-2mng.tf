@@ -22,9 +22,9 @@ module "eks" {
       iam_role_name   = "${var.project_name}-ng-tools"
       use_name_prefix = false
 
-      min_size     = 1
+      min_size     = 2
       max_size     = 27
-      desired_size = 1
+      desired_size = 2
 
       launch_template_tags = {
         Name = "${var.project_name}-node-tools"
@@ -42,14 +42,15 @@ module "eks" {
     }
 
     apps = {
-      name           = "${var.project_name}-nodegroup-apps"
-      ami_type       = "BOTTLEROCKET_ARM_64" # BOTTLEROCKET_ARM_64 or BOTTLEROCKET_x86_64
-      instance_types = ["c6g.xlarge"]
-      iam_role_name  = "${var.project_name}-ng-apps"
+      name            = "${var.project_name}-nodegroup-apps"
+      ami_type        = "BOTTLEROCKET_ARM_64" # BOTTLEROCKET_ARM_64 or BOTTLEROCKET_x86_64
+      instance_types  = ["c6g.xlarge"]
+      iam_role_name   = "${var.project_name}-ng-apps"
+      use_name_prefix = false
 
-      min_size     = 0
+      min_size     = 2
       max_size     = 27
-      desired_size = 0
+      desired_size = 2
 
       launch_template_tags = {
         Name = "${var.project_name}-node-apps"

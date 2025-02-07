@@ -1,0 +1,167 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: wsc2024
+  labels:
+    elbv2.k8s.aws/pod-readiness-gate-inject: enabled
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: alb
+  namespace: wsc2024
+  annotations:
+    alb.ingress.kubernetes.io/load-balancer-name: wsc2024-alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/healthcheck-path: /healthcheck
+    alb.ingress.kubernetes.io/healthcheck-interval-seconds: "5"
+    alb.ingress.kubernetes.io/healthcheck-timeout-seconds: "2"
+    alb.ingress.kubernetes.io/healthy-threshold-count: "2"
+    alb.ingress.kubernetes.io/unhealthy-threshold-count: "2"
+    alb.ingress.kubernetes.io/target-group-attributes: >-
+      deregistration_delay.timeout_seconds=60
+    alb.ingress.kubernetes.io/load-balancer-attributes: >-
+      deletion_protection.enabled=true,
+      access_logs.s3.enabled=true,
+      access_logs.s3.bucket=wsc2024-log20250207024125866700000001,
+      access_logs.s3.prefix=accesslog,
+      connection_logs.s3.enabled=true,
+      connection_logs.s3.bucket=wsc2024-log20250207024125866700000001,
+      connection_logs.s3.prefix=connectionlog
+spec:
+  ingressClassName: alb
+  rules:
+  - http:
+      paths:
+      - path: /v1/customer
+        pathType: Exact
+        backend:
+          service:
+            name: customer
+            port:
+              number: 8080
+      - path: /v1/product
+        pathType: Exact
+        backend:
+          service:
+            name: product
+            port:
+              number: 8080
+      - path: /v1/order
+        pathType: Exact
+        backend:
+          service:
+            name: order
+            port:
+              number: 8080
+---
+apiVersion: external-secrets.io/v1beta1
+kind: SecretStore
+metadata:
+  name: secretmanager
+  namespace: wsc2024
+spec:
+  provider:
+    aws:
+      service: SecretsManager
+      region: us-east-1 # <-- Secret Region
+---
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: db-secret 
+  namespace: wsc2024
+spec:
+  refreshInterval: 1s
+  secretStoreRef:
+    kind: SecretStore
+    name: secretmanager
+  target:
+    name: db-secret  # <-- K8s Secret Name
+  data:
+    - secretKey: MYSQL_USER  # <-- K8s Secret Key
+      remoteRef:
+        key: wsc-app # <-- SecretManager Secret Name
+        property: username # <-- SecretManager Secret Key
+    - secretKey: MYSQL_PASSWORD
+      remoteRef:
+        key: wsc-app
+        property: password
+    - secretKey: MYSQL_HOST
+      remoteRef:
+        key: wsc-app
+        property: host
+    - secretKey: MYSQL_PORT
+      remoteRef:
+        key: wsc-app
+        property: port
+    - secretKey: MYSQL_DBNAME
+      remoteRef:
+        key: wsc-app
+        property: dbname
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: GatewayClass
+metadata:
+  name: amazon-vpc-lattice
+spec:
+  controllerName: application-networking.k8s.aws/gateway-api-controller
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: Gateway
+metadata:
+  name: wsc2024-lattice-svc-net
+  namespace: wsc2024
+spec:
+  gatewayClassName: amazon-vpc-lattice
+  listeners:
+    - name: http
+      protocol: HTTP
+      port: 80
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: HTTPRoute
+metadata:
+  name: customer
+  namespace: wsc2024
+spec:
+  parentRefs:
+    - name: wsc2024-lattice-svc-net
+      sectionName: http
+      namespace: wsc2024
+  rules:
+    - matches:
+      - path:
+          type: Exact
+          value: /healthcheck
+      backendRefs:
+        - name: customer
+          kind: Service
+          namespace: wsc2024
+
+---
+apiVersion: application-networking.k8s.aws/v1alpha1
+kind: TargetGroupPolicy
+metadata:
+  name: customer
+  namespace: wsc2024
+spec:
+    protocol: HTTP
+    protocolVersion: HTTP1
+    healthCheck:
+      enabled: true
+      intervalSeconds: 5
+      timeoutSeconds: 1
+      healthyThresholdCount: 3
+      unhealthyThresholdCount: 2
+      path: "/healthcheck"
+      port: 8080
+      protocol: HTTP
+      protocolVersion: HTTP1
+      statusMatch: "200"
+    targetRef:
+      group: ""
+      kind: Service
+      name: customer
+      namespace: wsc2024

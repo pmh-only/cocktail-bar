@@ -1,0 +1,129 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  product-deploy
+  namespace: wsc2024
+  labels:
+    app:  product
+spec:
+  selector:
+    matchLabels:
+      app: product
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app:  product
+    spec:
+      nodeSelector:
+        dedicated: apps
+      tolerations:
+        - key: dedicated
+          value: app
+          effect: NoSchedule
+      containers:
+      - name:  product
+        image:  648911607072.dkr.ecr.us-east-1.amazonaws.com/product-repo:latest
+        lifecycle:
+          preStop:
+            exec:
+              command: ["sleep", "45"]
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+          limits:
+            cpu: 100m
+            memory: 100Mi
+        livenessProbe:
+          tcpSocket:
+            port: 8080
+          initialDelaySeconds: 5
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /healthcheck
+            port: 8080
+          initialDelaySeconds: 5
+          timeoutSeconds: 2
+          successThreshold: 1
+          failureThreshold: 3
+          periodSeconds: 10
+        env:
+        - name: MYSQL_USER
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: MYSQL_USER
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: MYSQL_PASSWORD
+        - name: MYSQL_HOST
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: MYSQL_HOST
+        - name: MYSQL_PORT
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: MYSQL_PORT
+        - name: MYSQL_DBNAME
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: MYSQL_DBNAME
+        ports:
+        - containerPort: 8080
+          name:  product
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: product
+  namespace: wsc2024
+spec:
+  selector:
+    app: product
+  type: ClusterIP
+  ports:
+  - name: product
+    protocol: TCP
+    port: 8080
+    targetPort: 8080
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: product
+  namespace: wsc2024
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: product-deploy
+  minReplicas: 2
+  maxReplicas: 64
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 30
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 30
