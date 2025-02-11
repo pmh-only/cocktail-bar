@@ -13,12 +13,8 @@ module "db" {
 
   security_group_rules = [
     {
-      type                     = "ingress"
       security_group_id        = module.db.security_group_id
       source_security_group_id = aws_security_group.bastion.id
-      from_port                = 3307
-      to_port                  = 3307
-      protocol                 = "tcp"
     }
   ]
 

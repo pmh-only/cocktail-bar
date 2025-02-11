@@ -14,6 +14,8 @@ resource "aws_db_subnet_group" "this" {
 module "aurora_primary" {
   source = "terraform-aws-modules/rds-aurora/aws"
 
+  port = 3307
+
   name                      = "${var.project_name}-ap-rds"
   database_name             = aws_rds_global_cluster.this.database_name
   engine                    = aws_rds_global_cluster.this.engine
@@ -40,6 +42,7 @@ module "aurora_primary" {
   kms_key_id          = aws_kms_key.primary.arn
 
   availability_zones           = module.vpc.azs
+  backtrack_window             = 259200
   backup_retention_period      = 7
   performance_insights_enabled = true
   monitoring_interval          = 30
@@ -58,6 +61,8 @@ module "aurora_primary" {
 
 module "aurora_secondary" {
   source = "terraform-aws-modules/rds-aurora/aws"
+
+  port = 3307
 
   name                      = "${var.project_name}-ap-rds"
   engine                    = "aurora-mysql"
@@ -81,6 +86,7 @@ module "aurora_secondary" {
   kms_key_id          = aws_kms_key.primary.arn
 
   availability_zones           = module.vpc.azs
+  backtrack_window             = 259200
   backup_retention_period      = 7
   performance_insights_enabled = true
   monitoring_interval          = 30

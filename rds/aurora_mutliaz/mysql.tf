@@ -13,6 +13,8 @@ module "aurora_primary" {
   instance_class = "db.r6g.large"
   instances      = { for i in range(2) : i => {} }
 
+  port = 3307
+
   vpc_id               = module.vpc.vpc_id
   db_subnet_group_name = aws_db_subnet_group.this.name
   security_group_rules = {
@@ -36,6 +38,7 @@ module "aurora_primary" {
     "${var.region}c"
   ]
 
+  backtrack_window             = 259200
   backup_retention_period      = 7
   performance_insights_enabled = false
   monitoring_interval          = 30
@@ -51,7 +54,6 @@ module "aurora_primary" {
   db_cluster_parameter_group_family           = "aurora-mysql8.0"
   db_parameter_group_family                   = "aurora-mysql8.0"
   db_cluster_db_instance_parameter_group_name = "aurora-mysql8.0"
-  backtrack_window                            = 259200
 }
 
 data "aws_iam_policy_document" "rds" {

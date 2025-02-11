@@ -78,18 +78,18 @@ module "eks" {
 
   cluster_security_group_additional_rules = {
     bastion = {
-      protocol    = "tcp"
-      from_port   = "443"
-      to_port     = "443"
-      cidr_blocks = ["10.0.0.0/8"]
-      type        = "ingress"
+      protocol                 = "tcp"
+      from_port                = "443"
+      to_port                  = "443"
+      source_security_group_id = aws_security_group.bastion.id
+      type                     = "ingress"
     }
   }
 
   access_entries = {
     example = {
       kubernetes_groups = []
-      principal_arn     = "arn:aws:iam::648911607072:role/us-unicorn-role-bastion"
+      principal_arn     = aws_iam_role.bastion.arn
 
       policy_associations = {
         example = {

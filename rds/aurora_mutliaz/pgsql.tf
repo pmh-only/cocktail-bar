@@ -6,6 +6,8 @@ resource "aws_db_subnet_group" "this" {
 module "aurora_primary" {
   source = "terraform-aws-modules/rds-aurora/aws"
 
+  port = 5433
+
   name           = "${var.project_name}-ap-rds"
   database_name  = "dev"
   engine         = "aurora-postgresql"

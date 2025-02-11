@@ -14,6 +14,8 @@ resource "aws_db_subnet_group" "this" {
 module "aurora_primary" {
   source = "terraform-aws-modules/rds-aurora/aws"
 
+  port = 5433
+
   name                      = "${var.project_name}-ap-rds"
   database_name             = aws_rds_global_cluster.this.database_name
   engine                    = aws_rds_global_cluster.this.engine
@@ -63,6 +65,8 @@ module "aurora_primary" {
 
 module "aurora_secondary" {
   source = "terraform-aws-modules/rds-aurora/aws"
+
+  port = 5433
 
   name                      = "${var.project_name}-ap-rds"
   engine                    = "aurora-postgresql"
