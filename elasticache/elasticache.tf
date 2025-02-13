@@ -5,6 +5,8 @@ module "elasticache_primary" {
   cluster_mode_enabled = true
   cluster_mode         = "enabled"
 
+  apply_immediately = true
+
   engine         = "redis"
   engine_version = "7.1"
   node_type      = "cache.r7g.large"

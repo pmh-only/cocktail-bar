@@ -53,6 +53,8 @@ module "aurora_primary" {
   db_cluster_db_instance_parameter_group_name = "aurora-postgresql14"
 
   backtrack_window = 259200
+
+  apply_immediately = true
 }
 
 data "aws_iam_policy_document" "rds" {
