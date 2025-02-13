@@ -26,8 +26,12 @@ module "elasticache_primary" {
   num_node_groups         = 3
   replicas_per_node_group = 2
 
-  multi_az_enabled         = true
-  snapshot_retention_limit = 7
+  automatic_failover_enabled = true
+  multi_az_enabled           = true
+  snapshot_retention_limit   = 7
+
+  at_rest_encryption_enabled = true
+  transit_encryption_mode    = "preferred"
 
   log_delivery_configuration = {
     "slow-log" : {
