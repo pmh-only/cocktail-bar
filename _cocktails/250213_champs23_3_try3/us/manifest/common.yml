@@ -1,0 +1,66 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dev
+  labels:
+    elbv2.k8s.aws/pod-readiness-gate-inject: enabled
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: unicorn-ingress
+  namespace: dev
+  annotations:
+    alb.ingress.kubernetes.io/load-balancer-name: unicorn-ingress
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/healthcheck-path: /healthcheck
+    alb.ingress.kubernetes.io/healthcheck-interval-seconds: "5"
+    alb.ingress.kubernetes.io/healthcheck-timeout-seconds: "2"
+    alb.ingress.kubernetes.io/healthy-threshold-count: "2"
+    alb.ingress.kubernetes.io/unhealthy-threshold-count: "2"
+    alb.ingress.kubernetes.io/target-group-attributes: >-
+      deregistration_delay.timeout_seconds=60
+    alb.ingress.kubernetes.io/load-balancer-attributes: >-
+      deletion_protection.enabled=true,
+      access_logs.s3.enabled=true,
+      access_logs.s3.bucket=us-unicorn-log20250213053427109600000007,
+      access_logs.s3.prefix=accesslog,
+      connection_logs.s3.enabled=true,
+      connection_logs.s3.bucket=us-unicorn-log20250213053427109600000007,
+      connection_logs.s3.prefix=connectionlog
+    alb.ingress.kubernetes.io/actions.response-403: >
+      {"type":"fixed-response","fixedResponseConfig":{"contentType":"text/plain","statusCode":"403","messageBody":"403 error text"}}
+spec:
+  ingressClassName: alb
+  rules:
+  - http:
+      paths:
+      - path: /v1/location
+        pathType: Exact
+        backend:
+          service:
+            name: location
+            port:
+              number: 8080
+      - path: /v1/stress
+        pathType: Exact
+        backend:
+          service:
+            name: stress
+            port:
+              number: 8080
+      - path: /v1/status
+        pathType: Exact
+        backend:
+          service:
+            name: status
+            port:
+              number: 8080
+      - path: /v1/unicorn
+        pathType: Exact
+        backend:
+          service:
+            name: unicorn
+            port:
+              number: 8080

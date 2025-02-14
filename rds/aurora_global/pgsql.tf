@@ -57,6 +57,7 @@ module "aurora_primary" {
 
   create_db_cluster_parameter_group    = true
   cluster_performance_insights_enabled = true
+  create_db_parameter_group            = true
 
   db_cluster_parameter_group_family           = "aurora-postgresql14"
   db_parameter_group_family                   = "aurora-postgresql14"
@@ -105,6 +106,7 @@ module "aurora_secondary" {
   ]
 
   create_db_cluster_parameter_group    = true
+  create_db_parameter_group            = true
   cluster_performance_insights_enabled = true
 
   db_cluster_parameter_group_family           = "aurora-postgresql14"

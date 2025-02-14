@@ -269,6 +269,8 @@ spec:
           name: ssh-known-hosts
         - mountPath: /app/.ssh
           name: ssh-config
+        - mountPath: /app/.aws
+          name: tmp
         - mountPath: /tmp
           name: tmp
         - mountPath: /app/ssh-keys/id_rsa

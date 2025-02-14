@@ -1,0 +1,36 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: restrict-modification
+spec:
+  validationFailureAction: Enforce
+  background: false
+  rules:
+  - name: restrict-modification
+    match:
+      any:
+      - resources:
+          kinds:
+          - "*"
+          namespaces:
+          - dev
+    exclude:
+      any:
+      - subjects:
+        - kind: ServiceAccount
+          namespace: argocd
+          name: argocd-server
+      - subjects:
+        - kind: ServiceAccount
+          namespace: argocd
+          name: argocd-application-controller
+    validate:
+      message: "This resource is restricted to modification."
+      deny:
+        conditions:
+          any:
+            - key: "{{request.operation || 'BACKGROUND'}}"
+              operator: AnyIn
+              value:
+              - UPDATE
+              - DELETE
