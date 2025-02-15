@@ -1,5 +1,7 @@
 module "bucket" {
-  source        = "terraform-aws-modules/s3-bucket/aws"
+  source = "terraform-aws-modules/s3-bucket/aws"
+
+  # !! IMPORTANT -- DEFAULT IS PREFIX
   bucket_prefix = "${var.project_name}-frontend"
 
   force_destroy = true

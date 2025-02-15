@@ -5,14 +5,9 @@ module "eks" {
   cluster_name    = "${var.project_name}-cluster"
   cluster_version = "1.31"
 
-  vpc_id                   = module.vpc.vpc_id
-  subnet_ids               = module.vpc.private_subnets
-  control_plane_subnet_ids = module.vpc.intra_subnets
-
-  # V2
-  # vpc_id                   = aws_vpc.this.id
-  # subnet_ids               = [for item in local.eks_node_subnets : aws_subnet.this[item.key].id]
-  # control_plane_subnet_ids = [for item in local.eks_controlplane_subnets : aws_subnet.this[item.key].id]
+  vpc_id                   = aws_vpc.this.id
+  subnet_ids               = [for item in local.eks_node_subnets : aws_subnet.this[item.key].id]
+  control_plane_subnet_ids = [for item in local.eks_controlplane_subnets : aws_subnet.this[item.key].id]
 
   eks_managed_node_groups = {
     tools = {
@@ -83,23 +78,6 @@ module "eks" {
       to_port                  = "443"
       source_security_group_id = aws_security_group.bastion.id
       type                     = "ingress"
-    }
-  }
-
-  access_entries = {
-    example = {
-      kubernetes_groups = []
-      principal_arn     = aws_iam_role.bastion.arn
-
-      policy_associations = {
-        example = {
-          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
-          access_scope = {
-            namespaces = []
-            type       = "cluster"
-          }
-        }
-      }
     }
   }
 

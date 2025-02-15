@@ -1,60 +1,55 @@
-resource "aws_db_subnet_group" "this" {
-  name       = "${var.project_name}-subnets"
-  subnet_ids = module.vpc.intra_subnets
-}
-
-module "aurora_primary" {
+module "db" {
   source = "terraform-aws-modules/rds-aurora/aws"
+
+  name           = "${var.project_name}-rds"
+  database_name  = "dev"
+  engine         = "aurora-postgresql"
+  engine_version = "16.4"
+  instance_class = "db.r6g.large"
+  instances = { for i in range(length(local.vpc_azs)) : i => {
+    availability_zone : local.vpc_azs[i]
+  } }
 
   port = 5433
 
-  name           = "${var.project_name}-ap-rds"
-  database_name  = "dev"
-  engine         = "aurora-postgresql"
-  engine_version = "15.4"
-  instance_class = "db.r6g.large"
-  instances      = { for i in range(2) : i => {} }
-
-  vpc_id               = module.vpc.vpc_id
-  db_subnet_group_name = aws_db_subnet_group.this.name
+  vpc_id               = local.vpc_id
+  availability_zones   = local.vpc_azs
+  db_subnet_group_name = local.vpc_rds_subnet_group_names[0]
   security_group_rules = {
     vpc_ingress = {
-      cidr_blocks = module.vpc.private_subnets_cidr_blocks
+      cidr_blocks = [local.vpc_cidr]
     }
   }
 
-  # Global clusters do not support managed master user password
-  manage_master_user_password = false
-  master_username             = "postgres"
-  master_password             = "admin123!!"
+  manage_master_user_password = true
+  master_username             = "myadmin"
+  # master_password             = "admin123!!"
 
-  deletion_protection = true
-  skip_final_snapshot = true
-  kms_key_id          = aws_kms_key.primary.arn
+  deletion_protection                 = true
+  skip_final_snapshot                 = true
+  apply_immediately                   = true
+  kms_key_id                          = aws_kms_key.primary.arn
+  iam_database_authentication_enabled = true
 
-  availability_zones = [
-    "${var.region}a",
-    "${var.region}b",
-    "${var.region}c"
-  ]
+  cluster_performance_insights_enabled          = true
+  cluster_performance_insights_retention_period = 7
 
-  backup_retention_period      = 7
-  performance_insights_enabled = false
-  monitoring_interval          = 30
+  backup_retention_period                = 7
+  performance_insights_enabled           = true
+  performance_insights_retention_period  = 7
+  create_monitoring_role                 = true
+  monitoring_interval                    = 30
+  cloudwatch_log_group_retention_in_days = 7
   enabled_cloudwatch_logs_exports = [
     "postgresql",
     "upgrade"
   ]
 
   create_db_cluster_parameter_group           = true
-  cluster_performance_insights_enabled        = true
-  db_cluster_parameter_group_family           = "aurora-postgresql14"
-  db_parameter_group_family                   = "aurora-postgresql14"
-  db_cluster_db_instance_parameter_group_name = "aurora-postgresql14"
-
-  backtrack_window = 259200
-
-  apply_immediately = true
+  create_db_parameter_group                   = true
+  db_cluster_parameter_group_family           = "aurora-postgresql16"
+  db_parameter_group_family                   = "aurora-postgresql16"
+  db_cluster_db_instance_parameter_group_name = "aurora-postgresql16"
 }
 
 data "aws_iam_policy_document" "rds" {

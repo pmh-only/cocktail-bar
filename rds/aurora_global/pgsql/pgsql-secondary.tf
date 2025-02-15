@@ -1,14 +1,20 @@
 module "db" {
   source = "terraform-aws-modules/rds-aurora/aws"
 
+  # !! Change me
+  global_cluster_identifier = "project-rds"
+
   name           = "${var.project_name}-rds"
   database_name  = "dev"
   engine         = "aurora-mysql"
-  engine_version = "8.0.mysql_aurora.3.05.2"
+  engine_version = "16.4"
   instance_class = "db.r6g.large"
   instances = { for i in range(length(local.vpc_azs)) : i => {
-    availability_zone : local.vpc_azs[i]
+    availability_zone = local.vpc_azs[i]
+    instance_class    = "db.r6g.large"
   } }
+
+  is_primary_cluster = false
 
   port = 3307
 
@@ -17,13 +23,13 @@ module "db" {
   db_subnet_group_name = local.vpc_rds_subnet_group_names[0]
   security_group_rules = {
     vpc_ingress = {
-      cidr_blocks = [local.vpc_cidr]
+      cidr_blocks = ["10.0.0.0/8"]
     }
   }
 
-  manage_master_user_password = true
+  manage_master_user_password = false
   master_username             = "myadmin"
-  # master_password             = "admin123!!"
+  master_password             = "admin123!!"
 
   deletion_protection                 = true
   skip_final_snapshot                 = true
@@ -34,7 +40,6 @@ module "db" {
   cluster_performance_insights_enabled          = true
   cluster_performance_insights_retention_period = 7
 
-  backtrack_window                       = 259200
   backup_retention_period                = 7
   performance_insights_enabled           = true
   performance_insights_retention_period  = 7
@@ -42,17 +47,15 @@ module "db" {
   monitoring_interval                    = 30
   cloudwatch_log_group_retention_in_days = 7
   enabled_cloudwatch_logs_exports = [
-    "audit",
-    "error",
-    "general",
-    "slowquery"
+    "postgresql",
+    "upgrade"
   ]
 
   create_db_cluster_parameter_group           = true
   create_db_parameter_group                   = true
-  db_cluster_parameter_group_family           = "aurora-mysql8.0"
-  db_parameter_group_family                   = "aurora-mysql8.0"
-  db_cluster_db_instance_parameter_group_name = "aurora-mysql8.0"
+  db_cluster_parameter_group_family           = "aurora-postgresql16"
+  db_parameter_group_family                   = "aurora-postgresql16"
+  db_cluster_db_instance_parameter_group_name = "aurora-postgresql16"
 }
 
 data "aws_iam_policy_document" "rds" {

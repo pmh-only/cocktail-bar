@@ -42,10 +42,7 @@ module "eks_blueprints_addons" {
     set = [
       {
         name  = "vpcId"
-        value = module.vpc.vpc_id
-
-        # V2
-        # value = aws_vpc.this.id
+        value = aws_vpc.this.id
       }
     ]
   }

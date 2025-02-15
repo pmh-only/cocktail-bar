@@ -1,14 +1,20 @@
 module "db" {
   source = "terraform-aws-modules/rds-aurora/aws"
 
+  # !! Change me
+  global_cluster_identifier = "project-rds"
+
   name           = "${var.project_name}-rds"
   database_name  = "dev"
   engine         = "aurora-mysql"
   engine_version = "8.0.mysql_aurora.3.05.2"
   instance_class = "db.r6g.large"
   instances = { for i in range(length(local.vpc_azs)) : i => {
-    availability_zone : local.vpc_azs[i]
+    availability_zone = local.vpc_azs[i]
+    instance_class    = "db.r6g.large"
   } }
+
+  is_primary_cluster = false
 
   port = 3307
 
@@ -17,13 +23,13 @@ module "db" {
   db_subnet_group_name = local.vpc_rds_subnet_group_names[0]
   security_group_rules = {
     vpc_ingress = {
-      cidr_blocks = [local.vpc_cidr]
+      cidr_blocks = ["10.0.0.0/8"]
     }
   }
 
-  manage_master_user_password = true
+  manage_master_user_password = false
   master_username             = "myadmin"
-  # master_password             = "admin123!!"
+  master_password             = "admin123!!"
 
   deletion_protection                 = true
   skip_final_snapshot                 = true
@@ -34,7 +40,6 @@ module "db" {
   cluster_performance_insights_enabled          = true
   cluster_performance_insights_retention_period = 7
 
-  backtrack_window                       = 259200
   backup_retention_period                = 7
   performance_insights_enabled           = true
   performance_insights_retention_period  = 7

@@ -5,12 +5,9 @@ locals {
   bastion_instance_name = "${var.project_name}-bastion"
   bastion_ip_name       = "${var.project_name}-bastion"
 
-  bastion_subnet_id = module.vpc.public_subnets[0]
+  bastion_subnet_id = local.vpc_public_subnet_ids_by_group[0][0]
 
-  # V2
-  # bastion_subnet_id = aws_subnet.this[local.all_subnets[0].key].id
-
-  keypair_file_path = "./temp/keypair.pem"
+  keypair_file_path = "${path.cwd}/temp/keypair.pem"
   ssh_port          = 2222
 
   ingress_port_from_my_ip = true
@@ -46,10 +43,7 @@ data "aws_ssm_parameter" "bastion_ami" {
 
 resource "aws_security_group" "bastion" {
   name   = local.bastion_sg_name
-  vpc_id = module.vpc.vpc_id
-
-  # V2
-  # vpc_id = aws_vpc.this.id
+  vpc_id = aws_vpc.this.id
 
   dynamic "ingress" {
     for_each = local.ingress_ports
@@ -157,6 +151,8 @@ output "bastion_details" {
     ip_address        = aws_eip.bastion.public_ip
     instance_id       = aws_instance.bastion.id
     availability_zone = aws_instance.bastion.availability_zone
+    ssh_port          = local.ssh_port
+    ssh_keypair       = local.keypair_file_path
   }
 }
 
