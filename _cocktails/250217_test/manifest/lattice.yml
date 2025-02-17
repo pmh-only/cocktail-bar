@@ -1,0 +1,64 @@
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: GatewayClass
+metadata:
+  name: amazon-vpc-lattice
+spec:
+  controllerName: application-networking.k8s.aws/gateway-api-controller
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: Gateway
+metadata:
+  name: wsc2024-lattice-svc-net
+  namespace: wsc2024
+spec:
+  gatewayClassName: amazon-vpc-lattice
+  listeners:
+    - name: http
+      protocol: HTTP
+      port: 80
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: HTTPRoute
+metadata:
+  name: customer
+  namespace: wsc2024
+spec:
+  parentRefs:
+    - name: wsc2024-lattice-svc-net
+      sectionName: http
+      namespace: wsc2024
+  rules:
+    - matches:
+      - path:
+          type: Exact
+          value: /healthcheck
+      backendRefs:
+        - name: customer
+          kind: Service
+          namespace: wsc2024
+
+---
+apiVersion: application-networking.k8s.aws/v1alpha1
+kind: TargetGroupPolicy
+metadata:
+  name: customer
+  namespace: wsc2024
+spec:
+    protocol: HTTP
+    protocolVersion: HTTP1
+    healthCheck:
+      enabled: true
+      intervalSeconds: 5
+      timeoutSeconds: 1
+      healthyThresholdCount: 3
+      unhealthyThresholdCount: 2
+      path: "/healthcheck"
+      port: 8080
+      protocol: HTTP
+      protocolVersion: HTTP1
+      statusMatch: "200"
+    targetRef:
+      group: ""
+      kind: Service
+      name: customer
+      namespace: wsc2024
