@@ -4,6 +4,10 @@ module "elasticache" {
   port = 6378
 
   replication_group_id = "${var.project_name}-redis"
+
+  create_primary_global_replication_group   = true
+  create_secondary_global_replication_group = false
+
   cluster_mode_enabled = true
   cluster_mode         = "enabled"
 
@@ -27,7 +31,7 @@ module "elasticache" {
   create_parameter_group  = true
   parameter_group_family  = "redis7"
   num_node_groups         = 3
-  replicas_per_node_group = 2
+  replicas_per_node_group = 1
 
   multi_az_enabled           = true
   automatic_failover_enabled = true

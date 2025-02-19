@@ -13,12 +13,19 @@ spec:
           kinds:
           - "*"
           namespaces:
-          - app
+          - dev
+          names:
+          - "stress"
     exclude:
       any:
       - subjects:
         - kind: ServiceAccount
-          name: mysa
+          namespace: kube-system
+          name: '*'
+      - subjects:
+        - kind: ServiceAccount
+          namespace: argocd
+          name: '*'
     validate:
       message: "This resource is restricted to modification."
       deny:

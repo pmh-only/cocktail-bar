@@ -3,6 +3,16 @@ module "elasticache" {
 
   port = 6378
 
+  # !! For Secondary Cluster:
+  # we don't know replication group id exactly before creation. (cuz aws generates prefix automatically)
+  # so, apply with create=false first. When you know the group id, change create=true and replace id placeholder
+  # -----------
+  create                      = true
+  global_replication_group_id = "lfqnh-project-ap-redis"
+
+  create_primary_global_replication_group   = false
+  create_secondary_global_replication_group = true
+
   replication_group_id = "${var.project_name}-redis"
   cluster_mode_enabled = true
   cluster_mode         = "enabled"
@@ -11,7 +21,6 @@ module "elasticache" {
 
   engine         = "redis"
   engine_version = "7.1"
-  node_type      = "cache.r7g.large"
 
   vpc_id = aws_vpc.this.id
   security_group_rules = {
@@ -26,8 +35,7 @@ module "elasticache" {
 
   create_parameter_group  = true
   parameter_group_family  = "redis7"
-  num_node_groups         = 3
-  replicas_per_node_group = 2
+  replicas_per_node_group = 1
 
   multi_az_enabled           = true
   automatic_failover_enabled = true

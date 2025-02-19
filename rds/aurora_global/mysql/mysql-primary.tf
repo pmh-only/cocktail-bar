@@ -17,10 +17,16 @@ module "db" {
   engine                    = aws_rds_global_cluster.this.engine
   engine_version            = aws_rds_global_cluster.this.engine_version
   global_cluster_identifier = aws_rds_global_cluster.this.id
-  instances = { for i in range(length(local.vpc_azs)) : i => {
-    availability_zone = local.vpc_azs[i]
-    instance_class    = "db.r6g.large"
-  } }
+  instances = {
+    0 = {
+      availability_zone = local.vpc_azs[0]
+      instance_class    = "db.r6g.large"
+    },
+    1 = {
+      availability_zone = local.vpc_azs[1]
+      instance_class    = "db.r6g.large"
+    }
+  }
 
   port = 3307
 

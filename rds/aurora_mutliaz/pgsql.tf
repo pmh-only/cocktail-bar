@@ -6,9 +6,16 @@ module "db" {
   engine         = "aurora-postgresql"
   engine_version = "16.4"
   instance_class = "db.r6g.large"
-  instances = { for i in range(length(local.vpc_azs)) : i => {
-    availability_zone : local.vpc_azs[i]
-  } }
+  instances = {
+    0 = {
+      availability_zone = local.vpc_azs[0]
+      instance_class    = "db.r6g.large"
+    },
+    1 = {
+      availability_zone = local.vpc_azs[1]
+      instance_class    = "db.r6g.large"
+    }
+  }
 
   port = 5433
 
