@@ -28,7 +28,6 @@ module "eks_blueprints_addons" {
 
   enable_argocd                       = false
   enable_aws_gateway_api_controller   = false
-  enable_cluster_proportional_autoscaler = 
   enable_karpenter                    = true
   enable_cert_manager                 = true
   enable_metrics_server               = true
