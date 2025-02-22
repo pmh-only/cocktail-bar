@@ -102,3 +102,7 @@ resource "aws_kms_key" "primary" {
   policy = data.aws_iam_policy_document.rds.json
 }
 
+resource "aws_kms_alias" "primary" {
+  name          = "alias/rds/${var.project_name}-rds"
+  target_key_id = aws_kms_key.primary.key_id
+}

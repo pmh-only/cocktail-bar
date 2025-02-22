@@ -1,6 +1,5 @@
 module "eks" {
-  source  = "terraform-aws-modules/eks/aws"
-  version = "~> 20.0"
+  source = "terraform-aws-modules/eks/aws"
 
   cluster_name    = "${var.project_name}-cluster"
   cluster_version = "1.31"
@@ -11,8 +10,14 @@ module "eks" {
 
   eks_managed_node_groups = {
     tools = {
+      # BOTTLEROCKET_ARM_64
+      # BOTTLEROCKET_x86_64
+      # AL2023_ARM_64_STANDARD
+      # AL2023_X86_64_STANDARD
+      # AL2_ARM_64
+
       name            = "${var.project_name}-nodegroup-tools"
-      ami_type        = "BOTTLEROCKET_ARM_64" # BOTTLEROCKET_ARM_64 or BOTTLEROCKET_x86_64
+      ami_type        = "BOTTLEROCKET_ARM_64"
       instance_types  = ["c6g.large"]
       iam_role_name   = "${var.project_name}-ng-tools"
       use_name_prefix = false
@@ -37,8 +42,13 @@ module "eks" {
     }
 
     apps = {
-      name            = "${var.project_name}-nodegroup-apps"
-      ami_type        = "BOTTLEROCKET_ARM_64" # BOTTLEROCKET_ARM_64 or BOTTLEROCKET_x86_64
+      name = "${var.project_name}-nodegroup-apps"
+      # BOTTLEROCKET_ARM_64
+      # BOTTLEROCKET_x86_64
+      # AL2023_ARM_64_STANDARD
+      # AL2023_X86_64_STANDARD
+      # AL2_ARM_64
+      ami_type        = "BOTTLEROCKET_ARM_64"
       instance_types  = ["c6g.xlarge"]
       iam_role_name   = "${var.project_name}-ng-apps"
       use_name_prefix = false
@@ -52,7 +62,7 @@ module "eks" {
       }
 
       labels = {
-        dedicated = "apps"
+        dedicated = "app"
       }
 
       taints = {
@@ -81,6 +91,17 @@ module "eks" {
     }
   }
 
+  node_security_group_additional_rules = {
+    calico-apiserver = {
+      type                          = "ingress"
+      protocol                      = "tcp"
+      from_port                     = "5443"
+      to_port                       = "5443"
+      source_cluster_security_group = true
+      description                   = "Cluster API to node calico apiserver"
+    }
+  }
+
   cluster_enabled_log_types = [
     "api",
     "audit",
@@ -88,4 +109,8 @@ module "eks" {
     "controllerManager",
     "scheduler"
   ]
+
+  cluster_zonal_shift_config = {
+    enabled = true
+  }
 }

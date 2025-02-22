@@ -1,0 +1,55 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: <NAMESPACE>
+  labels:
+    elbv2.k8s.aws/pod-readiness-gate-inject: enabled
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: <APP>
+  namespace: <NAMESPACE>
+  annotations:
+    alb.ingress.kubernetes.io/load-balancer-name: <APP>
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/healthcheck-path: /healthcheck
+    alb.ingress.kubernetes.io/healthcheck-interval-seconds: "5"
+    alb.ingress.kubernetes.io/healthcheck-timeout-seconds: "2"
+    alb.ingress.kubernetes.io/healthy-threshold-count: "2"
+    alb.ingress.kubernetes.io/unhealthy-threshold-count: "2"
+    alb.ingress.kubernetes.io/target-group-attributes: >-
+      deregistration_delay.timeout_seconds=60
+    alb.ingress.kubernetes.io/load-balancer-attributes: >-
+      deletion_protection.enabled=true,
+      load_balancing.cross_zone.enabled=true,
+      zonal_shift.config.enabled=true,
+      client_keep_alive.seconds=60,
+    # access_logs.s3.enabled=true,
+    # access_logs.s3.bucket=project-logbucket20241219020456227500000001,
+    # access_logs.s3.prefix=accesslog,
+    # connection_logs.s3.enabled=true,
+    # connection_logs.s3.bucket=project-logbucket20241219020456227500000001,
+    # connection_logs.s3.prefix=connectionlog
+    alb.ingress.kubernetes.io/actions.response-403: >
+      {"type":"fixed-response","fixedResponseConfig":{"contentType":"text/plain","statusCode":"403","messageBody":"403 error text"}}
+spec:
+  ingressClassName: alb
+  rules:
+  - http:
+      paths:
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: <APP>
+            port:
+              number: 8080
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: response-403
+            port:
+              name: use-annotation

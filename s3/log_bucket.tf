@@ -9,15 +9,6 @@ module "log_bucket" {
     enabled = true
   }
 
-  server_side_encryption_configuration = {
-    rule = {
-      apply_server_side_encryption_by_default = {
-        kms_master_key_id = aws_kms_key.bucket.arn
-        sse_algorithm     = "aws:kms"
-      }
-    }
-  }
-
   lifecycle_rule = [
     {
       id                                     = "garbage_collector"
@@ -45,8 +36,6 @@ resource "aws_s3_bucket_logging" "logging4logbucket" {
     }
   }
 }
-
-resource "aws_kms_key" "bucket_log" {}
 
 output "log_bucket" {
   value = module.log_bucket.s3_bucket_id

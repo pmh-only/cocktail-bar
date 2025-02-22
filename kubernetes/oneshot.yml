@@ -1,11 +1,4 @@
 apiVersion: v1
-kind: Namespace
-metadata:
-  name: <NAMESPACE>
-  labels:
-    elbv2.k8s.aws/pod-readiness-gate-inject: enabled
----
-apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: <APP>
@@ -43,6 +36,12 @@ spec:
           effect: NoSchedule
       topologySpreadConstraints:
         - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: <APP>
+        - maxSkew: 1
           topologyKey: capacity-spread
           whenUnsatisfiable: DoNotSchedule
           labelSelector:
@@ -72,7 +71,7 @@ spec:
           periodSeconds: 10
         readinessProbe:
           httpGet:
-            path: /_status/healthz
+            path: /healthcheck
             port: 8080
           initialDelaySeconds: 5
           timeoutSeconds: 2
@@ -99,7 +98,7 @@ spec:
       volumes:
         - name: localtime
           hostPath:
-            path: /usr/share/zoneinfo/Asia/Shanghai
+            path: /usr/share/zoneinfo/Asia/Seoul
       restartPolicy: Always
 ---
 kind: ConfigMap
@@ -160,49 +159,38 @@ spec:
         type: Utilization
         averageUtilization: 30
 ---
-apiVersion: networking.k8s.io/v1
-kind: Ingress
+apiVersion: projectcalico.org/v3
+kind: NetworkPolicy
 metadata:
   name: <APP>
   namespace: <NAMESPACE>
-  annotations:
-    alb.ingress.kubernetes.io/load-balancer-name: <APP>
-    alb.ingress.kubernetes.io/scheme: internet-facing
-    alb.ingress.kubernetes.io/target-type: ip
-    alb.ingress.kubernetes.io/healthcheck-path: /healthcheck
-    alb.ingress.kubernetes.io/healthcheck-interval-seconds: "5"
-    alb.ingress.kubernetes.io/healthcheck-timeout-seconds: "2"
-    alb.ingress.kubernetes.io/healthy-threshold-count: "2"
-    alb.ingress.kubernetes.io/unhealthy-threshold-count: "2"
-    alb.ingress.kubernetes.io/target-group-attributes: >-
-      deregistration_delay.timeout_seconds=60
-    alb.ingress.kubernetes.io/load-balancer-attributes: >-
-      deletion_protection.enabled=true,
-      cross_zone_load_balancing.enabled=true,
-    # access_logs.s3.enabled=true,
-    # access_logs.s3.bucket=project-logbucket20241219020456227500000001,
-    # access_logs.s3.prefix=accesslog,
-    # connection_logs.s3.enabled=true,
-    # connection_logs.s3.bucket=project-logbucket20241219020456227500000001,
-    # connection_logs.s3.prefix=connectionlog
-    alb.ingress.kubernetes.io/actions.response-403: >
-      {"type":"fixed-response","fixedResponseConfig":{"contentType":"text/plain","statusCode":"403","messageBody":"403 error text"}}
 spec:
-  ingressClassName: alb
-  rules:
-  - http:
-      paths:
-      - path: /api
-        pathType: Prefix
-        backend:
-          service:
-            name: <APP>
-            port:
-              number: 8080
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: response-403
-            port:
-              name: use-annotation
+  selector: app == '<APP>'
+  ingress:
+    # Allow traffic from specific container
+    - action: Allow
+      source:
+        selector: app == '<APP>'
+        namespaceSelector: projectcalico.org/name == '<NAMESPACE>'
+
+    # Make it controlled by security group and block inner-cluster traffic
+    - action: Allow
+      source:
+        nets: ['0.0.0.0/0']
+        notNets: # Inner-cluster ips
+          - 10.100.10.0/24
+          - 10.100.11.0/24
+          - 10.100.12.0/24
+---
+# apiVersion: vpcresources.k8s.aws/v1beta1
+# kind: SecurityGroupPolicy
+# metadata:
+#   name: <APP>
+#   namespace: <NAMESPACE>
+# spec:
+#   podSelector:
+#     matchLabels:
+#       app: <APP>
+#   securityGroups:
+#     groupIds:
+#       - sg-0ea3daad2e55a0147

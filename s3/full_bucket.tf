@@ -45,3 +45,8 @@ module "bucket" {
 }
 
 resource "aws_kms_key" "bucket" {}
+
+resource "aws_kms_alias" "bucket" {
+  name          = "alias/s3/${var.project_name}-bucket"
+  target_key_id = aws_kms_key.bucket.key_id
+}

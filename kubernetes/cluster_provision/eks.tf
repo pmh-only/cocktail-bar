@@ -1,6 +1,5 @@
 module "eks" {
-  source  = "terraform-aws-modules/eks/aws"
-  version = "~> 20.0"
+  source = "terraform-aws-modules/eks/aws"
 
   cluster_name    = "${var.project_name}-cluster"
   cluster_version = "1.31"
@@ -14,13 +13,36 @@ module "eks" {
   }
 
   eks_managed_node_groups = {
-    project-mng-addon = {
-      ami_type       = "BOTTLEROCKET_x86_64" # BOTTLEROCKET_ARM_64 or BOTTLEROCKET_x86_64
-      instance_types = ["c5.large"]
+    tools = {
+      # BOTTLEROCKET_ARM_64
+      # BOTTLEROCKET_x86_64
+      # AL2023_ARM_64_STANDARD
+      # AL2023_X86_64_STANDARD
+      # AL2_ARM_64
 
-      min_size     = 3
+      name            = "${var.project_name}-nodegroup-tools"
+      ami_type        = "BOTTLEROCKET_ARM_64"
+      instance_types  = ["c6g.large"]
+      iam_role_name   = "${var.project_name}-ng-tools"
+      use_name_prefix = false
+
+      min_size     = 2
       max_size     = 27
-      desired_size = 3
+      desired_size = 2
+
+      launch_template_tags = {
+        Name = "${var.project_name}-node-tools"
+      }
+
+      labels = {
+        dedicated = "tools"
+      }
+
+      metadata_options = {
+        http_endpoint               = "enabled"
+        http_put_response_hop_limit = 1
+        http_tokens                 = "required"
+      }
     }
   }
 
@@ -34,6 +56,17 @@ module "eks" {
     }
   }
 
+  node_security_group_additional_rules = {
+    calico-apiserver = {
+      type                          = "ingress"
+      protocol                      = "tcp"
+      from_port                     = "5443"
+      to_port                       = "5443"
+      source_cluster_security_group = true
+      description                   = "Cluster API to node calico apiserver"
+    }
+  }
+
   cluster_enabled_log_types = [
     "api",
     "audit",
@@ -41,6 +74,10 @@ module "eks" {
     "controllerManager",
     "scheduler"
   ]
+
+  cluster_zonal_shift_config = {
+    enabled = true
+  }
 }
 
 resource "aws_eks_access_entry" "karpenter" {

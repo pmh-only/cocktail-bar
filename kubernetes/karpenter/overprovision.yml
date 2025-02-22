@@ -1,9 +1,17 @@
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: overprovision
+value: -1
+globalDefault: false
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: overprovision
+  namespace: kube-system
 spec:
-  replicas: 3
+  replicas: 2
   selector:
     matchLabels:
       app: overprovision
@@ -12,6 +20,7 @@ spec:
       labels:
         app: overprovision
     spec:
+      priorityClassName: overprovision
       nodeSelector:
         dedicated: app
       tolerations:
