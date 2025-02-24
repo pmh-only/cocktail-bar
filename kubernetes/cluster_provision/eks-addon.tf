@@ -46,12 +46,19 @@ module "eks_blueprints_addons" {
     flb_log_cw = true
   }
 
+  argocd = {
+    values = [<<-EOF
+      configs:
+        cm:
+          timeout.reconciliation: 10s
+    EOF
+    ]
+  }
+
   aws_load_balancer_controller = {
-    set = [
-      {
-        name  = "vpcId"
-        value = aws_vpc.this.id
-      }
+    values = [<<-EOF
+      vpcId: ${aws_vpc.this.id}
+    EOF
     ]
   }
 
@@ -59,44 +66,51 @@ module "eks_blueprints_addons" {
     enable_containerinsights = true
     kubelet_monitoring       = true
 
-    set = [
-      {
-        name  = "cloudWatchLogs.autoCreateGroup"
-        value = true
-      },
-      {
-        name  = "hostNetwork"
-        value = true
-      },
-      {
-        name  = "dnsPolicy"
-        value = "ClusterFirstWithHostNet"
-      },
-      {
-        name  = "tolerations[0].operator"
-        value = "Exists"
-      }
+    values = [<<-EOF
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      cloudWatchLogs:
+        autoCreateGroup: true
+
+      tolerations:
+        - operator: Exists
+    EOF
     ]
   }
-}
 
-resource "helm_release" "calico" {
-  repository = "https://docs.tigera.io/calico/charts"
-  chart      = "tigera-operator"
-  name       = "calico"
+  helm_releases = {
+    calico = {
+      repository = "https://docs.tigera.io/calico/charts"
+      chart      = "tigera-operator"
+      name       = "calico"
 
-  create_namespace = true
-  namespace        = "tigera-operator"
+      create_namespace = true
+      namespace        = "tigera-operator"
 
-  values = [<<-EOF
-    installation:
-      kubernetesProvider: EKS
-      cni:
-        type: AmazonVPC
-      calicoNetwork:
-        bgp: Disabled
-  EOF
-  ]
+      values = [<<-EOF
+          installation:
+            kubernetesProvider: EKS
+            cni:
+              type: AmazonVPC
+            calicoNetwork:
+              bgp: Disabled
+        EOF
+      ]
+    }
+    descheduler = {
+      repository = "https://kubernetes-sigs.github.io/descheduler"
+      chart      = "descheduler"
+
+      name      = "descheduler"
+      namespace = "kube-system"
+
+      values = [<<-EOF
+          kind: Deployment
+          schedule: "* * * * *"
+        EOF
+      ]
+    }
+  }
 }
 
 output "node_iam_role_arn" {

@@ -23,8 +23,8 @@ provider "aws" {
 
   default_tags {
     tags = {
-      Project   = var.project_name
-      Signature = "pmh_only"
+      project = var.project_name
+      owner   = "pmh_only"
     }
   }
 }

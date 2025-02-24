@@ -1,8 +1,7 @@
 module "eks" {
   source = "terraform-aws-modules/eks/aws"
 
-  cluster_name    = "${var.project_name}-cluster"
-  cluster_version = "1.31"
+  cluster_name = "${var.project_name}-cluster"
 
   vpc_id                   = aws_vpc.this.id
   subnet_ids               = [for item in local.eks_node_subnets : aws_subnet.this[item.key].id]
@@ -54,6 +53,14 @@ module "eks" {
       source_security_group_id = aws_security_group.bastion.id
       type                     = "ingress"
     }
+
+    vpc = {
+      protocol    = "tcp"
+      from_port   = "443"
+      to_port     = "443"
+      cidr_blocks = [local.vpc_cidr]
+      type        = "ingress"
+    }
   }
 
   node_security_group_additional_rules = {
@@ -64,6 +71,21 @@ module "eks" {
       to_port                       = "5443"
       source_cluster_security_group = true
       description                   = "Cluster API to node calico apiserver"
+    }
+  }
+
+  access_entries = {
+    caller = {
+      principal_arn = data.aws_caller_identity.caller.arn
+
+      policy_associations = {
+        caller_policy = {
+          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+          access_scope = {
+            type = "cluster"
+          }
+        }
+      }
     }
   }
 
