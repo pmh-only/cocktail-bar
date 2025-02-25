@@ -26,6 +26,22 @@ for cluster in $rds_clusters; do
 done
 
 #############################
+# Redshift Clusters
+#############################
+echo "Processing Redshift clusters..."
+# List all Redshift clusters
+redshift_clusters=$(aws redshift describe-clusters --region "$REGION" --query "Clusters[].ClusterIdentifier" --output text)
+
+for cluster in $redshift_clusters; do
+  snapshot_id="${cluster}-snapshot-${DATE}"
+  echo "Creating snapshot for Redshift cluster: $cluster as $snapshot_id"
+  aws redshift create-cluster-snapshot \
+      --cluster-identifier "$cluster" \
+      --snapshot-identifier "$snapshot_id" \
+      --region "$REGION"
+done
+
+#############################
 # ElastiCache Replication Groups
 #############################
 echo "Processing ElastiCache replication groups..."
