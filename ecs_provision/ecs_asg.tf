@@ -29,9 +29,6 @@ module "autoscaling" {
     AmazonSSMManagedInstanceCore        = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
   }
 
-  # vpc_zone_identifier = module.vpc.private_subnets
-
-  # V2
   vpc_zone_identifier = [for subnet in local.ecs_cluster_subnets : aws_subnet.this[subnet.key].id]
 
   health_check_type = "EC2"
@@ -68,10 +65,7 @@ module "autoscaling" {
 module "autoscaling_sg" {
   source = "terraform-aws-modules/security-group/aws"
 
-  name = "${var.project_name}-sg-node"
-  # vpc_id = module.vpc.vpc_id
-
-  # V2  
+  name   = "${var.project_name}-sg-node"
   vpc_id = aws_vpc.this.id
 
   egress_rules = ["all-all"]

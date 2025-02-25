@@ -34,6 +34,7 @@ locals {
       create_client_vpn   = false
 
       create_eks_controlplane = false
+      create_ecs_node         = false
       tag_eks_node            = false
 
       tag_tgw_attachment = false
@@ -60,6 +61,7 @@ locals {
       create_client_vpn   = false
 
       create_eks_controlplane = false
+      create_ecs_node         = true
       tag_eks_node            = true
 
       tag_tgw_attachment = false
@@ -86,6 +88,7 @@ locals {
       create_client_vpn   = true
 
       create_eks_controlplane = true
+      create_ecs_node         = false
       tag_eks_node            = false
 
       tag_tgw_attachment = true
@@ -183,6 +186,7 @@ locals {
   vpn_subnets      = [for item in local.all_subnets : item if item.group.create_client_vpn == true]
 
   eks_node_subnets         = [for item in local.all_subnets : item if item.group.tag_eks_node == true]
+  ecs_cluster_subnets      = [for item in local.all_subnets : item if item.group.create_ecs_node == true]
   eks_controlplane_subnets = [for item in local.all_subnets : item if item.group.create_eks_controlplane == true]
 }
 

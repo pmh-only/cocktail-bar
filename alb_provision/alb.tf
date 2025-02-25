@@ -22,6 +22,7 @@ module "alb" {
 
   enable_cross_zone_load_balancing = true
   enable_zonal_shift               = true
+  client_keep_alive                = 60
 
   security_group_ingress_rules = {
     all_http = {
