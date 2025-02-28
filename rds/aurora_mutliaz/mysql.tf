@@ -106,3 +106,8 @@ resource "aws_kms_alias" "primary" {
   name          = "alias/rds/${var.project_name}-rds"
   target_key_id = aws_kms_key.primary.key_id
 }
+
+resource "aws_db_cluster_snapshot" "init" {
+  db_cluster_identifier          = module.db.cluster_id
+  db_cluster_snapshot_identifier = "${module.db.cluster_id}-init"
+}

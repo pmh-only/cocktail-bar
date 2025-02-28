@@ -34,19 +34,13 @@ spec:
         - key: dedicated
           value: app
           effect: NoSchedule
-      topologySpreadConstraints:
-        - maxSkew: 1
-          topologyKey: topology.kubernetes.io/zone
-          whenUnsatisfiable: ScheduleAnyway
-          labelSelector:
-            matchLabels:
-              app: <APP>
-        - maxSkew: 1
-          topologyKey: capacity-spread
-          whenUnsatisfiable: DoNotSchedule
-          labelSelector:
-            matchLabels:
-              app: <APP>
+      # topologySpreadConstraints:
+      #   - maxSkew: 1
+      #     topologyKey: capacity-spread
+      #     whenUnsatisfiable: DoNotSchedule
+      #     labelSelector:
+      #       matchLabels:
+      #         app: <APP>
       containers:
       - name:  <APP>
         image:  <IMAGE>
@@ -92,13 +86,6 @@ spec:
         ports:
         - containerPort: 8080
           name:  <APP>
-        volumeMounts:
-        - name: localtime
-          mountPath: /etc/localtime
-      volumes:
-        - name: localtime
-          hostPath:
-            path: /usr/share/zoneinfo/Asia/Seoul
       restartPolicy: Always
 ---
 kind: ConfigMap
@@ -145,19 +132,36 @@ spec:
     name: <APP>
   minReplicas: 2
   maxReplicas: 64
+behavior:
+  scaleDown:
+    stabilizationWindowSeconds: 60
+    policies:
+    - type: Percent
+      value: 100
+      periodSeconds: 15
+  scaleUp:
+    stabilizationWindowSeconds: 0
+    policies:
+    - type: Percent
+      value: 100
+      periodSeconds: 15
+    - type: Pods
+      value: 4
+      periodSeconds: 15
+    selectPolicy: Max
   metrics:
   - type: Resource
     resource:
       name: cpu
       target:
         type: Utilization
-        averageUtilization: 30
+        averageUtilization: 50
   - type: Resource
     resource:
       name: memory
       target:
         type: Utilization
-        averageUtilization: 30
+        averageUtilization: 50
 ---
 apiVersion: projectcalico.org/v3
 kind: NetworkPolicy

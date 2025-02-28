@@ -452,7 +452,7 @@ resource "local_sensitive_file" "client_configuration" {
 ###############################################################################
 
 resource "aws_cloudwatch_log_group" "vpc_flow_logs" {
-  name              = "/vpc/flowlogs/${replace(replace(replace(local.vpc_name, "$1", var.project_name), "$2", ""), "$3", "")}"
+  name              = "/aws/vpc/flowlogs/${replace(replace(replace(local.vpc_name, "$1", var.project_name), "$2", ""), "$3", "")}"
   retention_in_days = 7
 }
 

@@ -4,6 +4,7 @@ metadata:
   name: <NAMESPACE>
   labels:
     elbv2.k8s.aws/pod-readiness-gate-inject: enabled
+    application-networking.k8s.aws/pod-readiness-gate-inject: enabled
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress

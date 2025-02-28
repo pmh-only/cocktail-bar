@@ -31,6 +31,76 @@ locals {
 }
 
 locals {
+  ami_architecture_short = {
+    "x86_64" = "amd64"
+    "arm64"  = "arm64"
+  }[local.ami_architecture]
+
+  ami_architecture_long = {
+    "x86_64" = "x86_64"
+    "arm64"  = "aarch64"
+  }[local.ami_architecture]
+
+  userdatas = {
+    "al2" = <<-EOF
+      #!/bin/bash
+      echo "Port ${local.ssh_port}" >> /etc/ssh/sshd_config
+      systemctl restart sshd
+
+      yum install -y jq curl wget git docker
+      amazon-linux-extras install -y redis6 mariadb10.5 postgresql14
+
+      python3 -m ensurepip
+      python3 -m pip install parquet-tools
+
+      echo 'export PATH=$PATH:/usr/local/bin' >> /etc/profile
+
+      wget https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/${local.ami_architecture_short}/kubectl -O /tmp/kubectl
+      install -o root -g root -m 0755 /tmp/kubectl /usr/local/bin/kubectl
+
+      wget https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_linux_${local.ami_architecture_short}.tar.gz -O /tmp/eksctl.tar.gz
+      tar -xzf /tmp/eksctl.tar.gz -C /tmp
+      install -o root -g root -m 0755 /tmp/eksctl /usr/local/bin/eksctl
+
+      curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+      usermod -aG docker ec2-user
+      usermod -aG docker ssm-user
+
+      systemctl enable --now docker
+    EOF
+
+    "al2023" = <<-EOF
+      #!/bin/bash
+      echo "Port ${local.ssh_port}" >> /etc/ssh/sshd_config
+      systemctl restart sshd
+
+      yum install -y --allowerasing jq curl wget git mariadb105 postgresql16 docker redis6
+
+      python3 -m ensurepip
+      python3 -m pip install parquet-tools
+
+      wget https://awscli.amazonaws.com/awscli-exe-linux-${local.ami_architecture_long}.zip -O /tmp/awscliv2.zip
+      cd /tmp; unzip /tmp/awscliv2.zip; /tmp/aws/install
+
+      wget https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/${local.ami_architecture_short}/kubectl -O /tmp/kubectl
+      install -o root -g root -m 0755 /tmp/kubectl /usr/local/bin/kubectl
+
+      wget https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_linux_${local.ami_architecture_short}.tar.gz -O /tmp/eksctl.tar.gz
+      tar -xzf /tmp/eksctl.tar.gz -C /tmp
+      install -o root -g root -m 0755 /tmp/eksctl /usr/local/bin/eksctl
+
+      curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+      usermod -aG docker ec2-user
+      usermod -aG docker ssm-user
+
+      systemctl enable --now docker
+    EOF
+  }
+}
+
+locals {
   ami_ssm_pattern = {
     al2023 = "/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-${local.ami_architecture}",
     al2    = "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-${local.ami_architecture}-gp2"
@@ -122,17 +192,15 @@ resource "aws_instance" "bastion" {
   instance_type        = local.bastion_instance_type
   tags                 = { Name = local.bastion_instance_name }
 
+  monitoring = true
+
   root_block_device {
     volume_type = "gp3"
     volume_size = 8
     encrypted   = true
   }
 
-  user_data = <<-EOT
-    #!/bin/bash
-    echo "Port ${local.ssh_port}" >> /etc/ssh/sshd_config
-    systemctl restart sshd
-  EOT
+  user_data = local.userdatas[local.ami_os]
 
   lifecycle {
     ignore_changes = [security_groups]

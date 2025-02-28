@@ -95,7 +95,7 @@ module "ecs_service" {
               Name cloudwatch
               Match *
               region ap-northeast-2
-              log_group_name /ecs/${var.project_name}-cluster/myapp2
+              log_group_name /aws/ecs/${var.project_name}-cluster/myapp
               log_stream_name $${TASK_ID}
               auto_create_group true
             EOF
@@ -119,7 +119,7 @@ module "ecs_service" {
       log_configuration = {
         logDriver = "awslogs"
         options = {
-          awslogs-group         = "/ecs/${var.project_name}-cluster/myapp2-logroute"
+          awslogs-group         = "/aws/ecs/${var.project_name}-cluster/myapp2-logroute"
           awslogs-region        = var.region
           awslogs-stream-prefix = "ecs"
           awslogs-create-group  = "true"
@@ -147,9 +147,6 @@ module "ecs_service" {
     }
   }
 
-  # subnet_ids = module.vpc.private_subnets
-
-  # V2
   subnet_ids = [for subnet in local.ecs_cluster_subnets : aws_subnet.this[subnet.key].id]
 
   security_group_rules = {

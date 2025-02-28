@@ -1,3 +1,7 @@
+locals {
+  enable_argocd = true
+}
+
 module "eks_blueprints_addons" {
   source  = "aws-ia/eks-blueprints-addons/aws"
   version = "~> 1.0"
@@ -32,7 +36,7 @@ module "eks_blueprints_addons" {
     }
   }
 
-  enable_argocd                       = false
+  enable_argocd                       = local.enable_argocd
   enable_aws_gateway_api_controller   = false
   enable_karpenter                    = true
   enable_cert_manager                 = true
@@ -42,6 +46,11 @@ module "eks_blueprints_addons" {
   enable_external_secrets             = true
   enable_aws_for_fluentbit            = true
   enable_fargate_fluentbit            = true
+
+  fargate_fluentbit_cw_log_group = {
+    name = "/aws/eks/${module.eks.cluster_name}/fargate"
+  }
+
   fargate_fluentbit = {
     flb_log_cw = true
   }
@@ -111,6 +120,39 @@ module "eks_blueprints_addons" {
       ]
     }
   }
+}
+
+data "http" "argocd_image_updater" {
+  url = "https://raw.githubusercontent.com/pmh-only/cocktail-bar/refs/heads/main/kubernetes/argocd/image-updater.yml"
+}
+
+locals {
+  argocd_image_updater = {
+    for idx, manifest in split("\n---\n", data.http.argocd_image_updater.response_body)
+    : idx => manifest
+    if local.enable_argocd
+  }
+}
+
+resource "kubernetes_manifest" "argocd_image_updater" {
+  for_each   = local.argocd_image_updater
+  depends_on = [module.eks_blueprints_addons]
+
+  manifest = yamldecode(
+    replace(
+      replace(
+        replace(
+          each.value,
+          "{account_id}",
+          data.aws_caller_identity.caller.account_id
+        ),
+        "{irsa}",
+        module.irsa_argocd_updater.iam_role_arn
+      ),
+      "{region}",
+      var.region
+    )
+  )
 }
 
 output "node_iam_role_arn" {

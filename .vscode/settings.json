@@ -1,6 +1,5 @@
 {
   "files.eol": "\n",
-  "workbench.startupEditor": "none",
   "redhat.telemetry.enabled": false,
   "editor.fontFamily": "'JetBrainsMono Nerd Font'",
   "editor.fontLigatures": true,
@@ -26,8 +25,6 @@
   "javascript.updateImportsOnFileMove.enabled": "always",
   "typescript.updateImportsOnFileMove.enabled": "always",
   "workbench.colorTheme": "Atom One Light",
-  "liveServer.settings.donotShowInfoMsg": true,
-  "window.menuBarVisibility": "toggle",
   "[typescript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
@@ -47,18 +44,9 @@
   },
   "terminal.integrated.defaultProfile.windows": "PowerShell",
   "terminal.integrated.cursorBlinking": true,
-  "window.dialogStyle": "custom",
   "typescript.preferences.importModuleSpecifier": "relative",
   "debug.javascript.autoAttachFilter": "disabled",
-  "liveServer.settings.donotVerifyTags": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "hexeditor.columnWidth": 16,
-  "hexeditor.showDecodedText": true,
-  "hexeditor.defaultEndianness": "little",
-  "hexeditor.inspectorType": "aside",
-  "[java]": {
-    "editor.defaultFormatter": "redhat.java"
-  },
   "[python]": {
     "editor.formatOnType": true
   },
@@ -80,44 +68,14 @@
   "[terraform]": {
     "editor.defaultFormatter": "hashicorp.terraform"
   },
-  "remote.SSH.remotePlatform": {
-    "2667051310": "linux",
-    "shutupandtakemy.codes": "linux",
-    "localhost": "linux",
-    "ssh.shutupandtakemy.codes": "linux",
-    "shell.pmh.codes": "linux",
-    "oci.pmh.codes": "linux",
-    "pmhserver.host.pmh.codes": "linux",
-    "pmhoci.host.pmh.codes": "linux",
-    "3.35.187.223": "linux",
-    "pmhoci": "linux",
-    "3.36.93.131": "linux",
-    "3.38.115.252": "linux",
-    "3.36.133.190": "linux",
-    "43.201.249.86": "linux",
-    "43.201.62.46": "linux",
-    "43.202.67.100": "linux",
-    "43.200.28.88": "linux",
-    "13.124.221.52": "linux",
-    "3.226.202.141": "linux",
-    "52.79.69.209": "linux"
-  },
   "editor.inlineSuggest.enabled": true,
-  "github.copilot.enable": {
-    "*": true,
-    "plaintext": true,
-    "markdown": true,
-    "scminput": false
-  },
-  "terminal.integrated.enableMultiLinePasteWarning": false,
+  "terminal.integrated.enableMultiLinePasteWarning": "never",
   "editor.stablePeek": true,
   "editor.stickyScroll.enabled": true,
   "typescript.implementationsCodeLens.enabled": true,
   "typescript.referencesCodeLens.enabled": true,
   "typescript.referencesCodeLens.showOnAllFunctions": true,
-  "security.workspace.trust.untrustedFiles": "open",
   "window.commandCenter": true,
-  "background.useFront": false,
   "liveshare.launcherClient": "visualStudioCode",
   "liveshare.allowGuestDebugControl": true,
   "liveshare.allowGuestTaskControl": true,
@@ -165,7 +123,6 @@
     },
     "editor.defaultFormatter": "redhat.vscode-yaml"
   },
-  "window.titleBarStyle": "custom",
   "go.toolsManagement.autoUpdate": true,
   // "terminal.integrated.stickyScroll.enabled": true,
   "workbench.tree.enableStickyScroll": true,
@@ -179,9 +136,6 @@
   "eslint.validate": ["javascript", "javascriptreact", "svelte"],
   "terminal.integrated.mouseWheelZoom": true,
   "editor.accessibilitySupport": "off",
-  "security.workspace.trust.banner": "never",
-  "security.workspace.trust.enabled": false,
-  "prisma.showPrismaDataPlatformNotification": false,
   "vs-kubernetes": {
     "vscode-kubernetes.kubectl-path-linux": "/home/ec2-user/.local/state/vs-kubernetes/tools/kubectl/kubectl",
     "vscode-kubernetes.helm-path-linux": "/home/ec2-user/.local/state/vs-kubernetes/tools/helm/linux-amd64/helm",
@@ -192,27 +146,6 @@
   "vim.useSystemClipboard": true,
   "vim.useCtrlKeys": true,
   "vim.hlsearch": true,
-  "vim.insertModeKeyBindings": [
-    {
-      "before": ["j", "j"],
-      "after": ["<Esc>"]
-    }
-  ],
-  "vim.normalModeKeyBindingsNonRecursive": [
-    {
-      "before": ["<leader>", "d"],
-      "after": ["d", "d"]
-    },
-    {
-      "before": ["<C-n>"],
-      "commands": [":nohl"]
-    },
-    {
-      "before": ["K"],
-      "commands": ["lineBreakInsert"],
-      "silent": true
-    }
-  ],
   "vim.leader": "<space>",
   "vim.handleKeys": {
     "<C-c>": false,
@@ -225,7 +158,6 @@
     "vscodevim.vim": 1
   },
   "standard.autoFixOnSave": true,
-  "http.proxySupport": "fallback",
   
   // ---
 
