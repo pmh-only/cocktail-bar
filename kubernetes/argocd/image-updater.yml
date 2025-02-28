@@ -5,6 +5,7 @@ metadata:
     app.kubernetes.io/component: controller
     app.kubernetes.io/name: argocd-image-updater
     app.kubernetes.io/part-of: argocd-image-updater
+    eks.amazonaws.com/role-arn: '{irsa}'
   name: argocd-image-updater
   namespace: argocd
 ---
@@ -101,8 +102,8 @@ data:
   registries.conf: |
     registries:
     - name: ECR
-      api_url: https://648911607072.dkr.ecr.us-east-1.amazonaws.com
-      prefix: 648911607072.dkr.ecr.us-east-1.amazonaws.com
+      api_url: https://{account_id}.dkr.ecr.{region}.amazonaws.com
+      prefix: {account_id}.dkr.ecr.{region}.amazonaws.com
       ping: yes
       default: true
       insecure: no
@@ -110,7 +111,7 @@ data:
       credsexpire: 11h
   ecr-login.sh: |
     #!/bin/sh
-    aws ecr --region "us-east-1" get-authorization-token --output text --query 'authorizationData[].authorizationToken' | base64 -d
+    aws ecr --region "{region}" get-authorization-token --output text --query 'authorizationData[].authorizationToken' | base64 -d
 ---
 apiVersion: v1
 kind: ConfigMap
