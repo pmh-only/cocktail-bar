@@ -285,7 +285,7 @@ spec:
             path: ecr-login.sh
           name: argocd-image-updater-config
           optional: true
-          defaultMode: 0777
+          defaultMode: 493 # 0755
         name: image-updater-script
       - configMap:
           items:
