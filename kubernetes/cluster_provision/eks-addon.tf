@@ -1,5 +1,5 @@
 locals {
-  enable_argocd = true
+  enable_argocd = false
 }
 
 module "eks_blueprints_addons" {
@@ -37,6 +37,7 @@ module "eks_blueprints_addons" {
   }
 
   enable_argocd                       = local.enable_argocd
+  enable_kube_prometheus_stack        = false
   enable_aws_gateway_api_controller   = false
   enable_karpenter                    = true
   enable_cert_manager                 = true
@@ -47,8 +48,19 @@ module "eks_blueprints_addons" {
   enable_aws_for_fluentbit            = true
   enable_fargate_fluentbit            = true
 
+  kube_prometheus_stack = {
+    values = [<<-EOF
+      prometheus:
+        prometheusSpec:
+          scrapeInterval: "5s"
+          evaluationInterval: "5s"
+    EOF
+    ]
+  }
+
   fargate_fluentbit_cw_log_group = {
-    name = "/aws/eks/${module.eks.cluster_name}/fargate"
+    name            = "/aws/eks/${module.eks.cluster_name}/fargate"
+    use_name_prefix = false
   }
 
   fargate_fluentbit = {
@@ -71,6 +83,10 @@ module "eks_blueprints_addons" {
     ]
   }
 
+  aws_for_fluentbit_cw_log_group = {
+    create = false
+  }
+
   aws_for_fluentbit = {
     enable_containerinsights = true
     kubelet_monitoring       = true
@@ -85,6 +101,10 @@ module "eks_blueprints_addons" {
         - operator: Exists
     EOF
     ]
+
+    role_policies = {
+      CloudWatchFullAccess = "arn:aws:iam::aws:policy/CloudWatchFullAccess"
+    }
   }
 
   helm_releases = {
@@ -134,24 +154,22 @@ locals {
   }
 }
 
-resource "kubernetes_manifest" "argocd_image_updater" {
+resource "kubectl_manifest" "argocd_image_updater" {
   for_each   = local.argocd_image_updater
   depends_on = [module.eks_blueprints_addons]
 
-  manifest = yamldecode(
+  yaml_body = replace(
     replace(
       replace(
-        replace(
-          each.value,
-          "{account_id}",
-          data.aws_caller_identity.caller.account_id
-        ),
-        "{irsa}",
-        module.irsa_argocd_updater.iam_role_arn
+        each.value,
+        "{account_id}",
+        data.aws_caller_identity.caller.account_id
       ),
-      "{region}",
-      var.region
-    )
+      "{irsa}",
+      module.irsa_argocd_updater.iam_role_arn
+    ),
+    "{region}",
+    var.region
   )
 }
 
