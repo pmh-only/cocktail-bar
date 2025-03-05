@@ -8,6 +8,15 @@ module "eks" {
   subnet_ids               = [for item in local.eks_node_subnets : aws_subnet.this[item.key].id]
   control_plane_subnet_ids = [for item in local.eks_controlplane_subnets : aws_subnet.this[item.key].id]
 
+  fargate_profiles = {
+    # fargate = {
+    #   name = "fargate"
+    #   selectors = [{
+    #     namespace = "fargate"
+    #   }]
+    # }
+  }
+
   node_security_group_tags = {
     "karpenter.sh/discovery" = "${var.project_name}-cluster"
   }

@@ -26,7 +26,7 @@ spec:
       tolerations:
         - key: dedicated
           value: app
-          effect: NoSchedule
+          effect: NoExecute
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
