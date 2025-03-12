@@ -8,6 +8,7 @@ blocklist:
 
 bypass-alias-check-accounts:
   - 648911607072
+  - 976139933880
 
 accounts:
   648911607072:
@@ -17,23 +18,15 @@ accounts:
       IAMUserPolicyAttachment:
         - "admin -> AdministratorAccess"
       IAMUserAccessKey:
-        - property: AccessKeyId
-          value: "AKIA6GRTZLC4HZBHPTNN"
-        - "admin -> AKIAZOFRFKUQAWYBXEFV"
-      IAMVirtualMFADevice:
-        - "arn:aws:iam::648911607072:mfa/admin"
+        - "admin -> AKIAZOFRFKUQBUVIZCHD"
       IAMSAMLProvider:
         - "arn:aws:iam::648911607072:saml-provider/AWSSSO_93b584ed1d22a1c5_DO_NOT_DELETE"
+        - "arn:aws:iam::648911607072:saml-provider/AWSSSO_pmhonly"
       Route53ResourceRecordSet:
         - "samsungskills2.pmh.codes."
         - "_a6d0d215e3fb85c4d5d2372846f01f34.samsungskills2.pmh.codes."
       Route53HostedZone:
         - "/hostedzone/Z093302115ZHXKOFEFJ2Q (samsungskills2.pmh.codes.)"
-      IAMLoginProfile:
-        - "admin"
-      IAMUserMFADevice:
-        - "admin -> admin-mfa-3R7XKZW6PVCYLJK76JDH4FDP7Y"
-        - "admin -> admin"
       IAMPolicy:
         - "arn:aws:iam::648911607072:policy/SCOP_IAM_POLICY"
         - "arn:aws:iam::648911607072:policy/SCOP_PRD_INFRAMANAGEMENT_PERMISSION_BOUNDARY_PL"
@@ -43,6 +36,7 @@ accounts:
         - "arn:aws:iam::648911607072:policy/SCOP_S3_READER"
         - "arn:aws:iam::648911607072:policy/SamsungCloudOpsPlatform_Linked_Policy_20230918"
       IAMRole:
+        - "admin"
         - "RBAC_SCOP_DYNMRD"
         - "RBAC_SCOP_DYNMWT"
         - "RBAC_SCOP_MEMBER"
@@ -57,6 +51,7 @@ accounts:
         - type: regex
           value: "AWSServiceRoleFor.*"
       IAMRolePolicyAttachment:
+        - "admin -> AdministratorAccess"
         - "RBAC_SCOP_DYNMRD -> SCOP_DYNAMO_READER"
         - "RBAC_SCOP_DYNMWT -> SCOP_DYNAMO_WRITER"
         - "RBAC_SCOP_MEMBER -> AdministratorAccess"
@@ -74,6 +69,7 @@ accounts:
         - "SamsungCloudOpsPlatform_Linked_Role -> AWSOrganizationsReadOnlyAccess"
         - "SamsungCloudOpsPlatform_Linked_Role -> CloudWatchLogsReadOnlyAccess"
         - "SamsungCloudOpsPlatform_Linked_Role -> IAMFullAccess"
+        - "SamsungCloudOpsPlatform_Linked_Role_20230918 -> SamsungCloudOpsPlatform_Linked_Policy_20230918"
         - "scmp_security_auditor -> ReadOnlyAccess"
         - "scmp_security_auditor -> AWSSupportAccess"
         - "stacksets-exec-d1373500c74b3a738a04f178177902a4 -> AdministratorAccess"
@@ -90,6 +86,80 @@ accounts:
         - "arn:aws:acm:us-east-1:648911607072:certificate/55aa50fd-1bc8-4538-9284-df2a6245d372"
       KMSKey:
         - "91a8e47e-5cbf-43e5-89e0-0d2207b25cb7"
+  976139933880:
+    filters:
+      IAMUser:
+        - "admin"
+      IAMUserPolicyAttachment:
+        - "admin -> AdministratorAccess"
+      IAMUserAccessKey:
+        - "admin -> AKIA6GRTZLC4OSSGDMX6"
+      IAMSAMLProvider:
+        - "arn:aws:iam::976139933880:saml-provider/AWSSSO_pmhonly"
+      Route53ResourceRecordSet:
+        - "samsungskills6.pmh.codes."
+        - "_b0ea45eea7165cf2d864f2a2758747c8.samsungskills6.pmh.codes."
+      Route53HostedZone:
+        - "/hostedzone/Z03978473AQI1E3V7QMNS (samsungskills6.pmh.codes.)"
+      IAMPolicy:
+        - "arn:aws:iam::976139933880:policy/SCOP_IAM_POLICY"
+        - "arn:aws:iam::976139933880:policy/SCOP_PRD_INFRAMANAGEMENT_PERMISSION_BOUNDARY_PL"
+        - "arn:aws:iam::976139933880:policy/SCOP_DYNAMO_WRITER"
+        - "arn:aws:iam::976139933880:policy/SCOP_DYNAMO_READER"
+        - "arn:aws:iam::976139933880:policy/SCOP_S3_WRITER"
+        - "arn:aws:iam::976139933880:policy/SCOP_S3_READER"
+        - "arn:aws:iam::976139933880:policy/SamsungCloudOpsPlatform_Linked_Policy_20230918"
+      IAMRole:
+        - "admin"
+        - "RBAC_SCOP_DYNMRD"
+        - "RBAC_SCOP_DYNMWT"
+        - "RBAC_SCOP_MEMBER"
+        - "RBAC_SCOP_PL"
+        - "RBAC_SCOP_S3READ"
+        - "RBAC_SCOP_S3WRIT"
+        - "SamsungCloudMgmtPlatform_Linked_Role"
+        - "SamsungCloudOpsPlatform_Linked_Role"
+        - "SamsungCloudOpsPlatform_Linked_Role_20230918"
+        - "scmp_security_auditor"
+        - "stacksets-exec-d1373500c74b3a738a04f178177902a4"
+        - type: regex
+          value: "AWSServiceRoleFor.*"
+      IAMRolePolicyAttachment:
+        - "admin -> AdministratorAccess"
+        - "RBAC_SCOP_DYNMRD -> SCOP_DYNAMO_READER"
+        - "RBAC_SCOP_DYNMWT -> SCOP_DYNAMO_WRITER"
+        - "RBAC_SCOP_MEMBER -> AdministratorAccess"
+        - "RBAC_SCOP_PL -> AdministratorAccess"
+        - "RBAC_SCOP_S3READ -> SCOP_S3_READER"
+        - "RBAC_SCOP_S3WRIT -> SCOP_S3_WRITER"
+        - "SamsungCloudMgmtPlatform_Linked_Role -> AWSOrganizationsReadOnlyAccess"
+        - "SamsungCloudMgmtPlatform_Linked_Role -> ReadOnlyAccess"
+        - "SamsungCloudMgmtPlatform_Linked_Role -> Billing"
+        - "SamsungCloudOpsPlatform_Linked_Role -> AmazonDynamoDBReadOnlyAccess"
+        - "SamsungCloudOpsPlatform_Linked_Role -> AmazonEC2ReadOnlyAccess"
+        - "SamsungCloudOpsPlatform_Linked_Role -> AmazonRDSReadOnlyAccess"
+        - "SamsungCloudOpsPlatform_Linked_Role -> AmazonS3ReadOnlyAccess"
+        - "SamsungCloudOpsPlatform_Linked_Role -> AmazonVPCReadOnlyAccess"
+        - "SamsungCloudOpsPlatform_Linked_Role -> AWSOrganizationsReadOnlyAccess"
+        - "SamsungCloudOpsPlatform_Linked_Role -> CloudWatchLogsReadOnlyAccess"
+        - "SamsungCloudOpsPlatform_Linked_Role -> IAMFullAccess"
+        - "SamsungCloudOpsPlatform_Linked_Role_20230918 -> SamsungCloudOpsPlatform_Linked_Policy_20230918"
+        - "scmp_security_auditor -> ReadOnlyAccess"
+        - "scmp_security_auditor -> AWSSupportAccess"
+        - "stacksets-exec-d1373500c74b3a738a04f178177902a4 -> AdministratorAccess"
+      IAMRolePolicy:
+        - "SamsungCloudOpsPlatform_Linked_Role -> COP-ASSET-POLICY"
+      CloudTrailTrail:
+        - "mytrail"
+      CloudFormationStack:
+        - "StackSet-SamsungCloudOpsPlatformRoleStackSet-33eb2f88-3043-4ba7-b5f7-563ce2e3507f"
+        - "StackSet-ScmpSecurityAuditorStackSet-faf696dd-fba0-4a63-adf5-3c7e67abc912"
+        - "StackSet-SamsungCloudMgmtPlatformStackSet-d7e04c54-5e4a-4ac8-a509-fe2d1e871373"
+        - "StackSet-SamsungCloudOpsPlatformStackSet-3f9ed7f2-4e90-4486-ad27-56984de94506"
+      ACMCertificate:
+        - "arn:aws:acm:us-east-1:976139933880:certificate/ab2d45b7-3936-4ce7-afc7-9438bce7dfda"
+      KMSKey:
+        - "dec3fa2d-acf7-4c26-ae9a-12476ac3c879"
 
 settings:
   S3Object:
