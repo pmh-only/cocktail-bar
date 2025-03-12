@@ -26,7 +26,7 @@ module "db" {
   engine_version = "16"
   instance_class = "db.r6g.large"
 
-  port = 3307
+  port = 5433
 
   vpc_security_group_ids = [aws_security_group.rds.id]
   db_subnet_group_name   = local.vpc_rds_subnet_group_names[0]
@@ -55,9 +55,11 @@ module "db" {
     "postgresql"
   ]
 
-  storage_type      = "io2"
-  iops              = 3000
-  allocated_storage = 100
+  storage_type          = "io2"
+  iops                  = 3000
+  allocated_storage     = 100
+  max_allocated_storage = 1000
+  dedicated_log_volume  = true
 
   create_db_parameter_group = true
   family                    = "postgres16"

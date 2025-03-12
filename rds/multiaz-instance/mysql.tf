@@ -57,9 +57,11 @@ module "db" {
     "slowquery"
   ]
 
-  storage_type      = "io2"
-  iops              = 3000
-  allocated_storage = 100
+  storage_type          = "io2"
+  iops                  = 3000
+  allocated_storage     = 100
+  max_allocated_storage = 1000
+  dedicated_log_volume  = true
 
   create_db_parameter_group = true
   family                    = "mysql8.0"
