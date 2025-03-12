@@ -44,7 +44,8 @@ module "eks" {
       }
 
       launch_template_tags = {
-        Name = "${var.project_name}-node-tools"
+        Name  = "${var.project_name}-node-tools"
+        owner = "pmh_only"
       }
 
       labels = {
