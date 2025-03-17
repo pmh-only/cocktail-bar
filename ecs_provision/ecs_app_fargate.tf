@@ -7,6 +7,13 @@ module "ecs_service" {
   name        = "${var.project_name}-myapp"
   cluster_arn = module.ecs.cluster_arn
 
+  deployment_controller = {
+    type = "ECS" # or CODE_DEPLOY
+  }
+
+  enable_execute_command = true
+
+
   requires_compatibilities = ["FARGATE"]
 
   tasks_iam_role_policies = {
@@ -39,22 +46,25 @@ module "ecs_service" {
 
   container_definitions = {
     myapp = {
-      cpu       = 256 - 25
-      memory    = 512 - 25
       essential = true
-      image     = "public.ecr.aws/nginx/nginx:alpine"
+      image     = "ghcr.io/pmh-only/the-biggie:latest"
 
       health_check = {
-        command  = ["CMD-SHELL", "curl -f http://localhost:80/ || exit 1"]
+        command  = ["CMD-SHELL", "curl -f http://localhost:8080/healthcheck || exit 1"]
         interval = 5
         timeout  = 2
         retries  = 1
       }
 
+      # secrets = [{
+      #   name      = "MYSQL_DBINFO"
+      #   valueFrom = "arn:aws:secretsmanager:ap-northeast-2:648911607072:secret:project-rds-r5wn4n"
+      # }]
+
       port_mappings = [
         {
           name          = "myapp"
-          containerPort = 80
+          containerPort = 8080
           protocol      = "tcp"
         }
       ]
@@ -65,14 +75,11 @@ module "ecs_service" {
       }
 
       readonly_root_filesystem = false
-      memory_reservation       = 512 - 25
     }
 
     log_router = {
-      cpu       = 25
-      memory    = 25
       essential = true
-      image     = "009160052643.dkr.ecr.ap-northeast-2.amazonaws.com/baseflue:latest"
+      image     = "009160052643.dkr.ecr.${var.region}.amazonaws.com/baseflue:latest"
 
       environment = [
         {
@@ -84,17 +91,17 @@ module "ecs_service" {
               Log_Level       debug
               Parsers_File    /parsers.conf
 
-            [FILTER]
-              Name parser
-              Match *
-              Key_Name log
-              Parser custom
-              Reserve_Data On
+            # [FILTER]
+            #   Name parser
+            #   Match *
+            #   Key_Name log
+            #   Parser custom
+            #   Reserve_Data On
 
             [OUTPUT]
               Name cloudwatch
               Match *
-              region ap-northeast-2
+              region ${var.region}
               log_group_name /aws/ecs/${var.project_name}-cluster/myapp
               log_stream_name $${TASK_ID}
               auto_create_group true
@@ -119,7 +126,7 @@ module "ecs_service" {
       log_configuration = {
         logDriver = "awslogs"
         options = {
-          awslogs-group         = "/aws/ecs/${var.project_name}-cluster/myapp2-logroute"
+          awslogs-group         = "/aws/ecs/${var.project_name}-cluster/myapp-logroute"
           awslogs-region        = var.region
           awslogs-stream-prefix = "ecs"
           awslogs-create-group  = "true"
@@ -135,7 +142,6 @@ module "ecs_service" {
       }
 
       readonly_root_filesystem = false
-      memory_reservation       = 25
     }
   }
 
@@ -143,17 +149,17 @@ module "ecs_service" {
     service = {
       target_group_arn = module.alb.target_groups.myapp.arn
       container_name   = "myapp"
-      container_port   = 80
+      container_port   = 8080
     }
   }
 
   subnet_ids = [for subnet in local.ecs_cluster_subnets : aws_subnet.this[subnet.key].id]
 
   security_group_rules = {
-    alb_ingress_3000 = {
+    alb_ingress = {
       type                     = "ingress"
-      from_port                = 80
-      to_port                  = 80
+      from_port                = 8080
+      to_port                  = 8080
       protocol                 = "tcp"
       description              = "Service port"
       source_security_group_id = module.alb.security_group_id
@@ -167,6 +173,13 @@ module "ecs_service" {
     }
   }
 
+  ordered_placement_strategy = [
+    {
+      field = "attribute:ecs.availability-zone"
+      type  = "spread"
+    }
+  ]
+
   desired_count            = 2
   autoscaling_max_capacity = 64
   autoscaling_min_capacity = 2
@@ -179,7 +192,7 @@ module "ecs_service" {
         }
         scale_in_cooldown  = 60
         scale_out_cooldown = 0
-        target_value       = 50
+        target_value       = 75
       }
     },
     memory = {
@@ -190,7 +203,7 @@ module "ecs_service" {
         }
         scale_in_cooldown  = 60
         scale_out_cooldown = 0
-        target_value       = 50
+        target_value       = 75
       }
     }
   }

@@ -320,7 +320,7 @@
             "type": "metric",
             "properties": {
                 "metrics": [
-                    [ { "expression": "SEARCH('{AWS/CloudFront,DistributionId,Region} MetricName=\"Requests\"', 'Sum', 60)", "id": "e1", "region": "us-east-1", "period": 60 } ]
+                    [ { "expression": "SEARCH('{AWS/CloudFront,DistributionId,Region} MetricName=\"Requests\"', 'Sum', 60)", "id": "e1", "region": "ap-northeast-2", "period": 60 } ]
                 ],
                 "view": "timeSeries",
                 "stacked": false,
@@ -349,7 +349,7 @@
             "type": "metric",
             "properties": {
                 "metrics": [
-                    [ { "expression": "SEARCH('{AWS/CloudFront,DistributionId,Region} MetricName=\"4xxErrorRate\"', 'p99', 60)", "id": "e1", "region": "us-east-1", "period": 60 } ]
+                    [ { "expression": "SEARCH('{AWS/CloudFront,DistributionId,Region} MetricName=\"4xxErrorRate\"', 'p99', 60)", "id": "e1", "region": "ap-northeast-2", "period": 60 } ]
                 ],
                 "view": "timeSeries",
                 "stacked": false,
@@ -379,7 +379,7 @@
             "type": "metric",
             "properties": {
                 "metrics": [
-                    [ { "expression": "SEARCH('{AWS/CloudFront,DistributionId,Region} MetricName=\"5xxErrorRate\"', 'p99', 60)", "id": "e1", "region": "us-east-1", "period": 60 } ]
+                    [ { "expression": "SEARCH('{AWS/CloudFront,DistributionId,Region} MetricName=\"5xxErrorRate\"', 'p99', 60)", "id": "e1", "region": "ap-northeast-2", "period": 60 } ]
                 ],
                 "view": "timeSeries",
                 "stacked": false,
@@ -453,7 +453,7 @@
             "type": "metric",
             "properties": {
                 "metrics": [
-                    [ { "expression": "SEARCH('{ECS/ContainerInsights,ClusterName,ContainerName,ServiceName,TaskId} ClusterName=\"project-cluster\" MetricName=\"ContainerCpuUtilization\"', 'p99', 60)", "id": "e1", "period": 60, "region": "ap-northeast-2", "label": "${PROP('Dim.ServiceName')}-${PROP('Dim.TaskId')}" } ]
+                    [ { "expression": "SEARCH('{ECS/ContainerInsights,ClusterName,ServiceName,TaskId} ClusterName=\"project-cluster\" MetricName=\"TaskCpuUtilization\"', 'p99', 60)", "id": "e1", "period": 60, "region": "ap-northeast-2", "label": "${PROP('Dim.ServiceName')}-${PROP('Dim.TaskId')}" } ]
                 ],
                 "view": "timeSeries",
                 "stacked": false,
@@ -494,7 +494,7 @@
             "type": "metric",
             "properties": {
                 "metrics": [
-                    [ { "expression": "SEARCH('{ECS/ContainerInsights,ClusterName,ContainerName,ServiceName,TaskId} ClusterName=\"project-cluster\" MetricName=\"ContainerMemoryUtilization\"', 'p99', 60)", "id": "e1", "period": 60, "region": "ap-northeast-2", "label": "${PROP('Dim.ServiceName')}-${PROP('Dim.TaskId')}" } ]
+                    [ { "expression": "SEARCH('{ECS/ContainerInsights,ClusterName,ServiceName,TaskId} ClusterName=\"project-cluster\" MetricName=\"TaskMemoryUtilization\"', 'p99', 60)", "id": "e1", "period": 60, "region": "ap-northeast-2", "label": "${PROP('Dim.ServiceName')}-${PROP('Dim.TaskId')}" } ]
                 ],
                 "view": "timeSeries",
                 "stacked": false,

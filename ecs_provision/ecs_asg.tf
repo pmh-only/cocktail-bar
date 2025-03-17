@@ -1,6 +1,6 @@
-data "aws_ssm_parameter" "bottlerocket_ecs" {
-  # name = "/aws/service/bottlerocket/aws-ecs-2/x86_64/latest/image_id"
-  name = "/aws/service/bottlerocket/aws-ecs-2/arm64/latest/image_id"
+locals {
+  ecs_ami_arch = "arm64"        # arm64 or x86_64
+  ecs_ami_os   = "bottlerocket" # bottlerocket or al2023
 }
 
 module "autoscaling" {
@@ -8,17 +8,11 @@ module "autoscaling" {
 
   name = "${var.project_name}-node"
 
-  image_id      = data.aws_ssm_parameter.bottlerocket_ecs.value
+  image_id      = data.aws_ssm_parameter.ecs_ami.value
   instance_type = "c6g.large"
 
   security_groups = [module.autoscaling_sg.security_group_id]
-  user_data = base64encode(<<-EOT
-    [settings.ecs]
-    cluster = "${var.project_name}-cluster"
-    enable-spot-instance-draining = true
-    enable-container-metadata = true
-  EOT
-  )
+  user_data       = base64encode(local.ecs_userscript)
 
   ignore_desired_capacity_changes = true
 
@@ -40,14 +34,14 @@ module "autoscaling" {
     AmazonECSManaged = true
   }
 
-  use_mixed_instances_policy = true
-  mixed_instances_policy = {
-    instances_distribution = {
-      on_demand_base_capacity                  = 0
-      on_demand_percentage_above_base_capacity = 20
-      spot_allocation_strategy                 = "price-capacity-optimized"
-    }
-  }
+  # use_mixed_instances_policy = true
+  # mixed_instances_policy = {
+  #   instances_distribution = {
+  #     on_demand_base_capacity                  = 0
+  #     on_demand_percentage_above_base_capacity = 20
+  #     spot_allocation_strategy                 = "price-capacity-optimized"
+  #   }
+  # }
 
   protect_from_scale_in = true
 
@@ -60,6 +54,35 @@ module "autoscaling" {
       }
     }
   ]
+}
+
+locals {
+  ecs_ami_name = {
+    "x86_64:al2023" = "/aws/service/ecs/optimized-ami/amazon-linux-2023/recommended/image_id"
+    "arm64:al2023"  = "/aws/service/ecs/optimized-ami/amazon-linux-2023/arm64/recommended/image_id"
+
+    "x86_64:bottlerocket" = "/aws/service/bottlerocket/aws-ecs-2/x86_64/latest/image_id"
+    "arm64:bottlerocket"  = "/aws/service/bottlerocket/aws-ecs-2/arm64/latest/image_id"
+  }["${local.ecs_ami_arch}:${local.ecs_ami_os}"]
+
+  ecs_userscript = {
+    "al2023"       = <<-EOT
+      #!/bin/bash
+      echo 'ECS_CLUSTER=${local.ecs_cluster_name}' >> /etc/ecs/ecs.config
+      echo 'ECS_ENABLE_CONTAINER_METADATA=true' >> /etc/ecs/ecs.config
+      echo 'ECS_ENABLE_SPOT_INSTANCE_DRAINING=true' >> /etc/ecs/ecs.config
+    EOT
+    "bottlerocket" = <<-EOT
+      [settings.ecs]
+      cluster = "${local.ecs_cluster_name}"
+      enable-spot-instance-draining = true
+      enable-container-metadata = true
+    EOT
+  }[local.ecs_ami_os]
+}
+
+data "aws_ssm_parameter" "ecs_ami" {
+  name = local.ecs_ami_name
 }
 
 module "autoscaling_sg" {

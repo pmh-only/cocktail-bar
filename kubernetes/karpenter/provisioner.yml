@@ -38,6 +38,7 @@ spec:
   detailedMonitoring: true
   tags:
     Name: project-mng-app
+    owner: pmh_only
   amiFamily: Bottlerocket # AL2, AL2023 or Bottlerocket
   role: karpenter-us-wsi-eks-cluster-20241213075611351300000031
   subnetSelectorTerms:
