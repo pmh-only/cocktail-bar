@@ -11,9 +11,19 @@ module "ecs_service" {
     type = "ECS" # or CODE_DEPLOY
   }
 
-  enable_execute_command = true
+  capacity_provider_strategy = {
+    FARGATE = {
+      capacity_provider = "FARGATE"
+      weight            = 20
+      base              = 1
+    }
+    FARGATE_SPOT = {
+      capacity_provider = "FARGATE_SPOT"
+      weight            = 80
+    }
+  }
 
-
+  enable_execute_command   = true
   requires_compatibilities = ["FARGATE"]
 
   tasks_iam_role_policies = {
@@ -102,7 +112,7 @@ module "ecs_service" {
               Name cloudwatch
               Match *
               region ${var.region}
-              log_group_name /aws/ecs/${var.project_name}-cluster/myapp
+              log_group_name /aws/ecs/${module.ecs.cluster_name}/myapp
               log_stream_name $${TASK_ID}
               auto_create_group true
             EOF
@@ -126,7 +136,7 @@ module "ecs_service" {
       log_configuration = {
         logDriver = "awslogs"
         options = {
-          awslogs-group         = "/aws/ecs/${var.project_name}-cluster/myapp-logroute"
+          awslogs-group         = "/aws/ecs/${module.ecs.cluster_name}/myapp-logroute"
           awslogs-region        = var.region
           awslogs-stream-prefix = "ecs"
           awslogs-create-group  = "true"
@@ -173,38 +183,145 @@ module "ecs_service" {
     }
   }
 
-  ordered_placement_strategy = [
-    {
-      field = "attribute:ecs.availability-zone"
-      type  = "spread"
-    }
-  ]
-
   desired_count            = 2
   autoscaling_max_capacity = 64
   autoscaling_min_capacity = 2
   autoscaling_policies = {
-    cpu = {
-      policy_type = "TargetTrackingScaling"
-      target_tracking_scaling_policy_configuration = {
-        predefined_metric_specification = {
-          predefined_metric_type = "ECSServiceAverageCPUUtilization"
-        }
-        scale_in_cooldown  = 60
-        scale_out_cooldown = 0
-        target_value       = 75
+    high = {
+      policy_type = "StepScaling"
+      step_scaling_policy_configuration = {
+        adjustment_type         = "ChangeInCapacity"
+        cooldown                = 0
+        metric_aggregation_type = "Average"
+
+        step_adjustment = [
+          {
+            scaling_adjustment          = 2
+            metric_interval_upper_bound = 90 - 80
+          },
+          {
+            scaling_adjustment          = 4
+            metric_interval_lower_bound = 90 - 80
+          }
+        ]
       }
-    },
-    memory = {
-      policy_type = "TargetTrackingScaling"
-      target_tracking_scaling_policy_configuration = {
-        predefined_metric_specification = {
-          predefined_metric_type = "ECSServiceAverageMemoryUtilization"
-        }
-        scale_in_cooldown  = 60
-        scale_out_cooldown = 0
-        target_value       = 75
+    }
+    low = {
+      policy_type = "StepScaling"
+      step_scaling_policy_configuration = {
+        adjustment_type         = "ChangeInCapacity"
+        cooldown                = 60
+        metric_aggregation_type = "Average"
+
+        step_adjustment = [
+          {
+            scaling_adjustment          = -1
+            metric_interval_lower_bound = 50 - 65
+          },
+          {
+            scaling_adjustment          = -2
+            metric_interval_upper_bound = 50 - 65
+            metric_interval_lower_bound = 25 - 65
+          },
+          {
+            scaling_adjustment          = -4
+            metric_interval_upper_bound = 25 - 65
+          }
+        ]
       }
     }
   }
+}
+
+resource "aws_cloudwatch_metric_alarm" "ecs_service_high" {
+  alarm_name          = "ecs_service_high"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = 1
+  threshold           = 80
+
+  metric_query {
+    id          = "e1"
+    expression  = "MAX([m1,m2])"
+    label       = "MAX(CPUUtilization, MemoryUtilization)"
+    return_data = "true"
+  }
+
+  metric_query {
+    id = "m1"
+
+    metric {
+      metric_name = "CPUUtilization"
+      namespace   = "AWS/ECS"
+      stat        = "Average"
+      period      = 60
+      dimensions = {
+        ClusterName = module.ecs.cluster_name
+        ServiceName = module.ecs_service.name
+      }
+    }
+  }
+
+  metric_query {
+    id = "m2"
+
+    metric {
+      metric_name = "MemoryUtilization"
+      namespace   = "AWS/ECS"
+      stat        = "Average"
+      period      = 60
+      dimensions = {
+        ClusterName = module.ecs.cluster_name
+        ServiceName = module.ecs_service.name
+      }
+    }
+  }
+
+  alarm_actions = [module.ecs_service.autoscaling_policies.high.arn]
+}
+
+
+resource "aws_cloudwatch_metric_alarm" "ecs_service_low" {
+  alarm_name          = "ecs_service_low"
+  comparison_operator = "LessThanThreshold"
+  evaluation_periods  = 2
+  threshold           = 65
+
+  metric_query {
+    id          = "e1"
+    expression  = "MAX([m1,m2])"
+    label       = "MAX(CPUUtilization, MemoryUtilization)"
+    return_data = "true"
+  }
+
+  metric_query {
+    id = "m1"
+
+    metric {
+      metric_name = "CPUUtilization"
+      namespace   = "AWS/ECS"
+      stat        = "Average"
+      period      = 60
+      dimensions = {
+        ClusterName = module.ecs.cluster_name
+        ServiceName = module.ecs_service.name
+      }
+    }
+  }
+
+  metric_query {
+    id = "m2"
+
+    metric {
+      metric_name = "MemoryUtilization"
+      namespace   = "AWS/ECS"
+      stat        = "Average"
+      period      = 60
+      dimensions = {
+        ClusterName = module.ecs.cluster_name
+        ServiceName = module.ecs_service.name
+      }
+    }
+  }
+
+  alarm_actions = [module.ecs_service.autoscaling_policies.low.arn]
 }

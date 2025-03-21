@@ -2,9 +2,15 @@ locals {
   ecs_cluster_name = "${var.project_name}-cluster"
 }
 
-resource "aws_ecs_account_setting_default" "default" {
+resource "aws_ecs_account_setting_default" "containerInsights" {
   name  = "containerInsights"
   value = "enhanced"
+}
+
+
+resource "aws_ecs_account_setting_default" "awsvpcTrunking" {
+  name  = "awsvpcTrunking"
+  value = "enabled"
 }
 
 module "ecs" {
@@ -12,10 +18,16 @@ module "ecs" {
 
   cluster_name              = local.ecs_cluster_name
   cloudwatch_log_group_name = "/aws/ecs/${local.ecs_cluster_name}"
-  cluster_settings = [{
-    name  = "containerInsights"
-    value = "enhanced"
-  }]
+  cluster_settings = [
+    {
+      name  = "containerInsights"
+      value = "enhanced"
+    },
+    {
+      name  = "awsvpcTrunking"
+      value = "enabled"
+    }
+  ]
 
   # FARGATE
   # fargate_capacity_providers = {

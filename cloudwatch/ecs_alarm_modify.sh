@@ -1,13 +1,16 @@
+export ALARM_NAME="TargetTracking-project-node-20250321020536143700000029-AlarmLow-17efe978-9cae-4bd3-b232-2022fa6ae8a5"
+export ACTION_NAME=$(aws cloudwatch describe-alarms --alarm-names "$ALARM_NAME" --query "MetricAlarms[0].AlarmActions[0]" --output text)
+export CLUSTER_NAME=$(aws cloudwatch describe-alarms --alarm-names "$ALARM_NAME" --query 'MetricAlarms[0].Dimensions[?Name==`ClusterName`].Value' --output text)
+
 aws cloudwatch put-metric-alarm \
-  --alarm-name "TargetTracking-project-node-2024122004512217120000000f-AlarmLow-64615098-5fcb-4336-b99f-b3b71c665889" \
+  --alarm-name "$ALARM_NAME" \
   --metric-name "CapacityProviderReservation" \
   --namespace "AWS/ECS/ManagedScaling" \
   --statistic "Average" \
   --period 60 \
-  --evaluation-periods 1 \
+  --evaluation-periods 2 \
   --threshold 100 \
   --comparison-operator "LessThanThreshold" \
-  --alarm-actions "arn:aws:autoscaling:ap-northeast-2:648911607072:scalingPolicy:2c2bb4c8-c9ee-473b-9007-82414ddf259e:autoScalingGroupName/project-node-2024122004512217120000000f:policyName/ECSManagedAutoScalingPolicy-2c8a4f9d-f516-4867-839c-8912ffd50c7a" \
-  --dimensions "Name=CapacityProviderName,Value=EC2" "Name=ClusterName,Value=project-cluster" \
-  --actions-enabled \
-  --region "ap-northeast-2"
+  --alarm-actions "$ACTION_NAME" \
+  --dimensions "Name=CapacityProviderName,Value=EC2" "Name=ClusterName,Value=$CLUSTER_NAME" \
+  --actions-enabled

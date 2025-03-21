@@ -9,7 +9,9 @@ module "autoscaling" {
   name = "${var.project_name}-node"
 
   image_id      = data.aws_ssm_parameter.ecs_ami.value
-  instance_type = "c6g.large"
+  instance_type = "t4g.micro"
+
+  update_default_version = true
 
   security_groups = [module.autoscaling_sg.security_group_id]
   user_data       = base64encode(local.ecs_userscript)
@@ -45,6 +47,11 @@ module "autoscaling" {
 
   protect_from_scale_in = true
 
+  metadata_options = {
+    http_tokens                 = "required"
+    http_put_response_hop_limit = 1
+  }
+
   tag_specifications = [
     {
       resource_type = "instance"
@@ -71,12 +78,14 @@ locals {
       echo 'ECS_CLUSTER=${local.ecs_cluster_name}' >> /etc/ecs/ecs.config
       echo 'ECS_ENABLE_CONTAINER_METADATA=true' >> /etc/ecs/ecs.config
       echo 'ECS_ENABLE_SPOT_INSTANCE_DRAINING=true' >> /etc/ecs/ecs.config
+      echo 'ECS_AVAILABLE_LOGGING_DRIVERS=["json-file","awslogs","fluentd","none"]' >> /etc/ecs/ecs.config
     EOT
     "bottlerocket" = <<-EOT
       [settings.ecs]
       cluster = "${local.ecs_cluster_name}"
       enable-spot-instance-draining = true
       enable-container-metadata = true
+      logging-drivers = ["json-file","awslogs","fluentd","none"]
     EOT
   }[local.ecs_ami_os]
 }
