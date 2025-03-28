@@ -31,7 +31,6 @@ module "db" {
   port = 3307
 
   vpc_id               = local.vpc_id
-  availability_zones   = local.vpc_azs
   db_subnet_group_name = local.vpc_rds_subnet_group_names[0]
   security_group_rules = {
     vpc_ingress = {

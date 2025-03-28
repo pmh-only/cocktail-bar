@@ -22,10 +22,6 @@ module "ecs" {
     {
       name  = "containerInsights"
       value = "enhanced"
-    },
-    {
-      name  = "awsvpcTrunking"
-      value = "enabled"
     }
   ]
 

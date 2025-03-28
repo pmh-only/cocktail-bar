@@ -85,7 +85,7 @@ locals {
       create_redshift_subnet_group    = false
 
       create_vpc_endpoint = true
-      create_client_vpn   = true
+      create_client_vpn   = false
 
       create_eks_controlplane = true
       create_ecs_node         = false

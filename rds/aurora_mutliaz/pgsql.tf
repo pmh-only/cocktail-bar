@@ -20,7 +20,6 @@ module "db" {
   port = 5433
 
   vpc_id               = local.vpc_id
-  availability_zones   = local.vpc_azs
   db_subnet_group_name = local.vpc_rds_subnet_group_names[0]
   security_group_rules = {
     vpc_ingress = {
@@ -51,6 +50,8 @@ module "db" {
     "postgresql",
     "upgrade"
   ]
+
+  enable_local_write_forwarding = true
 
   create_db_cluster_parameter_group           = true
   create_db_parameter_group                   = true

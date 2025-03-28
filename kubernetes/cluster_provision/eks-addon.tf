@@ -19,8 +19,8 @@ module "eks_blueprints_addons" {
       most_recent = true
       configuration_values = jsonencode({
         env = {
-          ENABLE_POD_ENI                    = "true"
-          POD_SECURITY_GROUP_ENFORCING_MODE = "standard"
+          # ENABLE_POD_ENI                    = "true"
+          # POD_SECURITY_GROUP_ENFORCING_MODE = "standard"
         }
       })
     }

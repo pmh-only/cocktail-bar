@@ -9,8 +9,12 @@ module "db" {
 
   port = 5433
 
-  vpc_id                 = local.vpc_id
-  availability_zones     = local.vpc_azs
+  vpc_id = local.vpc_id
+  availability_zones = [
+    "${var.region}a",
+    "${var.region}b",
+    "${var.region}c"
+  ]
   db_subnet_group_name   = local.vpc_rds_subnet_group_names[0]
   create_db_subnet_group = false
   security_group_rules = {
@@ -45,7 +49,9 @@ module "db" {
 
   storage_type      = "io2"
   iops              = 3000
-  allocated_storage = 100
+  allocated_storage = 10
+
+  enable_local_write_forwarding = true0
 
   create_db_cluster_parameter_group           = true
   create_db_parameter_group                   = true

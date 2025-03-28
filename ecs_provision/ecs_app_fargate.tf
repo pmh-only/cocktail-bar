@@ -79,80 +79,93 @@ module "ecs_service" {
         }
       ]
 
-      log_configuration = {
-        logDriver = "awsfirelens"
-        options   = {}
-      }
-
-      readonly_root_filesystem = false
-    }
-
-    log_router = {
-      essential = true
-      image     = "009160052643.dkr.ecr.${var.region}.amazonaws.com/baseflue:latest"
-
-      environment = [
-        {
-          name = "CONFIG",
-          value = base64encode(<<-EOF
-            [SERVICE]
-              Flush           1
-              Daemon          off
-              Log_Level       debug
-              Parsers_File    /parsers.conf
-
-            # [FILTER]
-            #   Name parser
-            #   Match *
-            #   Key_Name log
-            #   Parser custom
-            #   Reserve_Data On
-
-            [OUTPUT]
-              Name cloudwatch
-              Match *
-              region ${var.region}
-              log_group_name /aws/ecs/${module.ecs.cluster_name}/myapp
-              log_stream_name $${TASK_ID}
-              auto_create_group true
-            EOF
-          )
-        },
-        {
-          name = "PARSERS",
-          value = base64encode(<<-EOF
-              [PARSER]
-                Name custom
-                Format regex
-                Regex ^(?<remote_addr>.*) - - \[(?<time>.*)\] "(?<method>.*) (?<path>.*) (?<protocol>.*)" (?<status_code>.*) (?<latency>.*) "-" "(?<user_agent>.*)" "-"$
-                Time_Key time
-                Time_Format %d/%b/%Y:%H:%M:%S %z
-                Time_Keep On
-            EOF
-          )
-        }
-      ]
 
       log_configuration = {
         logDriver = "awslogs"
         options = {
-          awslogs-group         = "/aws/ecs/${module.ecs.cluster_name}/myapp-logroute"
+          awslogs-group         = "/aws/ecs/${local.ecs_cluster_name}/project-myapp"
           awslogs-region        = var.region
           awslogs-stream-prefix = "ecs"
           awslogs-create-group  = "true"
         }
       }
 
-      firelens_configuration = {
-        type = "fluentbit"
-        options = {
-          config-file-type  = "file"
-          config-file-value = "/config.conf"
-        }
-      }
+
+      # log_configuration = {
+      #   logDriver = "awsfirelens"
+      #   options   = {}
+      # }
 
       readonly_root_filesystem = false
     }
+
+
+    # log_router = {
+    #   essential = true
+    #   image     = "009160052643.dkr.ecr.${var.region}.amazonaws.com/baseflue:latest"
+
+    #   environment = [
+    #     {
+    #       name = "CONFIG",
+    #       value = base64encode(<<-EOF
+    #         [SERVICE]
+    #           Flush           1
+    #           Daemon          off
+    #           Log_Level       debug
+    #           Parsers_File    /parsers.conf
+
+    #         # [FILTER]
+    #         #   Name parser
+    #         #   Match *
+    #         #   Key_Name log
+    #         #   Parser custom
+    #         #   Reserve_Data On
+
+    #         [OUTPUT]
+    #           Name cloudwatch
+    #           Match *
+    #           region ${var.region}
+    #           log_group_name /aws/ecs/${module.ecs.cluster_name}/myapp
+    #           log_stream_name $${TASK_ID}
+    #           auto_create_group true
+    #         EOF
+    #       )
+    #     },
+    #     {
+    #       name = "PARSERS",
+    #       value = base64encode(<<-EOF
+    #           [PARSER]
+    #             Name custom
+    #             Format regex
+    #             Regex ^(?<remote_addr>.*) - - \[(?<time>.*)\] "(?<method>.*) (?<path>.*) (?<protocol>.*)" (?<status_code>.*) (?<latency>.*) "-" "(?<user_agent>.*)" "-"$
+    #             Time_Key time
+    #             Time_Format %d/%b/%Y:%H:%M:%S %z
+    #             Time_Keep On
+    #         EOF
+    #       )
+    #     }
+    #   ]
+
+    #   log_configuration = {
+    #     logDriver = "awslogs"
+    #     options = {
+    #       awslogs-group         = "/aws/ecs/${module.ecs.cluster_name}/myapp-logroute"
+    #       awslogs-region        = var.region
+    #       awslogs-stream-prefix = "ecs"
+    #       awslogs-create-group  = "true"
+    #     }
+    #   }
+
+    #   firelens_configuration = {
+    #     type = "fluentbit"
+    #     options = {
+    #       config-file-type  = "file"
+    #       config-file-value = "/config.conf"
+    #     }
+    #   }
+
+    #   readonly_root_filesystem = false
+    # }
   }
 
   load_balancer = {
