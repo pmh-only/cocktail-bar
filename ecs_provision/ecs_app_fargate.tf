@@ -96,7 +96,8 @@ module "ecs_service" {
       #   options   = {}
       # }
 
-      readonly_root_filesystem = false
+      create_cloudwatch_log_group = false
+      readonly_root_filesystem    = false
     }
 
 
@@ -164,8 +165,25 @@ module "ecs_service" {
     #     }
     #   }
 
+    #   create_cloudwatch_log_group = false
     #   readonly_root_filesystem = false
     # }
+
+    debug = {
+      essential = false
+      image     = "public.ecr.aws/docker/library/alpine:latest"
+      command   = ["/bin/sleep", "infinity"]
+
+      health_check = {
+        command  = ["CMD-SHELL", "exit 0"]
+        interval = 5
+        timeout  = 2
+        retries  = 1
+      }
+
+      enable_cloudwatch_logging = false
+      readonly_root_filesystem  = false
+    }
   }
 
   load_balancer = {

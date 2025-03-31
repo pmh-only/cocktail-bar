@@ -122,7 +122,7 @@ spec:
     targetPort: 8080
 ---
 apiVersion: autoscaling/v2
-kind: Horizon 
+kind: HorizontalPodAutoscaler 
 metadata:
   name: <APP>
   namespace: <NAMESPACE>
@@ -133,23 +133,23 @@ spec:
     name: <APP>
   minReplicas: 2
   maxReplicas: 64
-behavior:
-  scaleDown:
-    stabilizationWindowSeconds: 60
-    policies:
-    - type: Percent
-      value: 100
-      periodSeconds: 15
-  scaleUp:
-    stabilizationWindowSeconds: 0
-    policies:
-    - type: Percent
-      value: 100
-      periodSeconds: 15
-    - type: Pods
-      value: 4
-      periodSeconds: 15
-    selectPolicy: Max
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 15
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 15
+      - type: Pods
+        value: 4
+        periodSeconds: 15
+      selectPolicy: Max
   metrics:
   - type: Resource
     resource:

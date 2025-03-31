@@ -16,8 +16,9 @@ resource "aws_ecs_account_setting_default" "awsvpcTrunking" {
 module "ecs" {
   source = "terraform-aws-modules/ecs/aws"
 
-  cluster_name              = local.ecs_cluster_name
-  cloudwatch_log_group_name = "/aws/ecs/${local.ecs_cluster_name}"
+  cluster_name                = local.ecs_cluster_name
+  create_cloudwatch_log_group = false
+
   cluster_settings = [
     {
       name  = "containerInsights"

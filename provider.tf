@@ -15,6 +15,9 @@ terraform {
     awsutils = {
       source = "cloudposse/awsutils"
     }
+    kubectl = {
+      source = "gavinbunney/kubectl"
+    }
   }
 }
 
