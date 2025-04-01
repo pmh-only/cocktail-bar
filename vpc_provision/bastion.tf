@@ -201,10 +201,6 @@ resource "aws_instance" "bastion" {
   }
 
   user_data = local.userdatas[local.ami_os]
-
-  lifecycle {
-    ignore_changes = [security_groups]
-  }
 }
 
 resource "aws_eip" "bastion" {

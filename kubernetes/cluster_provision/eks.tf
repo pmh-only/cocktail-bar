@@ -122,3 +122,14 @@ resource "aws_eks_access_entry" "karpenter" {
   cluster_name  = module.eks.cluster_name
   type          = "EC2_LINUX"
 }
+
+resource "aws_security_group_rule" "fargate_metric_server" {
+  security_group_id = module.eks.cluster_primary_security_group_id
+
+  type      = "ingress"
+  from_port = 10250
+  to_port   = 10250
+  protocol  = "tcp"
+
+  source_security_group_id = module.eks.node_security_group_id
+}
