@@ -139,26 +139,26 @@ module "eks_blueprints_addons" {
         EOF
       ]
     }
-    kyverno = {
-      repository = "https://kyverno.github.io/kyverno"
-      chart      = "kyverno"
-      name       = "kyverno"
+    # kyverno = {
+    #   repository = "https://kyverno.github.io/kyverno"
+    #   chart      = "kyverno"
+    #   name       = "kyverno"
 
-      create_namespace = true
-      namespace        = "kyverno"
+    #   create_namespace = true
+    #   namespace        = "kyverno"
 
-      values = [<<-EOF
-        admissionController:
-          replicas: 2
-        backgroundController:
-          replicas: 2
-        cleanupController:
-          replicas: 2
-        reportsController:
-          replicas: 2
-        EOF
-      ]
-    }
+    #   values = [<<-EOF
+    #     admissionController:
+    #       replicas: 2
+    #     backgroundController:
+    #       replicas: 2
+    #     cleanupController:
+    #       replicas: 2
+    #     reportsController:
+    #       replicas: 2
+    #     EOF
+    #   ]
+    # }
   }
 }
 

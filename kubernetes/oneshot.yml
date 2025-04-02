@@ -29,6 +29,7 @@ spec:
     spec:
       terminationGracePeriodSeconds: 60
       serviceAccountName: <APP>
+      restartPolicy: Always
       nodeSelector:
         dedicated: app
       tolerations:
@@ -73,39 +74,38 @@ spec:
           successThreshold: 1
           failureThreshold: 3
           periodSeconds: 10
-        env:
-        - name: DB_HOST
-          valueFrom:
-            configMapKeyRef:
-              name: <APP>
-              key: DB_HOST
-        - name: DB_PASS
-          valueFrom:
-            secretKeyRef:
-              name: <APP>
-              key: DB_PASS
+        # env:
+        # - name: DB_HOST
+        #   valueFrom:
+        #     configMapKeyRef:
+        #       name: <APP>
+        #       key: DB_HOST
+        # - name: DB_PASS
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: <APP>
+        #       key: DB_PASS
         ports:
         - containerPort: 8080
           name:  <APP>
-      restartPolicy: Always
 ---
-kind: ConfigMap
-apiVersion: v1
-metadata:
-  name: <APP>
-  namespace: <NAMESPACE>
-data:
-  key: default
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: <APP>
-  namespace: <NAMESPACE>
-type: Opaque
-stringData:
-  DB_PASS: hello
----
+# kind: ConfigMap
+# apiVersion: v1
+# metadata:
+#   name: <APP>
+#   namespace: <NAMESPACE>
+# data:
+#   key: default
+# ---
+# apiVersion: v1
+# kind: Secret
+# metadata:
+#   name: <APP>
+#   namespace: <NAMESPACE>
+# type: Opaque
+# stringData:
+#   DB_PASS: hello
+# ---
 apiVersion: v1
 kind: Service
 metadata:
@@ -183,9 +183,9 @@ spec:
       source:
         nets: ['0.0.0.0/0']
         notNets: # Inner-cluster ips
-          - 10.100.10.0/24
-          - 10.100.11.0/24
-          - 10.100.12.0/24
+          - 10.0.10.0/24
+          - 10.0.11.0/24
+          - 10.0.12.0/24
 ---
 # apiVersion: vpcresources.k8s.aws/v1beta1
 # kind: SecurityGroupPolicy
