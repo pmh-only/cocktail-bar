@@ -49,13 +49,34 @@ module "alb" {
     http = {
       port     = 80
       protocol = "HTTP"
-      weighted_forward = {
-        target_groups = [
-          {
-            target_group_key = "myapp"
-            weight           = 1
-          }
-        ]
+
+      fixed_response = {
+        content_type = "text/plain"
+        message_body = "404 Not Found"
+        status_code  = "404"
+      }
+
+      rules = {
+        forward = {
+          priority = 100
+          actions = [
+            {
+              type = "weighted-forward"
+              target_groups = [
+                {
+                  target_group_key = "myapp"
+                  weight           = 100
+                }
+              ]
+            }
+          ]
+
+          conditions = [{
+            path_pattern = {
+              values = ["/*"]
+            }
+          }]
+        }
       }
     }
   }

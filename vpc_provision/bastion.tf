@@ -184,13 +184,13 @@ resource "aws_iam_instance_profile" "bastion" {
 }
 
 resource "aws_instance" "bastion" {
-  subnet_id            = local.bastion_subnet_id
-  security_groups      = [aws_security_group.bastion.id]
-  ami                  = data.aws_ssm_parameter.bastion_ami.value
-  iam_instance_profile = aws_iam_instance_profile.bastion.name
-  key_name             = aws_key_pair.keypair.key_name
-  instance_type        = local.bastion_instance_type
-  tags                 = { Name = local.bastion_instance_name }
+  subnet_id              = local.bastion_subnet_id
+  vpc_security_group_ids = [aws_security_group.bastion.id]
+  ami                    = data.aws_ssm_parameter.bastion_ami.value
+  iam_instance_profile   = aws_iam_instance_profile.bastion.name
+  key_name               = aws_key_pair.keypair.key_name
+  instance_type          = local.bastion_instance_type
+  tags                   = { Name = local.bastion_instance_name }
 
   monitoring = true
 
