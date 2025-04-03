@@ -30,6 +30,25 @@ data "aws_vpc" "target_vpc" {
   id       = each.value
 }
 
+data "aws_route_tables" "target_vpc_rtb_all" {
+  for_each = data.aws_vpc.target_vpc
+  vpc_id   = each.value.id
+}
+
+data "aws_subnets" "target_vpc_subnets_public" {
+  for_each = data.aws_vpc.target_vpc
+
+  filter {
+    name   = "vpc-id"
+    values = [each.value.id]
+  }
+
+  filter {
+    name   = "tag:Type"
+    values = ["public"]
+  }
+}
+
 data "aws_subnets" "target_vpc_subnets_private" {
   for_each = data.aws_vpc.target_vpc
 
@@ -83,7 +102,11 @@ locals {
     length(data.aws_subnets.target_vpc_subnets_intra[vpc_id].ids) > 0 ?
     data.aws_subnets.target_vpc_subnets_intra[vpc_id].ids :
 
-    data.aws_subnets.target_vpc_subnets_private[vpc_id].ids
+
+    length(data.aws_subnets.target_vpc_subnets_private[vpc_id].ids) > 0 ?
+    data.aws_subnets.target_vpc_subnets_private[vpc_id].ids :
+
+    data.aws_subnets.target_vpc_subnets_public[vpc_id].ids
   }
 
   # Turn list of route table names into a map of index => name
@@ -136,13 +159,30 @@ locals {
         name               = "${src_idx}-${dst_idx}"
         src_attachment_id  = src_attachment_id
         dst_route_table_id = dst_route_table_id.id
-      } if src_idx != dst_idx
+      } if tostring(src_idx) != tostring(dst_idx)
     ]
   ])
 
   dynamic_vpc_propagations = {
     for idx, propagation in local.dynamic_vpc_propagations_list :
     propagation.name => propagation
+  }
+
+  dynamic_vpc_routes_list = flatten([
+    for src_idx, src_attachment_id in module.tgw.ec2_transit_gateway_vpc_attachment_ids : [
+      for dst_idx, dst_route_tables in values(data.aws_route_tables.target_vpc_rtb_all) : [
+        for rtb_id in dst_route_tables.ids : {
+          name       = "${src_idx}-${dst_idx}-${rtb_id}"
+          rtb_id     = rtb_id
+          cidr_block = values(data.aws_vpc.target_vpc)[src_idx].cidr_block
+        } if tostring(src_idx) != tostring(dst_idx)
+      ]
+    ]
+  ])
+
+  dynamic_vpc_routes = {
+    for idx, route in local.dynamic_vpc_routes_list :
+    route.name => route
   }
 }
 
@@ -187,3 +227,74 @@ resource "aws_ec2_transit_gateway_route_table_propagation" "tgw_route_tables_pro
   transit_gateway_attachment_id  = each.value.src_attachment_id
   transit_gateway_route_table_id = each.value.dst_route_table_id
 }
+
+resource "aws_route" "routes" {
+  for_each = local.dynamic_vpc_routes
+
+  route_table_id         = each.value.rtb_id
+  destination_cidr_block = each.value.cidr_block
+  transit_gateway_id     = module.tgw.ec2_transit_gateway_id
+}
+
+
+###############################################################################
+# VPC Flowlog to Cloudwatch
+###############################################################################
+
+resource "aws_cloudwatch_log_group" "tgw_flow_logs" {
+  name              = "/aws/tgw/flowlogs/${local.tgw_name}"
+  retention_in_days = 7
+}
+
+resource "aws_iam_role" "tgw_flow_log_role" {
+  name_prefix = "${var.project_name}-role-tgw-flowlog-"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "vpc-flow-logs.amazonaws.com"
+        }
+        Action = "sts:AssumeRole"
+      },
+    ]
+  })
+}
+
+resource "aws_iam_role_policy" "tgw_flow_log_policy" {
+  name_prefix = "${var.project_name}-policy-tgw-flowlog-"
+  role        = aws_iam_role.tgw_flow_log_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents",
+          "logs:DescribeLogGroups",
+          "logs:DescribeLogStreams"
+        ]
+        Resource = "*"
+      },
+    ]
+  })
+}
+
+resource "aws_flow_log" "tgw_log" {
+  transit_gateway_id       = module.tgw.ec2_transit_gateway_id
+  log_destination          = aws_cloudwatch_log_group.tgw_flow_logs.arn
+  log_destination_type     = "cloud-watch-logs"
+  traffic_type             = "ALL"
+  iam_role_arn             = aws_iam_role.tgw_flow_log_role.arn
+  max_aggregation_interval = 60
+
+  tags = {
+    Name = "${local.tgw_name}-flowlog"
+  }
+}
+

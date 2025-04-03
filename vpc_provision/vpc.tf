@@ -46,6 +46,7 @@ locals {
       cidr_pattern = {
         start_index     = 0
         step_per_subnet = 1
+        override        = []
       }
     },
     {
@@ -73,6 +74,7 @@ locals {
       cidr_pattern = {
         start_index     = 10
         step_per_subnet = 1
+        override        = []
       }
     },
     {
@@ -100,6 +102,7 @@ locals {
       cidr_pattern = {
         start_index     = 20
         step_per_subnet = 1
+        override        = []
       }
     }
   ]
@@ -220,7 +223,7 @@ resource "aws_internet_gateway" "this" {
 resource "aws_subnet" "this" {
   for_each                = { for item in local.all_subnets : item.key => item }
   vpc_id                  = aws_vpc.this.id
-  cidr_block              = cidrsubnet(local.vpc_cidr, 8, each.value.cidr_index)
+  cidr_block              = length(each.value.group.cidr_pattern.override) > each.value.az_index ? each.value.group.cidr_pattern.override[each.value.az_index] : cidrsubnet(local.vpc_cidr, 8, each.value.cidr_index)
   availability_zone       = each.value.az
   map_public_ip_on_launch = each.value.group.type == "public" ? true : false
   tags = {
