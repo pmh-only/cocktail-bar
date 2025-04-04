@@ -1,12 +1,12 @@
-# replace all name - ecs_service
+# replace all name -ecs_service_app2 
 
-module "ecs_service" {
+module "ecs_service_app2" {
   source = "terraform-aws-modules/ecs/aws//modules/service"
 
   force_new_deployment = true
   force_delete         = true
 
-  name        = "${var.project_name}-myapp"
+  name        = "${var.project_name}-myapp2"
   cluster_arn = module.ecs.cluster_arn
 
   deployment_controller = {
@@ -25,15 +25,17 @@ module "ecs_service" {
   }
 
   tasks_iam_role_policies = {
-    CloudWatchLogsFullAccess = "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess"
+    CloudWatchFullAccess     = "arn:aws:iam::aws:policy/CloudWatchFullAccess"
+    AWSAppMeshEnvoyAccess    = "arn:aws:iam::aws:policy/AWSAppMeshEnvoyAccess"
+    AWSXRayDaemonWriteAccess = "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess"
   }
 
   task_exec_iam_role_policies = {
     CloudWatchLogsFullAccess = "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess"
   }
 
-  cpu    = 128
-  memory = 128
+  cpu    = 256
+  memory = 256
 
   # cpuArchitecture
   # Valid Values: X86_64 | ARM64
@@ -44,9 +46,14 @@ module "ecs_service" {
   }
 
   container_definitions = {
-    myapp = {
+    myapp2 = {
       essential = true
       image     = "ghcr.io/pmh-only/the-biggie:latest"
+
+      dependencies = [{
+        condition     = "HEALTHY"
+        containerName = "envoy"
+      }]
 
       health_check = {
         command  = ["CMD-SHELL", "curl -f http://localhost:8080/healthcheck || exit 1"]
@@ -62,7 +69,7 @@ module "ecs_service" {
 
       port_mappings = [
         {
-          name          = "myapp"
+          name          = "myapp2"
           containerPort = 8080
           protocol      = "tcp"
         }
@@ -71,7 +78,7 @@ module "ecs_service" {
       log_configuration = {
         logDriver = "awslogs"
         options = {
-          awslogs-group         = "/aws/ecs/${local.ecs_cluster_name}/project-myapp"
+          awslogs-group         = "/aws/ecs/${local.ecs_cluster_name}/project-myapp2"
           awslogs-region        = var.region
           awslogs-stream-prefix = "ecs"
           awslogs-create-group  = "true"
@@ -120,7 +127,7 @@ module "ecs_service" {
     #           Name cloudwatch
     #           Match *
     #           region ${var.region}
-    #           log_group_name /aws/ecs/${local.ecs_cluster_name}/myapp
+    #           log_group_name /aws/ecs/${local.ecs_cluster_name}myapp2/
     #           log_stream_name $${TASK_ID}
     #           auto_create_group true
     #         EOF
@@ -144,7 +151,7 @@ module "ecs_service" {
     #   log_configuration = {
     #     logDriver = "awslogs"
     #     options = {
-    #       awslogs-group         = "/aws/ecs/${local.ecs_cluster_name}/myapp-logroute"
+    #       awslogs-group         = "/aws/ecs/${local.ecs_cluster_name}/myapp2-logroute"
     #       awslogs-region        = var.region
     #       awslogs-stream-prefix = "ecs"
     #       awslogs-create-group  = "true"
@@ -178,13 +185,67 @@ module "ecs_service" {
       enable_cloudwatch_logging = false
       readonly_root_filesystem  = false
     }
-  }
 
-  load_balancer = {
-    service = {
-      target_group_arn = module.alb.target_groups.myapp.arn
-      container_name   = "myapp"
-      container_port   = 8080
+    xray = {
+      essential = true
+      user      = 1337
+
+      image = "public.ecr.aws/xray/aws-xray-daemon"
+
+      log_configuration = {
+        logDriver = "awslogs"
+        options = {
+          awslogs-group         = "/aws/ecs/${local.ecs_cluster_name}/project-myapp2/xray"
+          awslogs-region        = var.region
+          awslogs-stream-prefix = "ecs"
+          awslogs-create-group  = "true"
+        }
+      }
+
+      create_cloudwatch_log_group = false
+      readonly_root_filesystem    = false
+    }
+
+    envoy = {
+      essential = true
+      user      = 1337
+
+      image = "840364872350.dkr.ecr.${var.region}.amazonaws.com/aws-appmesh-envoy:v1.29.12.1-prod"
+      dependencies = [{
+        condition     = "START"
+        containerName = "xray"
+      }]
+
+      health_check = {
+        command  = ["CMD-SHELL", "curl -s http://localhost:9901/server_info | grep state | grep -q LIVE"]
+        interval = 5
+        timeout  = 5
+        retries  = 10
+      }
+
+      environment = [
+        { name = "ENVOY_LOG_LEVEL", value = "debug" },
+        { name = "ENABLE_ENVOY_XRAY_TRACING", value = "1" },
+        { name = "ENABLE_ENVOY_STATS_TAGS", value = "1" },
+        { name = "ENABLE_ENVOY_DOG_STATSD", value = "1" },
+        {
+          name  = "APPMESH_RESOURCE_ARN",
+          value = aws_appmesh_virtual_node.ecs_service2.arn
+        }
+      ]
+
+      log_configuration = {
+        logDriver = "awslogs"
+        options = {
+          awslogs-group         = "/aws/ecs/${local.ecs_cluster_name}/project-myapp2/envoy"
+          awslogs-region        = var.region
+          awslogs-stream-prefix = "ecs"
+          awslogs-create-group  = "true"
+        }
+      }
+
+      create_cloudwatch_log_group = false
+      readonly_root_filesystem    = false
     }
   }
 
@@ -197,7 +258,7 @@ module "ecs_service" {
       to_port                  = 8080
       protocol                 = "tcp"
       description              = "Service port"
-      source_security_group_id = module.alb.security_group_id
+      source_security_group_id = module.ecs_service.security_group_id
     }
     egress_all = {
       type        = "egress"
@@ -212,10 +273,6 @@ module "ecs_service" {
     {
       field = "attribute:ecs.availability-zone"
       type  = "spread"
-    },
-    {
-      field = "memory"
-      type  = "binpack"
     }
   ]
 
@@ -267,10 +324,26 @@ module "ecs_service" {
       }
     }
   }
+
+  service_registries = {
+    registry_arn = aws_service_discovery_service.ecs_service2.arn
+  }
+
+  proxy_configuration = {
+    type           = "APPMESH"
+    container_name = "envoy"
+    properties = {
+      AppPorts         = "8080"
+      EgressIgnoredIPs = "169.254.170.2,169.254.169.254"
+      IgnoredUID       = "1337"
+      ProxyEgressPort  = 15001
+      ProxyIngressPort = 15000
+    }
+  }
 }
 
-resource "aws_cloudwatch_metric_alarm" "ecs_service_high" {
-  alarm_name          = "ecs_service_high"
+resource "aws_cloudwatch_metric_alarm" "ecs_service_app2_high" {
+  alarm_name          = "ecs_service_app2_high"
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = 1
   threshold           = 80
@@ -292,7 +365,7 @@ resource "aws_cloudwatch_metric_alarm" "ecs_service_high" {
       period      = 60
       dimensions = {
         ClusterName = module.ecs.cluster_name
-        ServiceName = module.ecs_service.name
+        ServiceName = module.ecs_service_app2.name
       }
     }
   }
@@ -307,17 +380,17 @@ resource "aws_cloudwatch_metric_alarm" "ecs_service_high" {
       period      = 60
       dimensions = {
         ClusterName = module.ecs.cluster_name
-        ServiceName = module.ecs_service.name
+        ServiceName = module.ecs_service_app2.name
       }
     }
   }
 
-  alarm_actions = [module.ecs_service.autoscaling_policies.high.arn]
+  alarm_actions = [module.ecs_service_app2.autoscaling_policies.high.arn]
 }
 
 
-resource "aws_cloudwatch_metric_alarm" "ecs_service_low" {
-  alarm_name          = "ecs_service_low"
+resource "aws_cloudwatch_metric_alarm" "ecs_service_app2_low" {
+  alarm_name          = "ecs_service_app2_low"
   comparison_operator = "LessThanThreshold"
   evaluation_periods  = 2
   threshold           = 65
@@ -339,7 +412,7 @@ resource "aws_cloudwatch_metric_alarm" "ecs_service_low" {
       period      = 60
       dimensions = {
         ClusterName = module.ecs.cluster_name
-        ServiceName = module.ecs_service.name
+        ServiceName = module.ecs_service_app2.name
       }
     }
   }
@@ -354,10 +427,76 @@ resource "aws_cloudwatch_metric_alarm" "ecs_service_low" {
       period      = 60
       dimensions = {
         ClusterName = module.ecs.cluster_name
-        ServiceName = module.ecs_service.name
+        ServiceName = module.ecs_service_app2.name
       }
     }
   }
 
-  alarm_actions = [module.ecs_service.autoscaling_policies.low.arn]
+  alarm_actions = [module.ecs_service_app2.autoscaling_policies.low.arn]
+}
+
+resource "aws_appmesh_virtual_service" "ecs_service2" {
+  name      = "myapp2.${var.project_name}.local"
+  mesh_name = aws_appmesh_mesh.mesh.name
+
+  spec {
+    provider {
+      virtual_node {
+        virtual_node_name = aws_appmesh_virtual_node.ecs_service2.name
+      }
+    }
+  }
+}
+
+resource "aws_appmesh_virtual_node" "ecs_service2" {
+  name      = "${var.project_name}-myapp2"
+  mesh_name = aws_appmesh_mesh.mesh.name
+
+  spec {
+    backend {
+      virtual_service {
+        virtual_service_name = "myapp.${var.project_name}.local"
+      }
+    }
+
+    listener {
+      port_mapping {
+        port     = 8080
+        protocol = "http"
+      }
+
+      health_check {
+        protocol            = "http"
+        path                = "/healthcheck"
+        healthy_threshold   = 2
+        unhealthy_threshold = 2
+        timeout_millis      = 2000
+        interval_millis     = 5000
+      }
+    }
+
+    service_discovery {
+      aws_cloud_map {
+        service_name   = aws_service_discovery_service.ecs_service2.name
+        namespace_name = aws_service_discovery_private_dns_namespace.example.name
+      }
+    }
+  }
+}
+
+resource "aws_service_discovery_service" "ecs_service2" {
+  name = "myapp2"
+
+  dns_config {
+    namespace_id = aws_service_discovery_private_dns_namespace.example.id
+
+    dns_records {
+      type = "A"
+      ttl  = 10
+    }
+  }
+
+  health_check_custom_config {
+    failure_threshold = 1
+  }
 }

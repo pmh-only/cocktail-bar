@@ -1,12 +1,12 @@
-# replace all name - ecs_service
+# replace all name -ecs_service_app2 
 
-module "ecs_service" {
+module "ecs_service_app2" {
   source = "terraform-aws-modules/ecs/aws//modules/service"
 
   force_new_deployment = true
   force_delete         = true
 
-  name        = "${var.project_name}-myapp"
+  name        = "${var.project_name}-myapp2"
   cluster_arn = module.ecs.cluster_arn
 
   deployment_controller = {
@@ -25,15 +25,17 @@ module "ecs_service" {
   }
 
   tasks_iam_role_policies = {
-    CloudWatchLogsFullAccess = "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess"
+    CloudWatchFullAccess     = "arn:aws:iam::aws:policy/CloudWatchFullAccess"
+    AWSAppMeshEnvoyAccess    = "arn:aws:iam::aws:policy/AWSAppMeshEnvoyAccess"
+    AWSXRayDaemonWriteAccess = "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess"
   }
 
   task_exec_iam_role_policies = {
     CloudWatchLogsFullAccess = "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess"
   }
 
-  cpu    = 128
-  memory = 128
+  cpu    = 256
+  memory = 256
 
   # cpuArchitecture
   # Valid Values: X86_64 | ARM64
@@ -44,7 +46,7 @@ module "ecs_service" {
   }
 
   container_definitions = {
-    myapp = {
+    myapp2 = {
       essential = true
       image     = "ghcr.io/pmh-only/the-biggie:latest"
 
@@ -62,7 +64,7 @@ module "ecs_service" {
 
       port_mappings = [
         {
-          name          = "myapp"
+          name          = "myapp2"
           containerPort = 8080
           protocol      = "tcp"
         }
@@ -71,7 +73,7 @@ module "ecs_service" {
       log_configuration = {
         logDriver = "awslogs"
         options = {
-          awslogs-group         = "/aws/ecs/${local.ecs_cluster_name}/project-myapp"
+          awslogs-group         = "/aws/ecs/${local.ecs_cluster_name}/project-myapp2"
           awslogs-region        = var.region
           awslogs-stream-prefix = "ecs"
           awslogs-create-group  = "true"
@@ -120,7 +122,7 @@ module "ecs_service" {
     #           Name cloudwatch
     #           Match *
     #           region ${var.region}
-    #           log_group_name /aws/ecs/${local.ecs_cluster_name}/myapp
+    #           log_group_name /aws/ecs/${local.ecs_cluster_name}myapp2/
     #           log_stream_name $${TASK_ID}
     #           auto_create_group true
     #         EOF
@@ -144,7 +146,7 @@ module "ecs_service" {
     #   log_configuration = {
     #     logDriver = "awslogs"
     #     options = {
-    #       awslogs-group         = "/aws/ecs/${local.ecs_cluster_name}/myapp-logroute"
+    #       awslogs-group         = "/aws/ecs/${local.ecs_cluster_name}/myapp2-logroute"
     #       awslogs-region        = var.region
     #       awslogs-stream-prefix = "ecs"
     #       awslogs-create-group  = "true"
@@ -168,6 +170,11 @@ module "ecs_service" {
       image     = "public.ecr.aws/docker/library/alpine:latest"
       command   = ["/bin/sleep", "infinity"]
 
+      dependencies = [{
+        condition     = "HEALTHY"
+        containerName = "myapp2"
+      }]
+
       health_check = {
         command  = ["CMD-SHELL", "exit 0"]
         interval = 5
@@ -180,14 +187,6 @@ module "ecs_service" {
     }
   }
 
-  load_balancer = {
-    service = {
-      target_group_arn = module.alb.target_groups.myapp.arn
-      container_name   = "myapp"
-      container_port   = 8080
-    }
-  }
-
   subnet_ids = [for subnet in local.ecs_cluster_subnets : aws_subnet.this[subnet.key].id]
 
   security_group_rules = {
@@ -197,7 +196,7 @@ module "ecs_service" {
       to_port                  = 8080
       protocol                 = "tcp"
       description              = "Service port"
-      source_security_group_id = module.alb.security_group_id
+      source_security_group_id = module.ecs_service.security_group_id
     }
     egress_all = {
       type        = "egress"
@@ -267,10 +266,30 @@ module "ecs_service" {
       }
     }
   }
+
+  service_connect_configuration = {
+    namespace = aws_service_discovery_http_namespace.example.arn
+    service = {
+      client_alias = {
+        port = 8080
+      }
+      port_name = "myapp2"
+    }
+
+    log_configuration = {
+      log_driver = "awslogs"
+      options = {
+        awslogs-group         = "/aws/ecs/${local.ecs_cluster_name}/project-myapp/proxy"
+        awslogs-region        = var.region
+        awslogs-stream-prefix = "ecs"
+        awslogs-create-group  = "true"
+      }
+    }
+  }
 }
 
-resource "aws_cloudwatch_metric_alarm" "ecs_service_high" {
-  alarm_name          = "ecs_service_high"
+resource "aws_cloudwatch_metric_alarm" "ecs_service_app2_high" {
+  alarm_name          = "ecs_service_app2_high"
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = 1
   threshold           = 80
@@ -292,7 +311,7 @@ resource "aws_cloudwatch_metric_alarm" "ecs_service_high" {
       period      = 60
       dimensions = {
         ClusterName = module.ecs.cluster_name
-        ServiceName = module.ecs_service.name
+        ServiceName = module.ecs_service_app2.name
       }
     }
   }
@@ -307,17 +326,17 @@ resource "aws_cloudwatch_metric_alarm" "ecs_service_high" {
       period      = 60
       dimensions = {
         ClusterName = module.ecs.cluster_name
-        ServiceName = module.ecs_service.name
+        ServiceName = module.ecs_service_app2.name
       }
     }
   }
 
-  alarm_actions = [module.ecs_service.autoscaling_policies.high.arn]
+  alarm_actions = [module.ecs_service_app2.autoscaling_policies.high.arn]
 }
 
 
-resource "aws_cloudwatch_metric_alarm" "ecs_service_low" {
-  alarm_name          = "ecs_service_low"
+resource "aws_cloudwatch_metric_alarm" "ecs_service_app2_low" {
+  alarm_name          = "ecs_service_app2_low"
   comparison_operator = "LessThanThreshold"
   evaluation_periods  = 2
   threshold           = 65
@@ -339,7 +358,7 @@ resource "aws_cloudwatch_metric_alarm" "ecs_service_low" {
       period      = 60
       dimensions = {
         ClusterName = module.ecs.cluster_name
-        ServiceName = module.ecs_service.name
+        ServiceName = module.ecs_service_app2.name
       }
     }
   }
@@ -354,10 +373,10 @@ resource "aws_cloudwatch_metric_alarm" "ecs_service_low" {
       period      = 60
       dimensions = {
         ClusterName = module.ecs.cluster_name
-        ServiceName = module.ecs_service.name
+        ServiceName = module.ecs_service_app2.name
       }
     }
   }
 
-  alarm_actions = [module.ecs_service.autoscaling_policies.low.arn]
+  alarm_actions = [module.ecs_service_app2.autoscaling_policies.low.arn]
 }

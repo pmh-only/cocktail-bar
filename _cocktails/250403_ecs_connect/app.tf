@@ -32,8 +32,8 @@ module "ecs_service" {
     CloudWatchLogsFullAccess = "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess"
   }
 
-  cpu    = 128
-  memory = 128
+  cpu    = 256
+  memory = 256
 
   # cpuArchitecture
   # Valid Values: X86_64 | ARM64
@@ -168,6 +168,11 @@ module "ecs_service" {
       image     = "public.ecr.aws/docker/library/alpine:latest"
       command   = ["/bin/sleep", "infinity"]
 
+      dependencies = [{
+        condition     = "HEALTHY"
+        containerName = "myapp"
+      }]
+
       health_check = {
         command  = ["CMD-SHELL", "exit 0"]
         interval = 5
@@ -267,6 +272,26 @@ module "ecs_service" {
       }
     }
   }
+
+  service_connect_configuration = {
+    namespace = aws_service_discovery_http_namespace.example.arn
+    service = {
+      client_alias = {
+        port = 8080
+      }
+      port_name = "myapp"
+    }
+
+    log_configuration = {
+      log_driver = "awslogs"
+      options = {
+        awslogs-group         = "/aws/ecs/${local.ecs_cluster_name}/project-myapp/proxy"
+        awslogs-region        = var.region
+        awslogs-stream-prefix = "ecs"
+        awslogs-create-group  = "true"
+      }
+    }
+  }
 }
 
 resource "aws_cloudwatch_metric_alarm" "ecs_service_high" {
@@ -359,5 +384,5 @@ resource "aws_cloudwatch_metric_alarm" "ecs_service_low" {
     }
   }
 
-  alarm_actions = [module.ecs_service.autoscaling_policies.low.arn]
+  alarm_actions = [module.ecs_service_app2.autoscaling_policies.low.arn]
 }
