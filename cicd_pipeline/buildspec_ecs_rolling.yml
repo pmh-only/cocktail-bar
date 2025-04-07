@@ -20,7 +20,7 @@ phases:
       # - docker run -v /var/run/docker.sock:/var/run/docker.sock public.ecr.aws/aquasecurity/trivy image --exit-code 1 --severity MEDIUM,HIGH,CRITICAL $REPOSITORY_URI:$IMAGE_TAG
       - docker push $REPOSITORY_URI:$IMAGE_TAG
       - >-
-        printf '[{"name": "app", "imageUri": "%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
+        printf '[{"name": "<APP>", "imageUri": "%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
 
 artifacts:
   files:
