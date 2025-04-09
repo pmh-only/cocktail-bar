@@ -1,5 +1,6 @@
 locals {
   codebuild_projects = [
+    "${var.project_name}-build-status",
     "${var.project_name}-build-stress"
   ]
 }
@@ -10,12 +11,12 @@ module "codebuild" {
   source = "cloudposse/codebuild/aws"
   name   = local.codebuild_projects[count.index]
 
-  # build_image        = "aws/codebuild/amazonlinux-aarch64-standard:3.0"
-  build_image        = "aws/codebuild/amazonlinux-x86_64-standard:5.0"
+  build_image = "aws/codebuild/amazonlinux-aarch64-standard:3.0"
+  # build_image        = "aws/codebuild/amazonlinux-x86_64-standard:5.0"
   build_compute_type = "BUILD_GENERAL1_SMALL"
 
-  # build_type = "ARM_CONTAINER"
-  build_type = "LINUX_CONTAINER"
+  build_type = "ARM_CONTAINER"
+  # build_type = "LINUX_CONTAINER"
 
   build_timeout = 60
 

@@ -13,7 +13,7 @@ RUN npm i
 
 FROM public.ecr.aws/docker/library/alpine as runtime
 
-RUN apk add --no-cache nodejs curl
+RUN apk add --no-cache nodejs curl ngrep
 
 ARG user=1000
 ARG group=1000

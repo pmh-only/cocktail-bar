@@ -1,30 +1,28 @@
-module "ecs_service" {
+# replace all name - status
+
+module "status" {
   source = "terraform-aws-modules/ecs/aws//modules/service"
 
   force_new_deployment = true
   force_delete         = true
 
-  name        = "${var.project_name}-myapp"
+  name        = "${var.project_name}-status"
   cluster_arn = module.ecs.cluster_arn
 
   deployment_controller = {
-    type = "ECS" # or CODE_DEPLOY
+    type = "CODE_DEPLOY" # or CODE_DEPLOY
   }
 
+  enable_execute_command = true
+
+  requires_compatibilities = ["EC2"]
   capacity_provider_strategy = {
-    FARGATE = {
-      capacity_provider = "FARGATE"
-      weight            = 20
+    EC2 = {
+      capacity_provider = module.ecs.autoscaling_capacity_providers["EC2"].name
+      weight            = 1
       base              = 1
     }
-    FARGATE_SPOT = {
-      capacity_provider = "FARGATE_SPOT"
-      weight            = 80
-    }
   }
-
-  enable_execute_command   = true
-  requires_compatibilities = ["FARGATE"]
 
   tasks_iam_role_policies = {
     CloudWatchLogsFullAccess = "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess"
@@ -34,17 +32,8 @@ module "ecs_service" {
     CloudWatchLogsFullAccess = "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess"
   }
 
-  # CPU value 	    Memory value
-  # 256 (.25 vCPU) 	512 MiB, 1 GB, 2 GB
-  # 512 (.5 vCPU) 	1 GB, 2 GB, 3 GB, 4 GB
-  # 1024 (1 vCPU) 	2 GB, 3 GB, 4 GB, 5 GB, 6 GB, 7 GB, 8 GB
-  # 2048 (2 vCPU) 	Between 4 GB and 16 GB in 1 GB increments
-  # 4096 (4 vCPU) 	Between 8 GB and 30 GB in 1 GB increments
-  # 8192 (8 vCPU)   Between 16 GB and 60 GB in 4 GB increments
-  # 16384 (16vCPU)  Between 32 GB and 120 GB in 8 GB increments
-
-  cpu    = 256
-  memory = 512
+  cpu    = 128
+  memory = 128
 
   # cpuArchitecture
   # Valid Values: X86_64 | ARM64
@@ -55,7 +44,7 @@ module "ecs_service" {
   }
 
   container_definitions = {
-    myapp = {
+    status = {
       essential = true
       image     = "ghcr.io/pmh-only/the-biggie:latest"
 
@@ -73,107 +62,112 @@ module "ecs_service" {
 
       port_mappings = [
         {
-          name          = "myapp"
+          name          = "status"
           containerPort = 8080
           protocol      = "tcp"
         }
       ]
 
+      # log_configuration = {
+      #   logDriver = "awslogs"
+      #   options = {
+      #     awslogs-group         = "/aws/ecs/${local.ecs_cluster_name}/project-status"
+      #     awslogs-region        = var.region
+      #     awslogs-stream-prefix = "ecs"
+      #     awslogs-create-group  = "true"
+      #   }
+      # }
 
       log_configuration = {
-        logDriver = "awslogs"
-        options = {
-          awslogs-group         = "/aws/ecs/${local.ecs_cluster_name}/project-myapp"
-          awslogs-region        = var.region
-          awslogs-stream-prefix = "ecs"
-          awslogs-create-group  = "true"
-        }
+        logDriver = "awsfirelens"
+        options   = {}
       }
 
-
       # log_configuration = {
-      #   logDriver = "awsfirelens"
-      #   options   = {}
+      #   logDriver = "fluentd"
+      #   options = {
+      #     fluentd-address = "unix:///var/run/fluent.sock",
+      #     tag             = "app.{{.FullID}}"
+      #   }
       # }
 
       create_cloudwatch_log_group = false
       readonly_root_filesystem    = false
     }
 
+    log_router = {
+      essential = true
+      image     = "009160052643.dkr.ecr.${var.region}.amazonaws.com/baseflue:latest"
 
-    # log_router = {
-    #   essential = true
-    #   image     = "009160052643.dkr.ecr.${var.region}.amazonaws.com/baseflue:latest"
+      environment = [
+        {
+          name = "CONFIG",
+          value = base64encode(<<-EOF
+            [SERVICE]
+              Flush           1
+              Daemon          off
+              Log_Level       debug
+              Parsers_File    /parsers.conf
 
-    #   environment = [
-    #     {
-    #       name = "CONFIG",
-    #       value = base64encode(<<-EOF
-    #         [SERVICE]
-    #           Flush           1
-    #           Daemon          off
-    #           Log_Level       debug
-    #           Parsers_File    /parsers.conf
+            # [FILTER]
+            #   Name parser
+            #   Match *
+            #   Key_Name log
+            #   Parser custom
+            #   Reserve_Data On
 
-    #         # [FILTER]
-    #         #   Name parser
-    #         #   Match *
-    #         #   Key_Name log
-    #         #   Parser custom
-    #         #   Reserve_Data On
+            [OUTPUT]
+              Name cloudwatch
+              Match *
+              region ${var.region}
+              log_group_name /aws/ecs/${local.ecs_cluster_name}/status
+              log_stream_name $${TASK_ID}
+              auto_create_group true
+            EOF
+          )
+        },
+        {
+          name = "PARSERS",
+          value = base64encode(<<-EOF
+              [PARSER]
+                Name custom
+                Format regex
+                Regex ^(?<remote_addr>.*) - - \[(?<time>.*)\] "(?<method>.*) (?<path>.*) (?<protocol>.*)" (?<status_code>.*) (?<latency>.*) "-" "(?<user_agent>.*)" "-"$
+                Time_Key time
+                Time_Format %d/%b/%Y:%H:%M:%S %z
+                Time_Keep On
+            EOF
+          )
+        }
+      ]
 
-    #         [OUTPUT]
-    #           Name cloudwatch
-    #           Match *
-    #           region ${var.region}
-    #           log_group_name /aws/ecs/${module.ecs.cluster_name}/myapp
-    #           log_stream_name $${TASK_ID}
-    #           auto_create_group true
-    #         EOF
-    #       )
-    #     },
-    #     {
-    #       name = "PARSERS",
-    #       value = base64encode(<<-EOF
-    #           [PARSER]
-    #             Name custom
-    #             Format regex
-    #             Regex ^(?<remote_addr>.*) - - \[(?<time>.*)\] "(?<method>.*) (?<path>.*) (?<protocol>.*)" (?<status_code>.*) (?<latency>.*) "-" "(?<user_agent>.*)" "-"$
-    #             Time_Key time
-    #             Time_Format %d/%b/%Y:%H:%M:%S %z
-    #             Time_Keep On
-    #         EOF
-    #       )
-    #     }
-    #   ]
+      log_configuration = {
+        logDriver = "awslogs"
+        options = {
+          awslogs-group         = "/aws/ecs/${local.ecs_cluster_name}/status-logroute"
+          awslogs-region        = var.region
+          awslogs-stream-prefix = "ecs"
+          awslogs-create-group  = "true"
+        }
+      }
 
-    #   log_configuration = {
-    #     logDriver = "awslogs"
-    #     options = {
-    #       awslogs-group         = "/aws/ecs/${module.ecs.cluster_name}/myapp-logroute"
-    #       awslogs-region        = var.region
-    #       awslogs-stream-prefix = "ecs"
-    #       awslogs-create-group  = "true"
-    #     }
-    #   }
+      firelens_configuration = {
+        type = "fluentbit"
+        options = {
+          config-file-type  = "file"
+          config-file-value = "/config.conf"
+        }
+      }
 
-    #   firelens_configuration = {
-    #     type = "fluentbit"
-    #     options = {
-    #       config-file-type  = "file"
-    #       config-file-value = "/config.conf"
-    #     }
-    #   }
-
-    #   create_cloudwatch_log_group = false
-    #   readonly_root_filesystem = false
-    # }
+      create_cloudwatch_log_group = false
+      readonly_root_filesystem    = false
+    }
   }
 
   load_balancer = {
     service = {
-      target_group_arn = module.alb.target_groups.myapp.arn
-      container_name   = "myapp"
+      target_group_arn = module.alb.target_groups.status-blue.arn
+      container_name   = "status"
       container_port   = 8080
     }
   }
@@ -197,6 +191,17 @@ module "ecs_service" {
       cidr_blocks = ["0.0.0.0/0"]
     }
   }
+
+  ordered_placement_strategy = [
+    {
+      field = "attribute:ecs.availability-zone"
+      type  = "spread"
+    },
+    {
+      field = "memory"
+      type  = "binpack"
+    }
+  ]
 
   desired_count            = 2
   autoscaling_max_capacity = 64
@@ -248,8 +253,8 @@ module "ecs_service" {
   }
 }
 
-resource "aws_cloudwatch_metric_alarm" "ecs_service_high" {
-  alarm_name          = "ecs_service_high"
+resource "aws_cloudwatch_metric_alarm" "status_high" {
+  alarm_name          = "status_high"
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = 1
   threshold           = 80
@@ -271,7 +276,7 @@ resource "aws_cloudwatch_metric_alarm" "ecs_service_high" {
       period      = 60
       dimensions = {
         ClusterName = module.ecs.cluster_name
-        ServiceName = module.ecs_service.name
+        ServiceName = module.status.name
       }
     }
   }
@@ -286,17 +291,17 @@ resource "aws_cloudwatch_metric_alarm" "ecs_service_high" {
       period      = 60
       dimensions = {
         ClusterName = module.ecs.cluster_name
-        ServiceName = module.ecs_service.name
+        ServiceName = module.status.name
       }
     }
   }
 
-  alarm_actions = [module.ecs_service.autoscaling_policies.high.arn]
+  alarm_actions = [module.status.autoscaling_policies.high.arn]
 }
 
 
-resource "aws_cloudwatch_metric_alarm" "ecs_service_low" {
-  alarm_name          = "ecs_service_low"
+resource "aws_cloudwatch_metric_alarm" "status_low" {
+  alarm_name          = "status_low"
   comparison_operator = "LessThanThreshold"
   evaluation_periods  = 2
   threshold           = 65
@@ -318,7 +323,7 @@ resource "aws_cloudwatch_metric_alarm" "ecs_service_low" {
       period      = 60
       dimensions = {
         ClusterName = module.ecs.cluster_name
-        ServiceName = module.ecs_service.name
+        ServiceName = module.status.name
       }
     }
   }
@@ -333,10 +338,10 @@ resource "aws_cloudwatch_metric_alarm" "ecs_service_low" {
       period      = 60
       dimensions = {
         ClusterName = module.ecs.cluster_name
-        ServiceName = module.ecs_service.name
+        ServiceName = module.status.name
       }
     }
   }
 
-  alarm_actions = [module.ecs_service.autoscaling_policies.low.arn]
+  alarm_actions = [module.status.autoscaling_policies.low.arn]
 }

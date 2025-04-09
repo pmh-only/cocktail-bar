@@ -66,7 +66,11 @@ module "alb" {
                 {
                   target_group_key = "myapp"
                   weight           = 100
-                }
+                },
+                # {
+                #   target_group_key = "myapp-green"
+                #   weight           = 100
+                # }
               ]
             }
           ]
@@ -104,5 +108,28 @@ module "alb" {
         matcher             = "200"
       }
     }
+
+    # myapp-green = {
+    #   name              = "${var.project_name}-myapp-green"
+    #   create_attachment = false
+    #   protocol          = "HTTP"
+    #   port              = 80
+    #   target_type       = "ip"
+
+    #   deregistration_delay              = 60
+    #   load_balancing_cross_zone_enabled = true
+
+    #   health_check = {
+    #     enabled             = true
+    #     interval            = 5
+    #     path                = "/healthcheck"
+    #     port                = "traffic-port"
+    #     healthy_threshold   = 2
+    #     unhealthy_threshold = 2
+    #     timeout             = 2
+    #     protocol            = "HTTP"
+    #     matcher             = "200"
+    #   }
+    # }
   }
 }
