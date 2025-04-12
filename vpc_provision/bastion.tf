@@ -68,6 +68,10 @@ locals {
       usermod -aG docker ssm-user
 
       systemctl enable --now docker
+      while true; do
+        if [ -f /proc/sys/fs/binfmt_misc/qemu-aarch64 ]; then break; fi
+        docker run --privileged --rm tonistiigi/binfmt --install arm64
+      done
     EOF
 
     "al2023" = <<-EOF
@@ -96,6 +100,10 @@ locals {
       usermod -aG docker ssm-user
 
       systemctl enable --now docker
+      while true; do
+        if [ -f /proc/sys/fs/binfmt_misc/qemu-aarch64 ]; then break; fi
+        docker run --privileged --rm tonistiigi/binfmt --install arm64
+      done
     EOF
   }
 }
