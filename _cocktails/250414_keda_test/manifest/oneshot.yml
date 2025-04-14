@@ -1,0 +1,247 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: myapp
+  namespace: dev
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::111122223333:role/my-role
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  myapp
+  namespace: dev
+  labels:
+    app:  myapp
+spec:
+  selector:
+    matchLabels:
+      app: myapp
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app:  myapp
+    spec:
+      terminationGracePeriodSeconds: 60
+      serviceAccountName: myapp
+      restartPolicy: Always
+      nodeSelector:
+        dedicated: app
+      tolerations:
+        - key: dedicated
+          value: app
+          effect: NoExecute
+      # topologySpreadConstraints:
+      #   - maxSkew: 1
+      #     topologyKey: capacity-spread
+      #     whenUnsatisfiable: DoNotSchedule
+      #     labelSelector:
+      #       matchLabels:
+      #         app: myapp
+      containers:
+      - name:  myapp
+        image:  ghcr.io/pmh-only/the-biggie:latest
+        lifecycle:
+          preStop:
+            exec:
+              command: ["sleep", "45"]
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+          limits:
+            cpu: 100m
+            memory: 100Mi
+        livenessProbe:
+          tcpSocket:
+            port: 8080
+          initialDelaySeconds: 5
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /healthcheck
+            port: 8080
+          initialDelaySeconds: 5
+          timeoutSeconds: 2
+          successThreshold: 1
+          failureThreshold: 3
+          periodSeconds: 10
+        # env:
+        # - name: DB_HOST
+        #   valueFrom:
+        #     configMapKeyRef:
+        #       name: myapp
+        #       key: DB_HOST
+        # - name: DB_PASS
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: myapp
+        #       key: DB_PASS
+        ports:
+        - containerPort: 8080
+          name:  myapp
+---
+# kind: ConfigMap
+# apiVersion: v1
+# metadata:
+#   name: myapp
+#   namespace: dev
+# data:
+#   key: default
+# ---
+# apiVersion: v1
+# kind: Secret
+# metadata:
+#   name: myapp
+#   namespace: dev
+# type: Opaque
+# stringData:
+#   DB_PASS: hello
+# ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: myapp
+  namespace: dev
+spec:
+  selector:
+    app: myapp
+  type: ClusterIP
+  ports:
+  - name: myapp
+    protocol: TCP
+    port: 8080
+    targetPort: 8080
+---
+# apiVersion: autoscaling/v2
+# kind: HorizontalPodAutoscaler 
+# metadata:
+#   name: myapp
+#   namespace: dev
+# spec:
+#   scaleTargetRef:
+#     apiVersion: apps/v1
+#     kind: Deployment
+#     name: myapp
+#   minReplicas: 2
+#   maxReplicas: 64
+#   behavior:
+#     scaleDown:
+#       stabilizationWindowSeconds: 60
+#       policies:
+#       - type: Percent
+#         value: 100
+#         periodSeconds: 15
+#     scaleUp:
+#       stabilizationWindowSeconds: 0
+#       policies:
+#       - type: Percent
+#         value: 100
+#         periodSeconds: 15
+#       - type: Pods
+#         value: 4
+#         periodSeconds: 15
+#       selectPolicy: Max
+#   metrics:
+#   - type: Resource
+#     resource:
+#       name: cpu
+#       target:
+#         type: Utilization
+#         averageUtilization: 75
+#   - type: Resource
+#     resource:
+#       name: memory
+#       target:
+#         type: Utilization
+#         averageUtilization: 75
+---
+apiVersion: projectcalico.org/v3
+kind: NetworkPolicy
+metadata:
+  name: myapp
+  namespace: dev
+spec:
+  selector: app == 'myapp'
+  ingress:
+    # Allow traffic from specific container
+    - action: Allow
+      source:
+        selector: app == 'myapp'
+        namespaceSelector: projectcalico.org/name == 'dev'
+
+    # Make it controlled by security group and block inner-cluster traffic
+    - action: Allow
+      source:
+        nets: ['0.0.0.0/0']
+        notNets: # Inner-cluster ips
+          - 10.0.10.0/24
+          - 10.0.11.0/24
+          - 10.0.12.0/24
+---
+# apiVersion: vpcresources.k8s.aws/v1beta1
+# kind: SecurityGroupPolicy
+# metadata:
+#   name: myapp
+#   namespace: dev
+# spec:
+#   podSelector:
+#     matchLabels:
+#       app: myapp
+#   securityGroups:
+#     groupIds:
+#       - sg-0ea3daad2e55a0147
+---
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: myapp
+  namespace: dev
+spec:
+  podIdentity:
+    provider: aws
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: myapp
+  namespace: dev
+spec:
+  scaleTargetRef:
+    name: myapp
+  pollingInterval: 1
+  cooldownPeriod: 60
+  initialCooldownPeriod: 0
+  minReplicaCount: 2
+  maxReplicaCount: 64
+  triggers:
+    # - type: prometheus
+    #   metadata:
+    #     serverAddress: http://kube-prometheus-stack-prometheus.kube-prometheus-stack.svc.cluster.local:9090
+    #     query: sum(sum by(pod) (node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate{namespace="dev"}) / on(pod) sum by(pod) (kube_pod_container_resource_limits{resource="cpu"}) * 100)
+    #     threshold: '75'
+  - type: aws-sqs-queue
+    authenticationRef:
+      name: myapp
+    metadata:
+      queueURL: https://sqs.ap-northeast-2.amazonaws.com/648911607072/test
+      queueLength: '2'
+      awsRegion: "ap-northeast-2"
+  advanced:
+    horizontalPodAutoscalerConfig:
+      name: myapp
+      behavior:
+        scaleDown:
+          stabilizationWindowSeconds: 60
+          policies:
+          - type: Percent
+            value: 100
+            periodSeconds: 15

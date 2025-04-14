@@ -1,0 +1,54 @@
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: overprovision
+value: -1
+globalDefault: false
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: overprovision
+  namespace: kube-system
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: overprovision
+  template:
+    metadata:
+      labels:
+        app: overprovision
+    spec:
+      priorityClassName: overprovision
+      nodeSelector:
+        dedicated: app
+      tolerations:
+        - key: dedicated
+          value: app
+          effect: NoExecute
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - topologyKey: kubernetes.io/hostname
+            labelSelector:
+              matchLabels:
+                app: overprovision
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app: overprovision
+      containers:
+      - name: overprovision
+        image: alpine
+        command:
+          - sh
+          - -c
+          - 'while true; do sleep 3600; done'
+        resources:
+          limits:
+            memory: "10Mi"
+            cpu: "10m"
