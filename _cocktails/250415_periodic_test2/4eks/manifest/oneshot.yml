@@ -1,0 +1,216 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: order-processor
+  namespace: order
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::648911607072:role/order-role-processor
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  order-processor
+  namespace: order
+  labels:
+    app:  order-processor
+spec:
+  selector:
+    matchLabels:
+      app: order-processor
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app:  order-processor
+    spec:
+      terminationGracePeriodSeconds: 60
+      serviceAccountName: order-processor
+      restartPolicy: Always
+      # topologySpreadConstraints:
+      #   - maxSkew: 1
+      #     topologyKey: capacity-spread
+      #     whenUnsatisfiable: DoNotSchedule
+      #     labelSelector:
+      #       matchLabels:
+      #         app: order-processor
+      containers:
+      - name:  order-processor
+        image: 648911607072.dkr.ecr.ap-northeast-2.amazonaws.com/order:latest
+        lifecycle:
+          preStop:
+            exec:
+              command: ["sleep", "45"]
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+          limits:
+            cpu: 100m
+            memory: 100Mi
+        env:
+        - name: QUEUE_URL
+          value: https://sqs.ap-northeast-2.amazonaws.com/648911607072/order-queue
+        - name: REGION_NAME
+          value: ap-northeast-2
+
+        # - name: DB_PASS
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: order-processor
+        #       key: DB_PASS
+---
+# kind: ConfigMap
+# apiVersion: v1
+# metadata:
+#   name: order-processor
+#   namespace: order
+# data:
+#   key: default
+# ---
+# apiVersion: v1
+# kind: Secret
+# metadata:
+#   name: order-processor
+#   namespace: order
+# type: Opaque
+# stringData:
+#   DB_PASS: hello
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: order-processor
+#   namespace: order
+# spec:
+#   selector:
+#     app: order-processor
+#   type: ClusterIP
+#   ports:
+#   - name: order-processor
+#     protocol: TCP
+#     port: 8080
+#     targetPort: 8080
+---
+# apiVersion: autoscaling/v2
+# kind: HorizontalPodAutoscaler 
+# metadata:
+#   name: order-processor
+#   namespace: order
+# spec:
+#   scaleTargetRef:
+#     apiVersion: apps/v1
+#     kind: Deployment
+#     name: order-processor
+#   minReplicas: 2
+#   maxReplicas: 64
+#   behavior:
+#     scaleDown:
+#       stabilizationWindowSeconds: 60
+#       policies:
+#       - type: Percent
+#         value: 100
+#         periodSeconds: 15
+#     scaleUp:
+#       stabilizationWindowSeconds: 0
+#       policies:
+#       - type: Percent
+#         value: 100
+#         periodSeconds: 15
+#       - type: Pods
+#         value: 4
+#         periodSeconds: 15
+#       selectPolicy: Max
+#   metrics:
+#   - type: Resource
+#     resource:
+#       name: cpu
+#       target:
+#         type: Utilization
+#         averageUtilization: 75
+#   - type: Resource
+#     resource:
+#       name: memory
+#       target:
+#         type: Utilization
+#         averageUtilization: 75
+# ---
+# apiVersion: projectcalico.org/v3
+# kind: NetworkPolicy
+# metadata:
+#   name: order-processor
+#   namespace: order
+# spec:
+#   selector: app == 'order-processor'
+#   ingress:
+#     # Allow traffic from specific container
+#     - action: Allow
+#       source:
+#         selector: app == 'order-processor'
+#         namespaceSelector: projectcalico.org/name == 'order'
+
+#     # Make it controlled by security group and block inner-cluster traffic
+#     - action: Allow
+#       source:
+#         nets: ['0.0.0.0/0']
+#         notNets: # Inner-cluster ips
+#           - 10.0.10.0/24
+#           - 10.0.11.0/24
+#           - 10.0.12.0/24
+---
+# apiVersion: vpcresources.k8s.aws/v1beta1
+# kind: SecurityGroupPolicy
+# metadata:
+#   name: order-processor
+#   namespace: order
+# spec:
+#   podSelector:
+#     matchLabels:
+#       app: order-processor
+#   securityGroups:
+#     groupIds:
+#       - sg-0ea3daad2e55a0147
+---
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: order-processor
+  namespace: order
+spec:
+  podIdentity:
+    provider: aws
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: order-processor
+  namespace: order
+spec:
+  scaleTargetRef:
+    name: order-processor
+  pollingInterval: 1
+  cooldownPeriod: 60
+  initialCooldownPeriod: 0
+  minReplicaCount: 1
+  maxReplicaCount: 64
+  triggers:
+  - type: aws-sqs-queue
+    authenticationRef:
+      name: order-processor
+    metadata:
+      queueURL: https://sqs.ap-northeast-2.amazonaws.com/648911607072/order-queue
+      queueLength: '5'
+      awsRegion: "ap-northeast-2"
+  advanced:
+    horizontalPodAutoscalerConfig:
+      name: order-processor
+      behavior:
+        scaleDown:
+          stabilizationWindowSeconds: 0
+          policies:
+          - type: Percent
+            value: 100
+            periodSeconds: 15
