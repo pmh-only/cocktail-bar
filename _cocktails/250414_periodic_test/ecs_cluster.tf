@@ -26,7 +26,7 @@ module "ecs" {
     }
   ]
 
-  
+
   cluster_service_connect_defaults = {
     namespace = aws_service_discovery_http_namespace.example.arn
   }

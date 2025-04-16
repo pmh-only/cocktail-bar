@@ -7,7 +7,7 @@ module "gateway" {
   force_delete         = true
 
   name        = "gateway-svc"
-  family = "gateway-td"
+  family      = "gateway-td"
   cluster_arn = module.ecs.cluster_arn
 
   deployment_controller = {

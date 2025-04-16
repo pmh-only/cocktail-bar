@@ -7,7 +7,7 @@ module "product" {
   force_delete         = true
 
   name        = "product-svc"
-  family = "product-td"
+  family      = "product-td"
   cluster_arn = module.ecs.cluster_arn
 
   deployment_controller = {
@@ -26,8 +26,8 @@ module "product" {
   }
 
   tasks_iam_role_policies = {
-    CloudWatchLogsFullAccess = "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess"
-    AmazonDynamoDBFullAccess = "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess"
+    CloudWatchLogsFullAccess         = "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess"
+    AmazonDynamoDBFullAccess         = "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess"
     AWSKeyManagementServicePowerUser = "arn:aws:iam::aws:policy/AWSKeyManagementServicePowerUser"
   }
 
@@ -281,7 +281,7 @@ module "product" {
     service = {
       client_alias = {
         dns_name = "product"
-        port = 80
+        port     = 80
       }
       port_name = "product"
     }

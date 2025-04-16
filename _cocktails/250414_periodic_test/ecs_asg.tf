@@ -1,5 +1,5 @@
 locals {
-  ecs_ami_arch = "x86_64"        # arm64 or x86_64
+  ecs_ami_arch = "x86_64" # arm64 or x86_64
   ecs_ami_os   = "al2023" # bottlerocket or al2023
 }
 

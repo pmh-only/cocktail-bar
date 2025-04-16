@@ -26,6 +26,14 @@ module "ecs_service" {
   enable_execute_command   = true
   requires_compatibilities = ["FARGATE"]
 
+  deployment_maximum_percent         = 125
+  deployment_minimum_healthy_percent = 75
+
+  deployment_circuit_breaker = {
+    enable   = true
+    rollback = true
+  }
+
   tasks_iam_role_policies = {
     CloudWatchLogsFullAccess = "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess"
   }

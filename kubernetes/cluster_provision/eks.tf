@@ -61,14 +61,6 @@ module "eks" {
   }
 
   cluster_security_group_additional_rules = {
-    bastion = {
-      protocol                 = "tcp"
-      from_port                = "443"
-      to_port                  = "443"
-      source_security_group_id = aws_security_group.bastion.id
-      type                     = "ingress"
-    }
-
     vpc = {
       protocol    = "tcp"
       from_port   = "443"

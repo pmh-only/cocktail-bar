@@ -27,7 +27,7 @@ locals {
   bastion_instance_type = "t3.micro"
 
   ami_architecture = "x86_64" # Possible values: "arm64", "x86_64"
-  ami_os           = "al2" # Possible values: "al2023", "al2"
+  ami_os           = "al2"    # Possible values: "al2023", "al2"
 }
 
 locals {

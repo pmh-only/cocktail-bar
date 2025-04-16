@@ -15,6 +15,14 @@ module "ecs_service" {
 
   enable_execute_command = true
 
+  deployment_maximum_percent         = 125
+  deployment_minimum_healthy_percent = 75
+
+  deployment_circuit_breaker = {
+    enable   = true
+    rollback = true
+  }
+
   requires_compatibilities = ["EC2"]
   capacity_provider_strategy = {
     EC2 = {
@@ -198,8 +206,8 @@ module "ecs_service" {
       type  = "spread"
     },
     {
-      field = "memory"
-      type  = "binpack"
+      field = "instanceId"
+      type  = "spread"
     }
   ]
 
