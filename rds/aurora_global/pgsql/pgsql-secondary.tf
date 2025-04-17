@@ -51,8 +51,7 @@ module "db" {
   monitoring_interval                    = 30
   cloudwatch_log_group_retention_in_days = 7
   enabled_cloudwatch_logs_exports = [
-    "postgresql",
-    "upgrade"
+    "postgresql"
   ]
 
   create_db_cluster_parameter_group           = true

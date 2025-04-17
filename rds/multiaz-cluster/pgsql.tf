@@ -43,7 +43,6 @@ module "db" {
   monitoring_interval                    = 30
   cloudwatch_log_group_retention_in_days = 7
   enabled_cloudwatch_logs_exports = [
-    "upgrade",
     "postgresql"
   ]
 

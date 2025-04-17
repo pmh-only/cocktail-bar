@@ -1,7 +1,12 @@
-https://aws.amazon.com/blogs/big-data/federate-amazon-quicksight-access-with-open-source-identity-provider-keycloak/
+admin console: https://d32lzfs0qoxfh3.cloudfront.net/admin/master/console/
 
-* Full Scope Disable
+aws saml-metadata: https://signin.aws.amazon.com/static/saml-metadata.xml
+keycloak client saml: https://<HOST>/realms/master/protocol/saml/descriptor
+
 * arn:aws:iam::ACCOUNT_ID:role/ROLE_NAME,arn:aws:iam::ACCOUNT_ID:saml-provider/PROVIDER_NAME
+
+init path: /realms/master/protocol/saml/clients/aws
+IdP name: aws
 
 Name: Session Role
 Mapper type: Role list
@@ -22,3 +27,23 @@ Property: username
 Friendly Name: Session Name
 SAML Attribute Name: https://aws.amazon.com/SAML/Attributes/RoleSessionName
 SAML Attribute NameFormat: Basic
+
+Full scope allowed: false
+
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "Federated": "arn:aws:iam::648911607072:saml-provider/keycloak"
+            },
+            "Action": "sts:AssumeRoleWithSAML",
+            "Condition": {
+                "StringEquals": {
+                    "SAML:aud": "https://signin.aws.amazon.com/saml"
+                }
+            }
+        }
+    ]
+}

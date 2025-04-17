@@ -1,8 +1,8 @@
 sudo yum install -y yum-utils && \
   sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo && \
-  sudo yum -y install terraform && \
-  git clone https://github.com/pmh-only/cocktail-bar /tmp/cocktail-bar
+  sudo yum -y install terraform
 
+git clone https://github.com/pmh-only/cocktail-bar /tmp/cocktail-bar
 mkdir /home/cloudshell-user/cocktail-bar/ 
 for f in /tmp/cocktail-bar/*; do
   echo $f

@@ -21,7 +21,7 @@ module "elasticache" {
   security_group_rules = {
     ingress_vpc = {
       from_port   = 6378
-      to_port = 6378
+      to_port     = 6378
       description = "VPC traffic"
       cidr_ipv4   = "10.0.0.0/8"
     }

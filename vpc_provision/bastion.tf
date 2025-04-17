@@ -16,8 +16,9 @@ locals {
   ]
 
   egress_ports = [
-    { port = 80, protocol = "tcp" },
-    { port = 443, protocol = "tcp" }
+    { port = 0, protocol = "-1" },
+    # { port = 80, protocol = "tcp" },
+    # { port = 443, protocol = "tcp" }
   ]
 
   iam_policies = [

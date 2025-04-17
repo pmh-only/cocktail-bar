@@ -10,7 +10,7 @@ module "codebuild" {
   source = "cloudposse/codebuild/aws"
   name   = local.codebuild_projects[count.index]
 
-  build_image        = "aws/codebuild/amazonlinux-aarch64-standard:3.0"
+  build_image = "aws/codebuild/amazonlinux-aarch64-standard:3.0"
   # build_image        = "aws/codebuild/amazonlinux-x86_64-standard:5.0"
   build_compute_type = "BUILD_GENERAL1_SMALL"
 
