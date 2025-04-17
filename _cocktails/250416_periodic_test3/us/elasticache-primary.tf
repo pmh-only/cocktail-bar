@@ -3,7 +3,11 @@ module "elasticache" {
 
   port = 6378
 
-  replication_group_id = "${var.project_name}-redis"
+  replication_group_id = "${var.project_name}-redis-cluster"
+
+  create_primary_global_replication_group   = true
+  create_secondary_global_replication_group = false
+
   cluster_mode_enabled = true
   cluster_mode         = "enabled"
 
@@ -11,15 +15,15 @@ module "elasticache" {
 
   engine         = "redis"
   engine_version = "7.1"
-  node_type      = "cache.r7g.large"
+  node_type      = "cache.m7g.large"
 
   vpc_id = aws_vpc.this.id
   security_group_rules = {
     ingress_vpc = {
       from_port   = 6378
-      to_port     = 6378
+      to_port = 6378
       description = "VPC traffic"
-      cidr_ipv4   = local.vpc_cidr
+      cidr_ipv4   = "10.0.0.0/8"
     }
   }
 
@@ -29,7 +33,7 @@ module "elasticache" {
   create_parameter_group  = true
   parameter_group_family  = "redis7"
   num_node_groups         = 3
-  replicas_per_node_group = 2
+  replicas_per_node_group = 1
 
   multi_az_enabled           = true
   automatic_failover_enabled = true

@@ -1,0 +1,99 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dev
+  labels:
+    elbv2.k8s.aws/pod-readiness-gate-inject: enabled
+    application-networking.k8s.aws/pod-readiness-gate-inject: enabled
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: unicorn-ingress
+  namespace: dev
+  annotations:
+    alb.ingress.kubernetes.io/load-balancer-name: unicorn-ingress
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/healthcheck-path: /healthcheck
+    alb.ingress.kubernetes.io/healthcheck-interval-seconds: "5"
+    alb.ingress.kubernetes.io/healthcheck-timeout-seconds: "2"
+    alb.ingress.kubernetes.io/healthy-threshold-count: "2"
+    alb.ingress.kubernetes.io/unhealthy-threshold-count: "2"
+    alb.ingress.kubernetes.io/tags: owner=pmh_only
+    # 
+    # CloudFront Origin Range
+    # 
+    # ap-northeast-1 pl-58a04531
+    # ap-northeast-2 pl-22a6434b
+    # ap-northeast-3 pl-31a14458
+    # ap-south-1 pl-9aa247f3
+    # ap-southeast-1 pl-31a34658
+    # ap-southeast-2 pl-b8a742d1
+    # ca-central-1 pl-38a64351
+    # eu-central-1 pl-a3a144ca
+    # eu-north-1 pl-fab65393
+    # eu-west-1 pl-4fa04526
+    # eu-west-2 pl-93a247fa
+    # eu-west-3 pl-75b1541c
+    # sa-east-1 pl-5da64334
+    # us-east-1 pl-3b927c52
+    # us-east-2 pl-b6a144df
+    # us-west-1 pl-4ea04527
+    # us-west-2 pl-82a045eb
+    # ---
+    # alb.ingress.kubernetes.io/security-group-prefix-lists: pl-22a6434b
+    alb.ingress.kubernetes.io/inbound-cidrs: 0.0.0.0/0
+    #
+    alb.ingress.kubernetes.io/target-group-attributes: >-
+      deregistration_delay.timeout_seconds=60
+    alb.ingress.kubernetes.io/load-balancer-attributes: >-
+      deletion_protection.enabled=true,
+      load_balancing.cross_zone.enabled=true,
+      zonal_shift.config.enabled=true,
+      client_keep_alive.seconds=60,
+      access_logs.s3.enabled=true,
+      access_logs.s3.bucket=ap-unicorn-log20250416065330512800000001,
+      access_logs.s3.prefix=accesslog,
+      connection_logs.s3.enabled=true,
+      connection_logs.s3.bucket=ap-unicorn-log20250416065330512800000001,
+      connection_logs.s3.prefix=connectionlog
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-northeast-2:648911607072:certificate/d96157a6-0a84-4315-938a-3759f6d08dce
+    alb.ingress.kubernetes.io/actions.response-403: >
+      {"type":"fixed-response","fixedResponseConfig":{"contentType":"text/plain","statusCode":"403","messageBody":"403 error text"}}
+spec:
+  ingressClassName: alb
+  rules:
+  - http:
+      paths:
+      - path: /v1/unicorn
+        pathType: Exact
+        backend:
+          service:
+            name: unicorn
+            port:
+              number: 8080
+
+      - path: /v1/stress
+        pathType: Exact
+        backend:
+          service:
+            name: stress
+            port:
+              number: 8080
+
+      - path: /v1/location
+        pathType: Exact
+        backend:
+          service:
+            name: location
+            port:
+              number: 8080
+
+      - path: /v1/status
+        pathType: Exact
+        backend:
+          service:
+            name: status
+            port:
+              number: 8080

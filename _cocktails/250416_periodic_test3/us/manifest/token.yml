@@ -1,0 +1,200 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  token
+  namespace: dev
+  labels:
+    app:  token
+spec:
+  selector:
+    matchLabels:
+      app: token
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app:  token
+    spec:
+      terminationGracePeriodSeconds: 60
+      restartPolicy: Always
+      nodeSelector:
+        dedicated: app
+      tolerations:
+        - key: dedicated
+          value: app
+          effect: NoExecute
+      # topologySpreadConstraints:
+      #   - maxSkew: 1
+      #     topologyKey: capacity-spread
+      #     whenUnsatisfiable: DoNotSchedule
+      #     labelSelector:
+      #       matchLabels:
+      #         app: token
+      containers:
+      - name:  webapp
+        image:  648911607072.dkr.ecr.us-east-1.amazonaws.com/token:v1
+        args:
+          - -redisEndpoint
+          - 'cache.failover.local:6378'
+        lifecycle:
+          preStop:
+            exec:
+              command: ["sleep", "45"]
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+          limits:
+            cpu: 100m
+            memory: 100Mi
+        livenessProbe:
+          tcpSocket:
+            port: 8080
+          initialDelaySeconds: 5
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /healthcheck
+            port: 8080
+          initialDelaySeconds: 5
+          timeoutSeconds: 2
+          successThreshold: 1
+          failureThreshold: 3
+          periodSeconds: 10
+        # env:
+        # - name: DB_HOST
+        #   valueFrom:
+        #     configMapKeyRef:
+        #       name: token
+        #       key: DB_HOST
+        # - name: DB_PASS
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: token
+        #       key: DB_PASS
+        ports:
+        - containerPort: 8080
+          name:  token
+---
+# kind: ConfigMap
+# apiVersion: v1
+# metadata:
+#   name: token
+#   namespace: dev
+# data:
+#   key: default
+# ---
+# apiVersion: v1
+# kind: Secret
+# metadata:
+#   name: token
+#   namespace: dev
+# type: Opaque
+# stringData:
+#   DB_PASS: hello
+# ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: token
+  namespace: dev
+spec:
+  selector:
+    app: token
+  type: ClusterIP
+  ports:
+  - name: token
+    protocol: TCP
+    port: 8080
+    targetPort: 8080
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler 
+metadata:
+  name: token
+  namespace: dev
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: token
+  minReplicas: 2
+  maxReplicas: 64
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 15
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 15
+      - type: Pods
+        value: 4
+        periodSeconds: 15
+      selectPolicy: Max
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 75
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 75
+---
+apiVersion: projectcalico.org/v3
+kind: NetworkPolicy
+metadata:
+  name: token
+  namespace: dev
+spec:
+  selector: app == 'token'
+  ingress:
+    # Allow traffic from specific container
+    - action: Allow
+      source:
+        selector: app == 'location'
+        namespaceSelector: projectcalico.org/name == 'dev'
+        
+    - action: Allow
+      source:
+        selector: app == 'unicorn'
+        namespaceSelector: projectcalico.org/name == 'dev'
+
+    # Make it controlled by security group and block inner-cluster traffic
+    - action: Allow
+      source:
+        nets: ['0.0.0.0/0']
+        notNets: # Inner-cluster ips
+          - 10.101.3.0/24
+          - 10.101.4.0/24
+          - 10.101.5.0/24
+---
+# apiVersion: vpcresources.k8s.aws/v1beta1
+# kind: SecurityGroupPolicy
+# metadata:
+#   name: token
+#   namespace: dev
+# spec:
+#   podSelector:
+#     matchLabels:
+#       app: token
+#   securityGroups:
+#     groupIds:
+#       - sg-0ea3daad2e55a0147
