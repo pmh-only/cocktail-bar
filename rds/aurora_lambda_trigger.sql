@@ -1,3 +1,5 @@
+-- set cluster parameter: aws_default_lambda_role = arn:aws:iam::648911607072:role/day2-role-rds
+
 DROP PROCEDURE IF EXISTS trigger_lambda;
 DELIMITER ;;
 CREATE PROCEDURE trigger_lambda (
