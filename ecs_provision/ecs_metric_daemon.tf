@@ -43,6 +43,13 @@ module "ecs_fluentbit" {
       essential = true
       image     = "ghcr.io/pmh-only/metric-emitter:ecs_daemon"
 
+      health_check = {
+        command  = ["CMD-SHELL", "exit 0"]
+        interval = 5
+        timeout  = 2
+        retries  = 1
+      }
+
       log_configuration = {
         logDriver = "awslogs"
         options = {

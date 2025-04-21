@@ -68,7 +68,12 @@ module "ecs_service" {
       image     = "ghcr.io/pmh-only/the-biggie:latest"
 
       health_check = {
-        command  = ["CMD-SHELL", "curl -f http://localhost:8080/healthcheck || exit 1"]
+        command = [
+          "CMD-SHELL",
+          <<-EOF
+            curl -f http://localhost:8080/healthcheck || exit 1
+          EOF
+        ]
         interval = 5
         timeout  = 2
         retries  = 1
@@ -112,6 +117,13 @@ module "ecs_service" {
     # log_router = {
     #   essential = true
     #   image     = "009160052643.dkr.ecr.${var.region}.amazonaws.com/baseflue:latest"
+
+    #   health_check = {
+    #     command  = ["CMD-SHELL", "exit 0"]
+    #     interval = 5
+    #     timeout  = 2
+    #     retries  = 1
+    #   }
 
     #   environment = [
     #     {

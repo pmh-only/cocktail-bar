@@ -42,6 +42,13 @@ module "ecs_fluentbit" {
       essential = true
       image     = "009160052643.dkr.ecr.${var.region}.amazonaws.com/baseflue:latest"
 
+      health_check = {
+        command  = ["CMD-SHELL", "exit 0"]
+        interval = 5
+        timeout  = 2
+        retries  = 1
+      }
+
       environment = [
         {
           name = "CONFIG",
