@@ -1,42 +1,38 @@
-resource "aws_security_group" "rds" {
-  name   = "${var.project_name}-sg-rds"
-  vpc_id = aws_vpc.this.id
-
-  ingress {
-    protocol    = "tcp"
-    from_port   = 3307
-    to_port     = 3307
-    cidr_blocks = [local.vpc_cidr]
-  }
-
-  lifecycle {
-    ignore_changes = [
-      ingress,
-      egress
-    ]
-  }
-}
-
 module "db" {
-  source = "terraform-aws-modules/rds/aws"
+  source = "terraform-aws-modules/rds-aurora/aws"
 
-  identifier     = "${var.project_name}-rds"
-  db_name        = "dev"
-  engine         = "mysql"
-  engine_version = "8.0"
+  name           = "${var.project_name}-rds"
+  database_name  = "dev"
+  engine         = "aurora-mysql"
+  engine_version = "8.0.mysql_aurora.3.05.2"
   instance_class = "db.r6g.large"
+  instances = {
+    0 = {
+      availability_zone = local.vpc_azs[0]
+      instance_class    = "db.r6g.large"
+    },
+    1 = {
+      availability_zone = local.vpc_azs[1]
+      instance_class    = "db.r6g.large"
+    }
+  }
 
   port = 3307
 
-  vpc_security_group_ids = [aws_security_group.rds.id]
-  db_subnet_group_name   = local.vpc_rds_subnet_group_names[0]
-  create_db_subnet_group = false
-  multi_az               = true
+  vpc_id               = local.vpc_id
+  db_subnet_group_name = local.vpc_rds_subnet_group_names[0]
+  security_group_rules = {
+    vpc_ingress = {
+      cidr_blocks = [local.vpc_cidr]
+    }
+  }
 
-  manage_master_user_password = true
+  manage_master_user_password                            = true
+  manage_master_user_password_rotation                   = true
+  master_user_password_rotation_automatically_after_days = 1
 
-  username = "myadmin"
-  # password = "admin123!!"
+  master_username = "myadmin"
+  # master_password             = "admin123!!"
 
   deletion_protection                 = true
   skip_final_snapshot                 = true
@@ -44,6 +40,10 @@ module "db" {
   kms_key_id                          = aws_kms_key.primary.arn
   iam_database_authentication_enabled = true
 
+  cluster_performance_insights_enabled          = true
+  cluster_performance_insights_retention_period = 7
+
+  backtrack_window                       = 259200
   backup_retention_period                = 7
   performance_insights_enabled           = true
   performance_insights_retention_period  = 7
@@ -57,15 +57,13 @@ module "db" {
     "slowquery"
   ]
 
-  storage_type          = "io2"
-  iops                  = 3000
-  allocated_storage     = 100
-  max_allocated_storage = 1000
-  dedicated_log_volume  = true
+  enable_local_write_forwarding = true
 
-  create_db_parameter_group = true
-  family                    = "mysql8.0"
-  major_engine_version      = "8.0"
+  create_db_cluster_parameter_group           = true
+  create_db_parameter_group                   = true
+  db_cluster_parameter_group_family           = "aurora-mysql8.0"
+  db_parameter_group_family                   = "aurora-mysql8.0"
+  db_cluster_db_instance_parameter_group_name = "aurora-mysql8.0"
 }
 
 data "aws_iam_policy_document" "rds" {
@@ -113,7 +111,7 @@ resource "aws_kms_alias" "primary" {
   target_key_id = aws_kms_key.primary.key_id
 }
 
-resource "aws_db_snapshot" "test" {
-  db_instance_identifier = module.db.db_instance_identifier
-  db_snapshot_identifier = "${module.db.db_instance_identifier}-init"
+resource "aws_db_cluster_snapshot" "init" {
+  db_cluster_identifier          = module.db.cluster_id
+  db_cluster_snapshot_identifier = "${module.db.cluster_id}-init"
 }

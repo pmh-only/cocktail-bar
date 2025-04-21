@@ -3,11 +3,11 @@ module "db" {
 
   name                      = "${var.project_name}-rds"
   database_name             = "dev"
-  engine                    = "postgres"
-  engine_version            = "16"
+  engine                    = "mysql"
+  engine_version            = "8.0"
   db_cluster_instance_class = "db.r6g.large"
 
-  port = 5433
+  port = 3307
 
   vpc_id = local.vpc_id
   availability_zones = [
@@ -23,8 +23,11 @@ module "db" {
     }
   }
 
-  manage_master_user_password = true
-  master_username             = "myadmin"
+  manage_master_user_password                            = true
+  manage_master_user_password_rotation                   = true
+  master_user_password_rotation_automatically_after_days = 1
+
+  master_username = "myadmin"
   # master_password             = "admin123!!"
 
   deletion_protection                 = true
@@ -43,20 +46,23 @@ module "db" {
   monitoring_interval                    = 30
   cloudwatch_log_group_retention_in_days = 7
   enabled_cloudwatch_logs_exports = [
-    "postgresql"
+    "audit",
+    "error",
+    "general",
+    "slowquery"
   ]
 
   storage_type      = "io2"
   iops              = 3000
-  allocated_storage = 10
+  allocated_storage = 100
 
-  enable_local_write_forwarding = true0
+  enable_local_write_forwarding = true
 
   create_db_cluster_parameter_group           = true
   create_db_parameter_group                   = true
-  db_cluster_parameter_group_family           = "postgres16"
-  db_parameter_group_family                   = "postgres16"
-  db_cluster_db_instance_parameter_group_name = "postgres16"
+  db_cluster_parameter_group_family           = "mysql8.0"
+  db_parameter_group_family                   = "mysql8.0"
+  db_cluster_db_instance_parameter_group_name = "mysql8.0"
 }
 
 data "aws_iam_policy_document" "rds" {

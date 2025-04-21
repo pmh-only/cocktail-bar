@@ -83,8 +83,8 @@ locals {
       separate_rtb_per_az = true
 
       create_rds_subnet_group         = true
-      create_elasticache_subnet_group = false
-      create_redshift_subnet_group    = false
+      create_elasticache_subnet_group = true
+      create_redshift_subnet_group    = true
 
       create_vpc_endpoint = true
       create_client_vpn   = false
