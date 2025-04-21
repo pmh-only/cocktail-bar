@@ -1,43 +1,51 @@
--- set cluster parameter: aws_default_lambda_role = arn:aws:iam::648911607072:role/day2-role-rds
+-- Stored procedure (Aurora v2)
 
-DROP PROCEDURE IF EXISTS trigger_lambda;
-DELIMITER ;;
-CREATE PROCEDURE trigger_lambda (
-  IN id VARCHAR(255),
-  IN customerID VARCHAR(255),
-  IN customerBirthday VARCHAR(255),
-  IN customerGender VARCHAR(255),
-  IN productID VARCHAR(255),
-  IN productCategory VARCHAR(255),
-  IN productPrice VARCHAR(255)
-  ) LANGUAGE SQL 
-BEGIN
-  CALL mysql.lambda_async('arn:aws:lambda:us-east-1:648911607072:function:day2-log-transfer',
-    CONCAT('{ "id" : "', id, 
-          '", "customerID" : "', customerID,
-          '", "customerBirthday" : "', customerBirthday,
-          '", "customerGender" : "', customerGender,
-          '", "productID" : "', productID, 
-          '", "productCategory" : "', productCategory, 
-          '", "productPrice" : "', productPrice,
-          '"}')
-    );
-END
-;;
-DELIMITER ;
-
-DROP TRIGGER IF EXISTS trigger_lambda;
- 
-DELIMITER ;;
-CREATE TRIGGER trigger_lambda 
+DROP TRIGGER IF EXISTS on_order_insert;
+DELIMITER $$
+CREATE TRIGGER on_order_insert
   AFTER INSERT ON `order`
   FOR EACH ROW
 BEGIN
-  SELECT NEW.id, NEW.customerID, New.customerBirthday, New.customerGender, New.productID, New.productCategory, New.productPrice
-  INTO @id, @customerID, @customerBirthday, @customerGender, @productID, @productCategory, @productPrice;
-  CALL trigger_lambda(@id, @customerID, @customerBirthday, @customerGender, @productID, @productCategory, @productPrice);
-END
-;;
+  CALL mysql.lambda_async(
+    'arn:aws:lambda:ap-northeast-2:648911607072:function:day2-order-transfer',
+    JSON_OBJECT(
+      'id',               NEW.id,
+      'customerID',       NEW.customerID,
+      'customerBirthday', NEW.customerBirthday,
+      'customerGender',   NEW.customerGender,
+      'productID',        NEW.productID,
+      'productCategory',  NEW.productCategory,
+      'productPrice',     NEW.productPrice
+    )
+  );
+END$$
 DELIMITER ;
 
-GRANT EXECUTE ON PROCEDURE mysql.lambda_async TO 'app'@'%'
+GRANT EXECUTE ON PROCEDURE mysql.lambda_async TO 'app'@'%';
+
+-- Native function (Aurora v3)
+
+SET @result=0;
+DROP TRIGGER IF EXISTS on_order_insert;
+DELIMITER $$
+CREATE TRIGGER on_order_insert
+  AFTER INSERT ON `order`
+  FOR EACH ROW
+BEGIN
+  SELECT lambda_async(
+    'arn:aws:lambda:ap-northeast-2:648911607072:function:day2-order-transfer',
+    JSON_OBJECT(
+      'id',               NEW.id,
+      'customerID',       NEW.customerID,
+      'customerBirthday', NEW.customerBirthday,
+      'customerGender',   NEW.customerGender,
+      'productID',        NEW.productID,
+      'productCategory',  NEW.productCategory,
+      'productPrice',     NEW.productPrice
+    )
+  )
+   INTO @result;
+END$$
+DELIMITER ;
+
+GRANT INVOKE LAMBDA ON *.* TO 'app'@'%';
