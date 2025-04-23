@@ -26,8 +26,8 @@ module "ecs_service" {
   enable_execute_command   = true
   requires_compatibilities = ["FARGATE"]
 
-  deployment_maximum_percent         = 125
-  deployment_minimum_healthy_percent = 75
+  deployment_maximum_percent         = 150
+  deployment_minimum_healthy_percent = 100
 
   deployment_circuit_breaker = {
     enable   = true

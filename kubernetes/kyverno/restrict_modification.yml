@@ -11,11 +11,18 @@ spec:
       any:
       - resources:
           kinds:
+          - Deployment
+          namespaces:
+          - dev
+          names:
+          - "myapp"
+      - resources:
+          kinds:
           - "*"
           namespaces:
           - dev
           names:
-          - "stress"
+          - "myapp-*"
     exclude:
       any:
       - subjects:

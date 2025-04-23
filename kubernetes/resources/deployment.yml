@@ -11,8 +11,8 @@ spec:
       app: <APP>
   strategy:
     rollingUpdate:
-      maxSurge: 25%
-      maxUnavailable: 25%
+      maxSurge: 50%
+      maxUnavailable: 0
     type: RollingUpdate
   template:
     metadata:
@@ -41,7 +41,7 @@ spec:
               - |
                 curl -f http://localhost:8080/healthcheck || exit 1
           initialDelaySeconds: 5
-          timeoutSeconds: 5
+          timeoutSeconds: 30
           successThreshold: 1
           failureThreshold: 3
           periodSeconds: 10
@@ -53,7 +53,7 @@ spec:
               - |
                 curl -f http://localhost:8080/healthcheck || exit 1
           initialDelaySeconds: 5
-          timeoutSeconds: 2
+          timeoutSeconds: 5
           successThreshold: 1
           failureThreshold: 3
           periodSeconds: 10
