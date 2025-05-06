@@ -69,7 +69,7 @@ module "alb" {
                 },
                 # {
                 #   target_group_key = "myapp-green"
-                #   weight           = 100
+                #   weight           = 0
                 # }
               ]
             }

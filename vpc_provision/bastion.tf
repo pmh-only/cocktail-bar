@@ -55,6 +55,9 @@ locals {
       python3 -m pip install parquet-tools
 
       echo 'export PATH=$PATH:/usr/local/bin' >> /etc/profile
+      
+      wget https://awscli.amazonaws.com/awscli-exe-linux-${local.ami_architecture_long}.zip -O /tmp/awscliv2.zip
+      cd /tmp; unzip /tmp/awscliv2.zip; /tmp/aws/install
 
       wget https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/${local.ami_architecture_short}/kubectl -O /tmp/kubectl
       install -o root -g root -m 0755 /tmp/kubectl /usr/local/bin/kubectl
@@ -64,6 +67,8 @@ locals {
       install -o root -g root -m 0755 /tmp/eksctl /usr/local/bin/eksctl
 
       curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+      echo 'export PATH=/usr/local/bin:$PATH' >> ~/.bashrc
 
       usermod -aG docker ec2-user
       usermod -aG docker ssm-user
@@ -96,6 +101,8 @@ locals {
       install -o root -g root -m 0755 /tmp/eksctl /usr/local/bin/eksctl
 
       curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+      echo 'export PATH=/usr/local/bin:$PATH' >> ~/.bashrc
 
       usermod -aG docker ec2-user
       usermod -aG docker ssm-user

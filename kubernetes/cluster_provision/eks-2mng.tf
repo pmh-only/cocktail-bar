@@ -122,6 +122,18 @@ module "eks" {
   }
 
   access_entries = {
+    bastion = {
+      principal_arn = aws_iam_role.bastion.arn
+
+      policy_associations = {
+        caller_policy = {
+          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+          access_scope = {
+            type = "cluster"
+          }
+        }
+      }
+    }
     caller = {
       principal_arn = data.aws_caller_identity.caller.arn
 

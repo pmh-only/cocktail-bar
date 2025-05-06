@@ -1,4 +1,4 @@
-FROM public.ecr.aws/docker/library/alpine as build
+FROM public.ecr.aws/docker/library/alpine:3.20 as build
 
 RUN apk add --no-cache openjdk21-jdk
 
@@ -13,7 +13,7 @@ COPY src src
 
 RUN sh ./gradlew bootjar
 
-FROM public.ecr.aws/docker/library/alpine as runtime
+FROM public.ecr.aws/docker/library/alpine:3.20 as runtime
 
 ARG user=1000
 ARG group=1000
