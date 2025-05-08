@@ -227,7 +227,7 @@ module "ecs_service" {
       step_scaling_policy_configuration = {
         adjustment_type         = "ChangeInCapacity"
         cooldown                = 0
-        metric_aggregation_type = "Average"
+        metric_aggregation_type = "Maximum"
 
         step_adjustment = [
           {
@@ -246,7 +246,7 @@ module "ecs_service" {
       step_scaling_policy_configuration = {
         adjustment_type         = "ChangeInCapacity"
         cooldown                = 60
-        metric_aggregation_type = "Average"
+        metric_aggregation_type = "Maximum"
 
         step_adjustment = [
           {
@@ -287,7 +287,7 @@ resource "aws_cloudwatch_metric_alarm" "ecs_service_high" {
     metric {
       metric_name = "CPUUtilization"
       namespace   = "AWS/ECS"
-      stat        = "Average"
+      stat        = "Maximum"
       period      = 60
       dimensions = {
         ClusterName = module.ecs.cluster_name
@@ -302,7 +302,7 @@ resource "aws_cloudwatch_metric_alarm" "ecs_service_high" {
     metric {
       metric_name = "MemoryUtilization"
       namespace   = "AWS/ECS"
-      stat        = "Average"
+      stat        = "Maximum"
       period      = 60
       dimensions = {
         ClusterName = module.ecs.cluster_name
@@ -334,7 +334,7 @@ resource "aws_cloudwatch_metric_alarm" "ecs_service_low" {
     metric {
       metric_name = "CPUUtilization"
       namespace   = "AWS/ECS"
-      stat        = "Average"
+      stat        = "Maximum"
       period      = 60
       dimensions = {
         ClusterName = module.ecs.cluster_name
@@ -349,7 +349,7 @@ resource "aws_cloudwatch_metric_alarm" "ecs_service_low" {
     metric {
       metric_name = "MemoryUtilization"
       namespace   = "AWS/ECS"
-      stat        = "Average"
+      stat        = "Maximum"
       period      = 60
       dimensions = {
         ClusterName = module.ecs.cluster_name
