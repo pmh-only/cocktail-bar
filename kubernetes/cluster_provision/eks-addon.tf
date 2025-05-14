@@ -82,6 +82,15 @@ module "eks_blueprints_addons" {
     ]
   }
 
+  aws_gateway_api_controller = {
+    values = [<<-EOF
+      clusterVpcId: ${aws_vpc.this.id}
+      clusterName: ${module.eks.cluster_name}
+      latticeEndpoint: ""
+    EOF
+    ]
+  }
+
   aws_for_fluentbit_cw_log_group = {
     create = false
   }

@@ -1,0 +1,10 @@
+[Unit]
+Description=...
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+ExecStop=/home/ec2-user/shutdown.sh
+
+[Install]
+WantedBy=multi-user.target

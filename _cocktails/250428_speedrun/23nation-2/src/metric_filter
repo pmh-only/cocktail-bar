@@ -1,0 +1,2 @@
+{ ($.eventName = "ConsoleLogin") && ($.responseElements.ConsoleLogin = "Failure") && ($.userIdentity.userName = "consoleuser") }
+"op=challenge-response"

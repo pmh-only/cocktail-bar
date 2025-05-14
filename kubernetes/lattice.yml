@@ -62,3 +62,15 @@ spec:
       kind: Service
       name: <SERVICE>
       namespace: <NAMESPACE>
+---
+apiVersion: application-networking.k8s.aws/v1alpha1
+kind: AccessLogPolicy
+metadata:
+  name: <APP>
+  namespace: <NAMESPACE>
+spec:
+  destinationArn: "arn:aws:s3:::my-bucket"
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: Gateway
+    name: <APP>

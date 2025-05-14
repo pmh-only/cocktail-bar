@@ -42,6 +42,7 @@ module "db" {
 
   cluster_performance_insights_enabled          = true
   cluster_performance_insights_retention_period = 7
+  cluster_monitoring_interval                   = 30
 
   backup_retention_period                = 7
   performance_insights_enabled           = true

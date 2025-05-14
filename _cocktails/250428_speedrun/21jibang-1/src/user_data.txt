@@ -1,0 +1,18 @@
+#!/bin/bash
+
+cd /tmp
+
+yum install -y curl httpd
+aws s3 cp s3://skills-pmhonly/v1.tar /tmp/webapp.tar
+tar xvf /tmp/webapp.tar
+
+cp /tmp/v1/* /var/www/html/
+systemctl enable --now httpd
+
+sed -ie "s/PasswordAuthentication no/PasswordAuthentication yes/" /etc/ssh/sshd_config
+echo "Port 2222" >> /etc/ssh/sshd_config
+echo "ec2-user:worldskills" | chpasswd
+systemctl restart sshd
+
+wget https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -O /tmp/awscliv2.zip
+unzip /tmp/awscliv2.zip; /tmp/aws/install

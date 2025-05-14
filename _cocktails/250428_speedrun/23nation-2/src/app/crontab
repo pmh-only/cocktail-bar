@@ -1,0 +1,1 @@
+* * * * * aws s3 cp /home/ec2-user/app/log/app.log "s3://wsi-logs-pmhn/accesslog-backup/interval/$(date +\%Y/\%m/\%d/\%H/\%M)/app.log"

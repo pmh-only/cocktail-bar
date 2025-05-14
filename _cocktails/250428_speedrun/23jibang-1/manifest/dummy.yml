@@ -1,0 +1,229 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: dummy
+  namespace: skills
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::111122223333:role/my-role
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  dummy
+  namespace: skills
+  labels:
+    app:  dummy
+spec:
+  selector:
+    matchLabels:
+      app: dummy
+  strategy:
+    rollingUpdate:
+      maxSurge: 50%
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app:  dummy
+    spec:
+      terminationGracePeriodSeconds: 60
+      serviceAccountName: dummy
+      restartPolicy: Always
+      nodeSelector:
+        dedicated: app
+      tolerations:
+        - key: dedicated
+          value: app
+          effect: NoExecute
+      # topologySpreadConstraints:
+      #   - maxSkew: 1
+      #     topologyKey: capacity-spread
+      #     whenUnsatisfiable: DoNotSchedule
+      #     labelSelector:
+      #       matchLabels:
+      #         app: dummy
+      containers:
+      - name:  dummy
+        image:  648911607072.dkr.ecr.ap-northeast-2.amazonaws.com/dummy:latest
+        lifecycle:
+          preStop:
+            exec:
+              command: ["sleep", "45"]
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+          limits:
+            cpu: 100m
+            memory: 100Mi
+        livenessProbe:
+          exec:
+            command:
+              - /bin/sh
+              - -c
+              - |
+                curl -f http://localhost:8080/health || exit 1
+          initialDelaySeconds: 5
+          timeoutSeconds: 30
+          successThreshold: 1
+          failureThreshold: 3
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+              - /bin/sh
+              - -c
+              - |
+                curl -f http://localhost:8080/health || exit 1
+          initialDelaySeconds: 5
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+          periodSeconds: 10
+        # env:
+        # - name: DB_HOST
+        #   valueFrom:
+        #     configMapKeyRef:
+        #       name: dummy
+        #       key: DB_HOST
+        # - name: DB_PASS
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: dummy
+        #       key: DB_PASS
+        ports:
+        - containerPort: 8080
+          name:  dummy
+---
+# kind: ConfigMap
+# dummyVersion: v1
+# metadata:
+#   name: dummy
+#   namespace: skills
+# data:
+#   key: default
+# ---
+# dummyVersion: v1
+# kind: Secret
+# metadata:
+#   name: dummy
+#   namespace: skills
+# type: Opaque
+# stringData:
+#   DB_PASS: hello
+# ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dummy
+  namespace: skills
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-name: dummy
+    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
+    service.beta.kubernetes.io/aws-load-balancer-healthcheck-healthy-threshold: '2'
+    service.beta.kubernetes.io/aws-load-balancer-healthcheck-unhealthy-threshold: '2'
+    service.beta.kubernetes.io/aws-load-balancer-healthcheck-timeout: '2'
+    service.beta.kubernetes.io/aws-load-balancer-healthcheck-interval: '5'
+    service.beta.kubernetes.io/aws-load-balancer-healthcheck-protocol: HTTP
+    service.beta.kubernetes.io/aws-load-balancer-healthcheck-path: /health
+    service.beta.kubernetes.io/aws-load-balancer-additional-resource-tags: owner=pmh_only
+    service.beta.kubernetes.io/aws-load-balancer-target-group-attributes: >-
+      deregistration_delay.timeout_seconds=60,
+      target_health_state.unhealthy.connection_termination.enabled=false
+    service.beta.kubernetes.io/aws-load-balancer-attributes: >-
+      deletion_protection.enabled=true,
+      load_balancing.cross_zone.enabled=true,
+      zonal_shift.config.enabled=true,
+      access_logs.s3.enabled=true,
+      access_logs.s3.bucket=jnc-log20250506063353568600000001,
+      access_logs.s3.prefix=accesslog
+spec:
+  type: LoadBalancer
+  loadBalancerClass: service.k8s.aws/nlb
+  selector:
+    app: dummy
+  ports:
+  - name: dummy
+    protocol: TCP
+    port: 80
+    targetPort: 8080
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler 
+metadata:
+  name: dummy
+  namespace: skills
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: dummy
+  minReplicas: 2
+  maxReplicas: 64
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 15
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 15
+      - type: Pods
+        value: 4
+        periodSeconds: 15
+      selectPolicy: Max
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 75
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 75
+---
+# apiVersion: projectcalico.org/v3
+# kind: NetworkPolicy
+# metadata:
+#   name: dummy
+#   namespace: skills
+# spec:
+#   selector: app == 'dummy'
+#   ingress:
+#     # Allow traffic from specific container
+#     - action: Allow
+#       source:
+#         selector: app == 'dummy'
+#         namespaceSelector: projectcalico.org/name == 'skills'
+
+#     # Make it controlled by security group and block inner-cluster traffic
+#     - action: Allow
+#       source:
+#         nets: ['0.0.0.0/0']
+#         notNets: # Inner-cluster ips
+#           - 10.0.10.0/24
+#           - 10.0.11.0/24
+#           - 10.0.12.0/24
+---
+# dummyVersion: vpcresources.k8s.aws/v1beta1
+# kind: SecurityGroupPolicy
+# metadata:
+#   name: dummy
+#   namespace: skills
+# spec:
+#   podSelector:
+#     matchLabels:
+#       app: dummy
+#   securityGroups:
+#     groupIds:
+#       - sg-0ea3daad2e55a0147

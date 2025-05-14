@@ -1,0 +1,29 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      # Define variables
+      - REGISTRY_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+      - REPOSITORY_URI=$REGISTRY_URI/$IMAGE_REPO_NAME
+      - IMAGE_TAG=$(TZ=Asia/Seoul date +"%Y-%m-%d.%H.%M.%S")
+      
+      # Login ecr
+      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $REGISTRY_URI
+
+  build:
+    commands:
+      - docker build -t $REPOSITORY_URI:$IMAGE_TAG .
+      
+  post_build:
+    commands:
+      - docker run -v /var/run/docker.sock:/var/run/docker.sock public.ecr.aws/aquasecurity/trivy image --exit-code 1 --scanners vuln --pkg-types os --severity MEDIUM,HIGH,CRITICAL --ignore-unfixed $REPOSITORY_URI:$IMAGE_TAG
+      - docker push $REPOSITORY_URI:$IMAGE_TAG
+      - >-
+        printf '{"ImageURI": "%s"}' $REPOSITORY_URI:$IMAGE_TAG > imageDetail.json
+
+artifacts:
+  files: 
+    - imageDetail.json
+    - appspec.yaml
+    - taskdef.json

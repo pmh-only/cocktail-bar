@@ -1,0 +1,70 @@
+[
+  {
+    "Name": "clientip",
+    "Type": "string",
+    "Comment": ""
+  },
+  {
+    "Name": "hour",
+    "Type": "string",
+    "Comment": ""
+  },
+  {
+    "Name": "minute",
+    "Type": "string",
+    "Comment": ""
+  },
+  {
+    "Name": "second",
+    "Type": "string",
+    "Comment": ""
+  },
+  {
+    "Name": "method",
+    "Type": "string",
+    "Comment": ""
+  },
+  {
+    "Name": "path",
+    "Type": "string",
+    "Comment": ""
+  },
+  {
+    "Name": "protocol",
+    "Type": "string",
+    "Comment": ""
+  },
+  {
+    "Name": "responsecode",
+    "Type": "string",
+    "Comment": ""
+  },
+  {
+    "Name": "processingtime",
+    "Type": "string",
+    "Comment": ""
+  },
+  {
+    "Name": "useragent",
+    "Type": "string",
+    "Comment": ""
+  },
+  {
+    "Name": "year",
+    "Type": "string",
+    "Comment": "",
+    "PartitionKey": "Partition (0)"
+  },
+  {
+    "Name": "month",
+    "Type": "string",
+    "Comment": "",
+    "PartitionKey": "Partition (1)"
+  },
+  {
+    "Name": "day",
+    "Type": "string",
+    "Comment": "",
+    "PartitionKey": "Partition (2)"
+  }
+]

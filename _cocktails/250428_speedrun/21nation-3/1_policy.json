@@ -1,0 +1,44 @@
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Sid": "VisualEditor00",
+			"Effect": "Allow",
+			"Action": [
+				"iam:ListUsers",
+				"ec2:DescribeInstances"
+			],
+			"Resource": "*"
+		},
+		{
+			"Sid": "VisualEditor0",
+			"Effect": "Allow",
+			"Action": [
+				"iam:CreateAccessKey",
+				"iam:ListAccessKeys",
+				"iam:UpdateAccessKey",
+				"iam:DeleteAccessKey"
+			],
+			"Resource": "arn:aws:iam::*:user/${aws:username}"
+		},
+		{
+			"Sid": "VisualEditor1",
+			"Effect": "Allow",
+			"Action": [
+				"ec2:TerminateInstances",
+				"ec2:DeleteTags",
+				"ec2:StartInstances",
+				"ec2:DescribeTags",
+				"ec2:CreateTags",
+				"ec2:RunInstances",
+				"ec2:StopInstances"
+			],
+			"Resource": "*",
+			"Condition": {
+				"StringEquals": {
+					"aws:ResourceTag/owner": "${aws:username}"
+				}
+			}
+		}
+	]
+}

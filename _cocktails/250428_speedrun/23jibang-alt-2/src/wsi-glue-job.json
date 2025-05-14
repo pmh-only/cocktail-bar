@@ -1,0 +1,213 @@
+{
+	"jobConfig": {
+		"name": "wsi-glue-job",
+		"description": "",
+		"role": "arn:aws:iam::648911607072:role/service-role/AWSGlueServiceRole-glue",
+		"command": "glueetl",
+		"version": "5.0",
+		"runtime": null,
+		"workerType": "G.1X",
+		"numberOfWorkers": 10,
+		"maxCapacity": 10,
+		"jobRunQueuingEnabled": false,
+		"maxRetries": 0,
+		"timeout": 480,
+		"maxConcurrentRuns": 1,
+		"security": "none",
+		"scriptName": "wsi-glue-job.py",
+		"scriptLocation": "s3://aws-glue-assets-648911607072-ap-northeast-2/scripts/",
+		"language": "python-3",
+		"spark": true,
+		"sparkConfiguration": "standard",
+		"jobParameters": [],
+		"tags": [],
+		"jobMode": "VISUAL_MODE",
+		"createdOn": "2025-05-07T12:17:30.694Z",
+		"developerMode": false,
+		"connectionsList": [],
+		"temporaryDirectory": "s3://aws-glue-assets-648911607072-ap-northeast-2/temporary/",
+		"glueHiveMetastore": true,
+		"etlAutoTuning": true,
+		"metrics": true,
+		"observabilityMetrics": true,
+		"bookmark": "job-bookmark-disable",
+		"sparkPath": "s3://aws-glue-assets-648911607072-ap-northeast-2/sparkHistoryLogs/",
+		"flexExecution": false,
+		"minFlexWorkers": null,
+		"maintenanceWindow": null,
+		"dataLineage": false,
+		"logging": false
+	},
+	"dag": {
+		"node-1746620360686": {
+			"nodeId": "node-1746620360686",
+			"dataPreview": false,
+			"previewAmount": 0,
+			"inputs": [
+				"node-1746620221649"
+			],
+			"name": "AWS Glue Data Catalog",
+			"generatedNodeName": "AWSGlueDataCatalog_node1746620360686",
+			"classification": "DataSink",
+			"type": "Catalog",
+			"streamingBatchInterval": 100,
+			"database": "wsi-glue-database",
+			"table": "result",
+			"format": "json",
+			"partitionKeys": [],
+			"schemaChangePolicy": {
+				"enableUpdateCatalog": false,
+				"updateBehavior": null
+			},
+			"updateCatalogOptions": "none",
+			"calculatedType": "S3CatalogDataSink",
+			"runtimeParameters": [],
+			"codeGenVersion": 2
+		},
+		"node-1746620123263": {
+			"nodeId": "node-1746620123263",
+			"dataPreview": false,
+			"previewAmount": 0,
+			"inputs": [],
+			"name": "raw",
+			"generatedNodeName": "raw_node1746620123263",
+			"classification": "DataSource",
+			"type": "Catalog",
+			"isCatalog": true,
+			"database": "wsi-glue-database",
+			"table": "raw",
+			"partitionPredicate": "",
+			"calculatedType": "",
+			"runtimeParameters": [],
+			"codeGenVersion": 2
+		},
+		"node-1746620221649": {
+			"nodeId": "node-1746620221649",
+			"dataPreview": false,
+			"previewAmount": 0,
+			"inputs": [
+				"node-1746620218717"
+			],
+			"name": "Rename Field",
+			"generatedNodeName": "RenameField_node1746620221649",
+			"classification": "Transform",
+			"type": "RenameField",
+			"sourcePath": "right_title",
+			"targetPath": "title",
+			"parentsValid": true,
+			"calculatedType": "",
+			"codeGenVersion": 2
+		},
+		"node-1746620218717": {
+			"nodeId": "node-1746620218717",
+			"dataPreview": false,
+			"previewAmount": 0,
+			"inputs": [
+				"node-1746620128853"
+			],
+			"name": "Drop Fields",
+			"generatedNodeName": "DropFields_node1746620218717",
+			"classification": "Transform",
+			"type": "DropFields",
+			"paths": [
+				"right_title_id",
+				"partition_2",
+				"partition_1",
+				"partition_0"
+			],
+			"parentsValid": true,
+			"calculatedType": "",
+			"codeGenVersion": 2
+		},
+		"node-1746620124675": {
+			"nodeId": "node-1746620124675",
+			"dataPreview": false,
+			"previewAmount": 0,
+			"inputs": [],
+			"name": "ref",
+			"generatedNodeName": "ref_node1746620124675",
+			"classification": "DataSource",
+			"type": "Catalog",
+			"isCatalog": true,
+			"database": "wsi-glue-database",
+			"table": "ref",
+			"partitionPredicate": "",
+			"calculatedType": "",
+			"runtimeParameters": [],
+			"codeGenVersion": 2
+		},
+		"node-1746620184595": {
+			"nodeId": "node-1746620184595",
+			"dataPreview": false,
+			"previewAmount": 0,
+			"inputs": [
+				"node-1746620124675"
+			],
+			"name": "Renamed keys for Join",
+			"generatedNodeName": "RenamedkeysforJoin_node1746620184595",
+			"classification": "Transform",
+			"type": "ApplyMapping",
+			"mapping": [
+				{
+					"toKey": "right_title_id",
+					"fromPath": [
+						"title_id"
+					],
+					"toType": "int",
+					"fromType": "int",
+					"dropped": false,
+					"children": null
+				},
+				{
+					"toKey": "right_title",
+					"fromPath": [
+						"title"
+					],
+					"toType": "string",
+					"fromType": "string",
+					"dropped": false,
+					"children": null
+				}
+			],
+			"parentsValid": true,
+			"calculatedType": "",
+			"codeGenVersion": 2
+		},
+		"node-1746620128853": {
+			"nodeId": "node-1746620128853",
+			"dataPreview": false,
+			"previewAmount": 0,
+			"inputs": [
+				"node-1746620123263",
+				"node-1746620184595"
+			],
+			"name": "Join",
+			"generatedNodeName": "Join_node1746620128853",
+			"classification": "Transform",
+			"type": "Join",
+			"joinType": "equijoin",
+			"columns": [
+				{
+					"from": "node-1746620123263",
+					"keys": [
+						"title_id"
+					]
+				},
+				{
+					"from": "node-1746620184595",
+					"keys": [
+						"right_title_id"
+					]
+				}
+			],
+			"columnConditions": [
+				"="
+			],
+			"parentsValid": true,
+			"calculatedType": "",
+			"codeGenVersion": 2
+		}
+	},
+	"hasBeenSaved": false,
+	"usageProfileName": null
+}

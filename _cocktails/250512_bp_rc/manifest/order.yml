@@ -1,0 +1,196 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: order
+  namespace: wsc2024
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::648911607072:role/wsc2024-role-order
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  order-deploy
+  namespace: wsc2024
+  labels:
+    app:  order
+spec:
+  selector:
+    matchLabels:
+      app: order
+  strategy:
+    rollingUpdate:
+      maxSurge: 50%
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app:  order
+    spec:
+      terminationGracePeriodSeconds: 60
+      serviceAccountName: order
+      restartPolicy: Always
+      nodeSelector:
+        dedicated: app
+      tolerations:
+        - key: dedicated
+          value: app
+          effect: NoExecute
+      # topologySpreadConstraints:
+      #   - maxSkew: 1
+      #     topologyKey: capacity-spread
+      #     whenUnsatisfiable: DoNotSchedule
+      #     labelSelector:
+      #       matchLabels:
+      #         app: order
+      containers:
+      - name:  order
+        image:  648911607072.dkr.ecr.us-east-1.amazonaws.com/order-repo:latest
+        lifecycle:
+          preStop:
+            exec:
+              command: ["sleep", "45"]
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+          limits:
+            cpu: 100m
+            memory: 100Mi
+        livenessProbe:
+          exec:
+            command:
+              - /bin/sh
+              - -c
+              - |
+                curl -f http://localhost:8080/healthcheck || exit 1
+          initialDelaySeconds: 5
+          timeoutSeconds: 30
+          successThreshold: 1
+          failureThreshold: 3
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+              - /bin/sh
+              - -c
+              - |
+                curl -f http://localhost:8080/healthcheck || exit 1
+          initialDelaySeconds: 5
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+          periodSeconds: 10
+        env:
+        - name: AWS_REGION
+          valueFrom:
+            configMapKeyRef:
+              name: product
+              key: AWS_REGION
+        ports:
+        - containerPort: 8080
+          name:  order
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: order
+  namespace: wsc2024
+data:
+  AWS_REGION: us-east-1
+---
+# apiVersion: v1
+# kind: Secret
+# metadata:
+#   name: order
+#   namespace: wsc2024
+# type: Opaque
+# stringData:
+#   DB_PASS: hello
+# ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: order
+  namespace: wsc2024
+spec:
+  selector:
+    app: order
+  type: ClusterIP
+  ports:
+  - name: order
+    protocol: TCP
+    port: 8080
+    targetPort: 8080
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler 
+metadata:
+  name: order
+  namespace: wsc2024
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: order-deploy
+  minReplicas: 2
+  maxReplicas: 64
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 15
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 15
+      - type: Pods
+        value: 4
+        periodSeconds: 15
+      selectPolicy: Max
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 75
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 75
+---
+apiVersion: projectcalico.org/v3
+kind: NetworkPolicy
+metadata:
+  name: order
+  namespace: wsc2024
+spec:
+  selector: app == 'order'
+  ingress:
+    # Make it controlled by security group and block inner-cluster traffic
+    - action: Allow
+      source:
+        nets: ['0.0.0.0/0']
+        notNets: # Inner-cluster ips
+          - 172.16.2.0/24
+          - 172.16.3.0/24
+---
+# apiVersion: vpcresources.k8s.aws/v1beta1
+# kind: SecurityGroupPolicy
+# metadata:
+#   name: order
+#   namespace: wsc2024
+# spec:
+#   podSelector:
+#     matchLabels:
+#       app: order
+#   securityGroups:
+#     groupIds:
+#       - sg-0c3f45a3bc94694a1

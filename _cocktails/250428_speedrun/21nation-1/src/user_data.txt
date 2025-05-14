@@ -1,0 +1,68 @@
+#!/bin/bash
+
+yum install -y jq curl
+
+python3 -m ensurepip
+python3 -m pip install flask
+
+aws s3 cp s3://wsi-100-pmhn-artifactory/app.py /tmp/app.py
+curl https://raw.githubusercontent.com/fluent/fluent-bit/master/install.sh | sh
+
+mkdir -p /var/log/app
+nohup python3 /tmp/app.py &
+
+cat <<EOF > /lib/systemd/system/sethostname.service
+[Unit]
+Description=Set Hostname Workaround coreos/bugs#1272 with EC2 IMDSv2 support
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+
+ExecStartPre=/bin/bash -c 'curl -sX PUT "http://169.254.169.254/latest/api/token" \\
+  -H "X-aws-ec2-metadata-token-ttl-seconds: 21600" > /run/imds_token'
+
+ExecStartPre=/bin/bash -c 'curl -s "http://169.254.169.254/latest/meta-data/hostname" \\
+  -H "X-aws-ec2-metadata-token: \$(cat /run/imds_token)" > /run/ec2_hostname'
+
+ExecStart=/bin/bash -c '/usr/bin/hostnamectl set-hostname "\$(cat /run/ec2_hostname)"'
+
+ExecStartPost=/bin/bash -c 'rm -f /run/imds_token /run/ec2_hostname'
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+cat <<EOF > /etc/fluent-bit/fluent-bit.conf
+[SERVICE]
+    Flush           1
+    Daemon          off
+    Log_Level       debug
+    Parsers_File    /parsers.conf
+
+[INPUT]
+    Name tail
+    Tag  app.log
+    Path /var/log/app/app.log
+
+[FILTER]
+    Name aws
+    Match app.log
+    imds_version v2
+    ec2_instance_id true
+
+[OUTPUT]
+    Name cloudwatch_logs
+    Match   app.log
+    region ap-northeast-2
+    log_group_name /aws/ec2/wsi
+    log_stream_prefix logs
+    log_stream_template api_\$ec2_instance_id
+    log_key log
+    auto_create_group On
+EOF
+
+systemctl daemon-reload
+systemctl enable --now fluent-bit
