@@ -1,0 +1,18 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "Statement1",
+      "Effect": "Allow",
+      "Action": [
+				"logs:CreateLogGroup",
+				"logs:CreateLogStream",
+				"logs:PutLogEvents"
+      ],
+      "Resource": [
+        "arn:aws:logs:{Region}:{Account}:log-group:{LogGroupName}",
+        "arn:aws:logs:{Region}:{Account}:log-group:{LogGroupName}:log-stream:*"
+      ]
+    }
+  ]
+}
