@@ -13,7 +13,7 @@ done
 
 # ---
 
-export BAR_NAME="new"
+export BAR_NAME="${1:-new}"
 
 if [ ! -f /home/cloudshell-user/cocktail-bar/_bar/$BAR_NAME ]; then
   mkdir -p /home/cloudshell-user/cocktail-bar/_bar/$BAR_NAME

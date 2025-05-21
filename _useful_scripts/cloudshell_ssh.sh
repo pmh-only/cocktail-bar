@@ -5,7 +5,9 @@ cp ~/.ssh/id_rsa.pub ~/.ssh/authorized_keys
 wget https://github.com/openportio/openport-go/releases/download/v2.2.2/openport-amd64 -O /tmp/openport
 chmod +x /tmp/openport
 
-sudo `which sshd` -h /home/cloudshell-user/.ssh/id_rsa -p 22
+chmod 700 /home/cloudshell-user
+chmod 700 /home/cloudshell-user/.ssh
+chmod 600 /home/cloudshell-user/.ssh/authorized_keys
 
-cat ~/.ssh/id_rsa
+sudo `which sshd` -h /home/cloudshell-user/.ssh/id_rsa -p 22
 /tmp/openport 22

@@ -1,4 +1,4 @@
-cat <<EOF >> ~/.bashrc
+cat <<EOF >> ~/.zshrc
 
 alias k="kubectl"
 alias ka="kubectl apply -f"
@@ -11,4 +11,4 @@ alias taa="terraform apply --parallelism 100 --auto-approve"
 
 EOF
 
-source ~/.bashrc
+source ~/.zshrc
