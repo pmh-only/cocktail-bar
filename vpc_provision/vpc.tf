@@ -109,27 +109,30 @@ locals {
 
   enabled_gateway_endpoints = [
     "s3",
-    "dynamodb"
+    # "dynamodb"
   ]
 
   enabled_interface_endpoints = [
-    "autoscaling",
-    "logs",
-    "ec2",
-    "sts",
     "ssm",
-    # "sqs",
-    # "sns",
-    # "glue",
     "ssmmessages",
     "ec2messages",
+
     "ecr.api",
     "ecr.dkr",
-    # "rds",
+
     # "ecs",
     # "ecs-agent",
     # "ecs-telemetry",
-    "secretsmanager",
+
+    # "autoscaling",
+    # "logs",
+    # "ec2",
+    # "sts",
+    # "sqs",
+    # "sns",
+    # "glue",
+    # "rds",
+    # "secretsmanager",
     # "vpc-lattice",
     # "elasticloadbalancing",
     # "elasticfilesystem"
