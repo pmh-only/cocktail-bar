@@ -8,6 +8,7 @@
     "ms-kubernetes-tools.vscode-kubernetes-tools",
     "lunuan.kubernetes-templates",
     "ms-azuretools.vscode-docker",
-    "amazonwebservices.aws-toolkit-vscode"
+    "amazonwebservices.aws-toolkit-vscode",
+    "hashicorp.terraform"
   ]
 }

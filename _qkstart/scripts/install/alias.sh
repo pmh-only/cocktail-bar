@@ -1,4 +1,4 @@
-cat <<EOF >> ~/.bashrc >> ~/.zshrc
+cat <<EOF >> ~/.bashrc
 alias ka="kubectl apply -f"
 alias kd="kubectl describe -f"
 alias kx="kubectl delete -f"
