@@ -21,6 +21,11 @@ metadata:
     alb.ingress.kubernetes.io/healthy-threshold-count: "2"
     alb.ingress.kubernetes.io/unhealthy-threshold-count: "2"
     alb.ingress.kubernetes.io/tags: owner=pmh_only
+
+    # alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-northeast-2:648911607072:certificate/add4392e-670c-4fee-b71f-89db0e52f00e
+    # alb.ingress.kubernetes.io/ssl-policy:  ELBSecurityPolicy-TLS13-1-2-Res-2021-06
+    # alb.ingress.kubernetes.io/ssl-redirect: '443'
+
     # 
     # CloudFront Origin Range
     # 
