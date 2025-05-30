@@ -2,7 +2,7 @@ module "eks" {
   source = "terraform-aws-modules/eks/aws"
 
   cluster_name    = "${var.project_name}-cluster"
-  cluster_version = "1.31"
+  cluster_version = "1.33"
 
   vpc_id                   = aws_vpc.this.id
   subnet_ids               = [for item in local.eks_node_subnets : aws_subnet.this[item.key].id]
@@ -22,7 +22,7 @@ module "eks" {
       # BOTTLEROCKET_ARM_64
       # BOTTLEROCKET_x86_64
       # AL2023_ARM_64_STANDARD
-      # AL2023_X86_64_STANDARD
+      # AL2023_x86_64_STANDARD
       # AL2_ARM_64
 
       name            = "${var.project_name}-nodegroup-tools"
@@ -60,7 +60,7 @@ module "eks" {
       # BOTTLEROCKET_ARM_64
       # BOTTLEROCKET_x86_64
       # AL2023_ARM_64_STANDARD
-      # AL2023_X86_64_STANDARD
+      # AL2023_x86_64_STANDARD
       # AL2_ARM_64
       ami_type        = "BOTTLEROCKET_ARM_64"
       instance_types  = ["c6g.xlarge"]

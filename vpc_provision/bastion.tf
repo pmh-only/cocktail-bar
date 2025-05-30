@@ -244,7 +244,3 @@ output "bastion_details" {
     ssh_keypair       = local.keypair_file_path
   }
 }
-
-resource "aws_ebs_encryption_by_default" "default" {
-  enabled = true
-}

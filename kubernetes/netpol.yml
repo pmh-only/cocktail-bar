@@ -1,0 +1,23 @@
+
+apiVersion: projectcalico.org/v3
+kind: NetworkPolicy
+metadata:
+  name: <APP>
+  namespace: <NAMESPACE>
+spec:
+  selector: app == '<APP>'
+  ingress:
+    # Allow traffic from specific container
+    - action: Allow
+      source:
+        selector: app == '<APP>'
+        namespaceSelector: projectcalico.org/name == '<NAMESPACE>'
+
+    # Make it controlled by security group and block inner-cluster traffic
+    - action: Allow
+      source:
+        nets: ['0.0.0.0/0']
+        notNets: # Inner-cluster ips
+          - 10.0.10.0/24
+          - 10.0.11.0/24
+          - 10.0.12.0/24

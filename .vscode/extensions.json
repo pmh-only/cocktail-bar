@@ -9,6 +9,7 @@
     "lunuan.kubernetes-templates",
     "ms-azuretools.vscode-docker",
     "amazonwebservices.aws-toolkit-vscode",
-    "hashicorp.terraform"
+    "hashicorp.terraform",
+    "pkief.material-icon-theme"
   ]
 }

@@ -2,7 +2,7 @@ module "eks" {
   source = "terraform-aws-modules/eks/aws"
 
   cluster_name    = "${var.project_name}-cluster"
-  cluster_version = "1.31"
+  cluster_version = "1.32"
 
   vpc_id                   = aws_vpc.this.id
   subnet_ids               = [for item in local.eks_node_subnets : aws_subnet.this[item.key].id]

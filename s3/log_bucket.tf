@@ -23,9 +23,9 @@ module "log_bucket" {
 
   attach_deny_insecure_transport_policy = true
   attach_elb_log_delivery_policy        = true
+  attach_lb_log_delivery_policy         = true
 }
 
 output "log_bucket" {
   value = module.log_bucket.s3_bucket_id
 }
-

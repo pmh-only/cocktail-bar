@@ -48,6 +48,9 @@ locals {
         step_per_subnet = 1
         override        = []
       }
+      additional_tags = {
+        "zone-type" = "public"
+      }
     },
     {
       type = "private"
@@ -76,6 +79,9 @@ locals {
         step_per_subnet = 1
         override        = []
       }
+      additional_tags = {
+        "zone-type" = "private"
+      }
     },
     {
       type = "intra"
@@ -103,6 +109,9 @@ locals {
         start_index     = 20
         step_per_subnet = 1
         override        = []
+      }
+      additional_tags = {
+        "zone-type" = "intra"
       }
     }
   ]
@@ -229,18 +238,21 @@ resource "aws_subnet" "this" {
   cidr_block              = length(each.value.group.cidr_pattern.override) > each.value.az_index ? each.value.group.cidr_pattern.override[each.value.az_index] : cidrsubnet(local.vpc_cidr, 8, each.value.cidr_index)
   availability_zone       = each.value.az
   map_public_ip_on_launch = each.value.group.type == "public" ? true : false
-  tags = {
-    Name = replace(replace(replace(each.value.group.name, "$1", var.project_name), "$2", each.value.az_suffix), "$3", upper(each.value.az_suffix))
-    Type = each.value.group.type
+  tags = merge(
+    {
+      Name = replace(replace(replace(each.value.group.name, "$1", var.project_name), "$2", each.value.az_suffix), "$3", upper(each.value.az_suffix))
+      Type = each.value.group.type
 
-    Peer                              = each.value.group.tag_tgw_attachment ? "true" : "false"
-    "kubernetes.io/role/elb"          = each.value.group.tag_alb_public ? "1" : "0"
-    "kubernetes.io/role/internal-elb" = each.value.group.tag_alb_private ? "1" : "0"
+      Peer                              = each.value.group.tag_tgw_attachment ? "true" : "false"
+      "kubernetes.io/role/elb"          = each.value.group.tag_alb_public ? "1" : "0"
+      "kubernetes.io/role/internal-elb" = each.value.group.tag_alb_private ? "1" : "0"
 
-    "karpenter.sh/discovery" = each.value.group.tag_eks_node ? replace(replace(replace(local.eks_discovery_tag, "$1", var.project_name), "$2", ""), "$3", "") : "nothing"
+      "karpenter.sh/discovery" = each.value.group.tag_eks_node ? replace(replace(replace(local.eks_discovery_tag, "$1", var.project_name), "$2", ""), "$3", "") : "nothing"
 
-    "kubernetes.io/cluster/${replace(replace(replace(local.eks_discovery_tag, "$1", var.project_name), "$2", ""), "$3", "")}" = "owned"
-  }
+      "kubernetes.io/cluster/${replace(replace(replace(local.eks_discovery_tag, "$1", var.project_name), "$2", ""), "$3", "")}" = "owned"
+    },
+    each.value.group.additional_tags
+  )
 }
 
 ###############################################################################
