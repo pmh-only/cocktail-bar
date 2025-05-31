@@ -8,6 +8,12 @@ module "eks" {
   subnet_ids               = [for item in local.eks_node_subnets : aws_subnet.this[item.key].id]
   control_plane_subnet_ids = [for item in local.eks_controlplane_subnets : aws_subnet.this[item.key].id]
 
+  bootstrap_self_managed_addons = true
+  cluster_compute_config = {
+    enabled    = true
+    node_pools = []
+  }
+
   fargate_profiles = {
     # fargate = {
     #   name = "fargate"

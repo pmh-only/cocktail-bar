@@ -1,5 +1,6 @@
 locals {
   enable_argocd = false
+  enable_calico = true
 }
 
 module "eks_blueprints_addons" {
@@ -14,6 +15,9 @@ module "eks_blueprints_addons" {
   eks_addons = {
     coredns = {
       most_recent = true
+      configuration_values = jsonencode({
+        replicaCount = 1
+      })
     }
     vpc-cni = {
       most_recent = true
@@ -42,7 +46,7 @@ module "eks_blueprints_addons" {
   enable_karpenter                    = false
   enable_metrics_server               = true
   enable_cluster_autoscaler           = true
-  enable_aws_load_balancer_controller = true
+  enable_aws_load_balancer_controller = false # <- eks auto
   enable_external_secrets             = false
   enable_aws_for_fluentbit            = true
   enable_fargate_fluentbit            = false
@@ -77,6 +81,7 @@ module "eks_blueprints_addons" {
 
   aws_load_balancer_controller = {
     values = [<<-EOF
+      replicaCount: 1
       vpcId: ${aws_vpc.this.id}
     EOF
     ]
@@ -115,38 +120,39 @@ module "eks_blueprints_addons" {
     }
   }
 
+  cluster_autoscaler = {
+    values = [<<-EOF
+      extraArgs:
+        scan-interval: 10s
+        scale-down-delay-after-add: 1m
+        scale-down-delay-after-delete: 0s
+        scale-down-delay-after-failure: 1m
+        scale-down-unneeded-time: 1m
+        node-deletion-delay-timeout: 1m
+        node-deletion-batcher-interval: 0s
+    EOF
+    ]
+
+    set = [{
+      name  = "image.tag"
+      value = "v1.32.1"
+    }]
+  }
+
   helm_releases = {
-    calico = {
-      repository = "https://docs.tigera.io/calico/charts"
-      chart      = "tigera-operator"
-      name       = "calico"
+    # descheduler = {
+    #   repository = "https://kubernetes-sigs.github.io/descheduler"
+    #   chart      = "descheduler"
 
-      create_namespace = true
-      namespace        = "tigera-operator"
+    #   name      = "descheduler"
+    #   namespace = "kube-system"
 
-      values = [<<-EOF
-          installation:
-            kubernetesProvider: EKS
-            cni:
-              type: AmazonVPC
-            calicoNetwork:
-              bgp: Disabled
-        EOF
-      ]
-    }
-    descheduler = {
-      repository = "https://kubernetes-sigs.github.io/descheduler"
-      chart      = "descheduler"
-
-      name      = "descheduler"
-      namespace = "kube-system"
-
-      values = [<<-EOF
-          kind: Deployment
-          schedule: "* * * * *"
-        EOF
-      ]
-    }
+    #   values = [<<-EOF
+    #       kind: Deployment
+    #       schedule: "* * * * *"
+    #     EOF
+    #   ]
+    # }
     # kyverno = {
     #   repository = "https://kyverno.github.io/kyverno"
     #   chart      = "kyverno"
@@ -157,13 +163,13 @@ module "eks_blueprints_addons" {
 
     #   values = [<<-EOF
     #     admissionController:
-    #       replicas: 2
+    #       replicas: 1
     #     backgroundController:
-    #       replicas: 2
+    #       enabled: false
     #     cleanupController:
-    #       replicas: 2
+    #       enabled: false
     #     reportsController:
-    #       replicas: 2
+    #       enabled: false
     #     EOF
     #   ]
     # }
@@ -199,6 +205,26 @@ resource "kubectl_manifest" "argocd_image_updater" {
     "{region}",
     var.region
   )
+}
+
+
+data "http" "calico" {
+  url = "https://raw.githubusercontent.com/pmh-only/cocktail-bar/refs/heads/main/kubernetes/calico_install.yml"
+}
+
+locals {
+  calico = {
+    for idx, manifest in split("\n---\n", data.http.calico.response_body)
+    : idx => manifest
+    if local.enable_calico
+  }
+}
+
+resource "kubectl_manifest" "calico" {
+  for_each   = local.calico
+  depends_on = [module.eks_blueprints_addons]
+
+  yaml_body = each.value
 }
 
 output "node_iam_role_arn" {
