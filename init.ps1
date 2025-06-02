@@ -17,8 +17,11 @@ winget install                `
   OpenVPNTechnologies.OpenVPN `
   DEVCOM.JetBrainsMonoNerdFont
 
-New-Item -Path $profile -ItemType "file" -Force
 New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.bin"
+New-Item -ItemType Directory -Force -Path "$env:LOCALAPPDATA\k9s"
+
+New-Item -Path $profile -ItemType "file" -Force
+New-Item -Path "$env:LOCALAPPDATA\k9s\config.yaml" -ItemType "file" -Force
 
 Invoke-WebRequest -Uri "https://github.com/projectcalico/calico/releases/latest/download/calicoctl-windows-amd64.exe" -OutFile "$env:USERPROFILE\.bin\calicoctl.exe"
 
@@ -38,6 +41,21 @@ $env:EDITOR = "code -w"
 $env:PATH = "$env:PATH;C:\Program Files\Vim\vim91;C:\Users\$env:USERNAME\.bin"
 '@ | `
 Out-File -FilePath $profile
+
+@'
+k9s:
+  liveViewAutoRefresh: true
+  refreshRate: 1
+  ui:
+    enableMouse: true
+    headless: true
+    logoless: true
+    crumbsless: true
+    reactive: true
+    noIcons: false
+  skipLatestRevCheck: true
+'@ | `
+Out-File -FilePath "$env:LOCALAPPDATA\k9s\config.yaml"
 
 Start-Process powershell -Verb runAs "Set-Service ssh-agent -StartupType Automatic"
 Start-Process powershell -Verb runAs "Start-Service ssh-agent"

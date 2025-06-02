@@ -8,7 +8,6 @@ module "eks" {
   subnet_ids               = [for item in local.eks_node_subnets : aws_subnet.this[item.key].id]
   control_plane_subnet_ids = [for item in local.eks_controlplane_subnets : aws_subnet.this[item.key].id]
 
-  bootstrap_self_managed_addons = true
   cluster_compute_config = {
     enabled    = true
     node_pools = []
@@ -36,6 +35,15 @@ module "eks" {
       instance_types  = ["c6g.large"]
       iam_role_name   = "${var.project_name}-ng-tools"
       use_name_prefix = false
+
+      # AL2023
+      # bootstrap_extra_args = "--use-max-pods false --kubelet-extra-args '--max-pods=110'"
+
+      # BOTTLEROCKET
+      # bootstrap_extra_args = <<-EOF
+      #   [settings.kubernetes]
+      #   max-pods = 110
+      # EOF
 
       min_size     = 2
       max_size     = 27
@@ -72,6 +80,15 @@ module "eks" {
       instance_types  = ["c6g.xlarge"]
       iam_role_name   = "${var.project_name}-ng-apps"
       use_name_prefix = false
+
+      # AL2023
+      # bootstrap_extra_args = "--use-max-pods false --kubelet-extra-args '--max-pods=110'"
+
+      # BOTTLEROCKET
+      # bootstrap_extra_args = <<-EOF
+      #   [settings.kubernetes]
+      #   max-pods = 110
+      # EOF
 
       min_size     = 2
       max_size     = 27

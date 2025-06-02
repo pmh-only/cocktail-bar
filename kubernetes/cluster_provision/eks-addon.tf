@@ -1,6 +1,6 @@
 locals {
   enable_argocd = false
-  enable_calico = true
+  enable_calico = false
 }
 
 module "eks_blueprints_addons" {
@@ -11,6 +11,8 @@ module "eks_blueprints_addons" {
   cluster_endpoint  = module.eks.cluster_endpoint
   cluster_version   = module.eks.cluster_version
   oidc_provider_arn = module.eks.oidc_provider_arn
+
+  observability_tag = null
 
   eks_addons = {
     coredns = {
@@ -24,8 +26,12 @@ module "eks_blueprints_addons" {
       configuration_values = jsonencode({
         env = {
           # ENABLE_POD_ENI                    = "true"
-          # POD_SECURITY_GROUP_ENFORCING_MODE = "standard"
+          POD_SECURITY_GROUP_ENFORCING_MODE = "standard"
+          NETWORK_POLICY_ENFORCING_MODE     = "standard"
+          # ENABLE_PREFIX_DELEGATION          = "true"
+          # WARM_PREFIX_TARGET                = "1"
         }
+        enableNetworkPolicy = "true"
       })
     }
     kube-proxy = {
