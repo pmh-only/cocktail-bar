@@ -1,0 +1,32 @@
+#!/bin/bash
+
+cd /root
+
+aws s3 cp s3://project-releases-238490238049/main.py /root/main.py
+aws s3 cp s3://project-releases-238490238049/package.tar.gz /root/package.tar.gz
+
+tar xvf package.tar.gz -C /root
+
+yum install -y python3-boto3 python3-flask
+
+python3 -m ensurepip
+python3 -m pip install --no-index --find-links /root mysql-connector-python
+
+cat > /etc/systemd/system/project-app.service <<'EOF'
+[Unit]
+Description=Project App
+
+[Service]
+WorkingDirectory=/root
+Environment=AWS_REGION=ap-northeast-2
+Environment=SECRET_NAME=project-app-secret
+ExecStart=/usr/bin/python3 /root/main.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl daemon-reload
+systemctl enable project-app
+systemctl start project-app
