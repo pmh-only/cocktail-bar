@@ -33,7 +33,9 @@ resource "aws_docdb_cluster" "this" {
   port = 27018
 
   master_username = "myadmin"
-  master_password = "admin123!!"
+  # master_password = "admin123!!"
+  manage_master_user_password = true
+
 
   backup_retention_period = 7
   vpc_security_group_ids  = [aws_security_group.docdb.id]
