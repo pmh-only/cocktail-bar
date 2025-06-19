@@ -25,7 +25,7 @@
         {
             "height": 6,
             "width": 6,
-            "y": 1,
+            "y": 2,
             "x": 0,
             "type": "metric",
             "properties": {
@@ -58,7 +58,7 @@
         {
             "height": 6,
             "width": 6,
-            "y": 1,
+            "y": 2,
             "x": 6,
             "type": "metric",
             "properties": {
@@ -91,7 +91,7 @@
         {
             "height": 6,
             "width": 6,
-            "y": 1,
+            "y": 2,
             "x": 12,
             "type": "metric",
             "properties": {
@@ -118,7 +118,7 @@
         {
             "height": 6,
             "width": 6,
-            "y": 1,
+            "y": 2,
             "x": 18,
             "type": "metric",
             "properties": {
@@ -145,7 +145,7 @@
         {
             "height": 6,
             "width": 6,
-            "y": 15,
+            "y": 14,
             "x": 0,
             "type": "metric",
             "properties": {
@@ -157,7 +157,7 @@
                 "region": "ap-northeast-2",
                 "stat": "Average",
                 "period": 60,
-                "title": "LbRequest (1m)",
+                "title": "ALbRequest (1m)",
                 "yAxis": {
                     "left": {
                         "min": 0,
@@ -174,8 +174,8 @@
         {
             "height": 6,
             "width": 6,
-            "y": 15,
-            "x": 6,
+            "y": 14,
+            "x": 12,
             "type": "metric",
             "properties": {
                 "metrics": [
@@ -204,8 +204,8 @@
         {
             "height": 6,
             "width": 6,
-            "y": 15,
-            "x": 12,
+            "y": 20,
+            "x": 0,
             "type": "metric",
             "properties": {
                 "metrics": [
@@ -233,7 +233,7 @@
         {
             "height": 6,
             "width": 6,
-            "y": 15,
+            "y": 8,
             "x": 18,
             "type": "metric",
             "properties": {
@@ -262,8 +262,8 @@
         {
             "height": 6,
             "width": 6,
-            "y": 21,
-            "x": 0,
+            "y": 14,
+            "x": 18,
             "type": "metric",
             "properties": {
                 "metrics": [
@@ -291,7 +291,7 @@
         {
             "height": 12,
             "width": 24,
-            "y": 41,
+            "y": 50,
             "x": 0,
             "type": "log",
             "properties": {
@@ -315,8 +315,8 @@
         {
             "height": 6,
             "width": 6,
-            "y": 28,
-            "x": 0,
+            "y": 20,
+            "x": 18,
             "type": "metric",
             "properties": {
                 "metrics": [
@@ -344,8 +344,8 @@
         {
             "height": 6,
             "width": 6,
-            "y": 28,
-            "x": 6,
+            "y": 26,
+            "x": 0,
             "type": "metric",
             "properties": {
                 "metrics": [
@@ -374,8 +374,8 @@
         {
             "height": 6,
             "width": 6,
-            "y": 28,
-            "x": 12,
+            "y": 26,
+            "x": 6,
             "type": "metric",
             "properties": {
                 "metrics": [
@@ -399,50 +399,6 @@
                 "legend": {
                     "position": "hidden"
                 }
-            }
-        },
-        {
-            "height": 1,
-            "width": 24,
-            "y": 0,
-            "x": 0,
-            "type": "text",
-            "properties": {
-                "markdown": "# EKS",
-                "background": "transparent"
-            }
-        },
-        {
-            "height": 1,
-            "width": 24,
-            "y": 14,
-            "x": 0,
-            "type": "text",
-            "properties": {
-                "markdown": "# Application Load Balancer",
-                "background": "transparent"
-            }
-        },
-        {
-            "height": 1,
-            "width": 24,
-            "y": 27,
-            "x": 0,
-            "type": "text",
-            "properties": {
-                "markdown": "# CloudFront",
-                "background": "transparent"
-            }
-        },
-        {
-            "height": 1,
-            "width": 24,
-            "y": 34,
-            "x": 0,
-            "type": "text",
-            "properties": {
-                "markdown": "# Extras",
-                "background": "transparent"
             }
         },
         {
@@ -473,17 +429,6 @@
                 "legend": {
                     "position": "hidden"
                 }
-            }
-        },
-        {
-            "height": 1,
-            "width": 24,
-            "y": 7,
-            "x": 0,
-            "type": "text",
-            "properties": {
-                "markdown": "# ECS",
-                "background": "transparent"
             }
         },
         {
@@ -544,7 +489,8 @@
                     "left": {
                         "showUnits": false,
                         "label": "Current/Needs (%)",
-                        "min": 0
+                        "min": 0,
+                        "max": 200
                     }
                 },
                 "liveData": true,
@@ -564,7 +510,7 @@
         {
             "height": 12,
             "width": 24,
-            "y": 53,
+            "y": 62,
             "x": 0,
             "type": "log",
             "properties": {
@@ -586,14 +532,14 @@
             }
         },
         {
-            "type": "metric",
-            "x": 6,
-            "y": 35,
-            "width": 6,
             "height": 6,
+            "width": 6,
+            "y": 32,
+            "x": 0,
+            "type": "metric",
             "properties": {
                 "metrics": [
-                    [ { "expression": "SEARCH('{AWS/RDS,DBClusterIdentifier} MetricName=\"DatabaseConnections\"', 'Maximum', 60)", "id": "e1", "period": 60 } ]
+                    [ { "expression": "SEARCH('{AWS/RDS,DBClusterIdentifier} MetricName=\"DatabaseConnections\"', 'Maximum', 60)", "id": "e1", "period": 60, "region": "ap-northeast-2" } ]
                 ],
                 "view": "timeSeries",
                 "stacked": false,
@@ -604,17 +550,18 @@
                 "yAxis": {
                     "left": {
                         "showUnits": false,
-                        "label": "Connection Count"
+                        "label": "Connection Count",
+                        "min": 0
                     }
                 }
             }
         },
         {
-            "type": "metric",
-            "x": 0,
-            "y": 35,
-            "width": 6,
             "height": 6,
+            "width": 6,
+            "y": 26,
+            "x": 12,
+            "type": "metric",
             "properties": {
                 "metrics": [
                     [ { "expression": "SEARCH('{AWS/EC2,InstanceId} MetricName=\"CPUUtilization\"', 'Maximum', 60)", "label": "", "id": "e2", "period": 60, "region": "ap-northeast-2" } ]
@@ -635,6 +582,399 @@
                 },
                 "legend": {
                     "position": "hidden"
+                }
+            }
+        },
+        {
+            "height": 6,
+            "width": 6,
+            "y": 20,
+            "x": 6,
+            "type": "metric",
+            "properties": {
+                "metrics": [
+                    [ { "expression": "SEARCH('{AWS/NetworkELB,LoadBalancer} MetricName=\"ProcessedPackets\"', 'Sum', 60)", "id": "e1", "period": 60, "region": "ap-northeast-2" } ]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "ap-northeast-2",
+                "stat": "Sum",
+                "period": 60,
+                "title": "NLBRequestPacket (1m)",
+                "liveData": true,
+                "yAxis": {
+                    "left": {
+                        "label": "Request Count",
+                        "showUnits": false
+                    }
+                }
+            }
+        },
+        {
+            "height": 6,
+            "width": 6,
+            "y": 26,
+            "x": 18,
+            "type": "metric",
+            "properties": {
+                "metrics": [
+                    [ { "expression": "SEARCH('{AWS/RDS,DBClusterIdentifier} MetricName=\"Queries\"', 'Sum', 60)", "id": "e1", "period": 60 } ]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "ap-northeast-2",
+                "stat": "Average",
+                "period": 60,
+                "title": "RDSQuery (1m)",
+                "yAxis": {
+                    "left": {
+                        "showUnits": false,
+                        "label": "Query Count",
+                        "min": 0
+                    }
+                },
+                "liveData": true
+            }
+        },
+        {
+            "height": 6,
+            "width": 6,
+            "y": 20,
+            "x": 12,
+            "type": "metric",
+            "properties": {
+                "metrics": [
+                    [ { "expression": "SUM(SEARCH('{AWS/NetworkELB,LoadBalancer,TargetGroup} MetricName=\"UnHealthyHostCount\"', 'Maximum', 60))", "label": "UnHealthyHostCount", "id": "e1", "period": 300, "color": "#d62728", "region": "ap-northeast-2" } ],
+                    [ { "expression": "SUM(SEARCH('{AWS/NetworkELB,LoadBalancer,TargetGroup} MetricName=\"HealthyHostCount\"', 'Maximum', 60))", "label": "HealthyHostCount", "id": "e2", "period": 300, "color": "#2ca02c", "region": "ap-northeast-2" } ]
+                ],
+                "view": "timeSeries",
+                "stacked": true,
+                "region": "ap-northeast-2",
+                "stat": "Average",
+                "period": 300,
+                "title": "NLBHostStatus (1m)",
+                "liveData": true,
+                "yAxis": {
+                    "left": {
+                        "min": 0
+                    }
+                }
+            }
+        },
+        {
+            "height": 6,
+            "width": 6,
+            "y": 14,
+            "x": 6,
+            "type": "metric",
+            "properties": {
+                "metrics": [
+                    [ { "expression": "SUM(SEARCH('{AWS/ApplicationELB,LoadBalancer,TargetGroup} MetricName=\"UnHealthyHostCount\"', 'Maximum', 60))", "label": "UnHealthyHostCount", "id": "e1", "period": 300, "color": "#d62728", "region": "ap-northeast-2" } ],
+                    [ { "expression": "SUM(SEARCH('{AWS/ApplicationELB,LoadBalancer,TargetGroup} MetricName=\"HealthyHostCount\"', 'Maximum', 60))", "label": "HealthyHostCount", "id": "e2", "period": 300, "color": "#2ca02c", "region": "ap-northeast-2" } ]
+                ],
+                "view": "timeSeries",
+                "stacked": true,
+                "region": "ap-northeast-2",
+                "stat": "Average",
+                "period": 300,
+                "title": "ALBHostStatus (1m)",
+                "liveData": true,
+                "yAxis": {
+                    "left": {
+                        "min": 0
+                    }
+                }
+            }
+        },
+        {
+            "height": 2,
+            "width": 24,
+            "y": 0,
+            "x": 0,
+            "type": "text",
+            "properties": {
+                "markdown": "[]()\\\n[]()\n\n---",
+                "background": "transparent"
+            }
+        },
+        {
+            "height": 6,
+            "width": 6,
+            "y": 32,
+            "x": 6,
+            "type": "metric",
+            "properties": {
+                "metrics": [
+                    [ { "expression": "SEARCH('{AWS/ApiGateway,ApiName,Method,Resource,Stage} MetricName=\"Latency\"', 'Average', 60)", "label": "Average", "id": "e1", "period": 60, "stat": "Average", "region": "ap-northeast-2" } ],
+                    [ { "expression": "SEARCH('{AWS/ApiGateway,ApiName,Method,Resource,Stage} MetricName=\"Latency\"', 'p99', 60)", "label": "p99", "id": "e1", "period": 60, "stat": "p99", "region": "ap-northeast-2" } ]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "ap-northeast-2",
+                "stat": "p99",
+                "period": 60,
+                "legend": {
+                    "position": "hidden"
+                },
+                "yAxis": {
+                    "left": {
+                        "min": 0,
+                        "label": "Latency (ms)",
+                        "showUnits": false
+                    }
+                },
+                "title": "APILatency (1m)"
+            }
+        },
+        {
+            "height": 6,
+            "width": 6,
+            "y": 32,
+            "x": 18,
+            "type": "metric",
+            "properties": {
+                "metrics": [
+                    [ { "expression": "SEARCH('{AWS/ApiGateway,ApiName,Method,Resource,Stage} MetricName=\"4XXError\"', 'Sum', 60)", "id": "e1", "period": 60, "stat": "Sum" } ]
+                ],
+                "view": "timeSeries",
+                "stacked": true,
+                "region": "ap-northeast-2",
+                "title": "API4xxStatus",
+                "stat": "Sum",
+                "period": 60,
+                "liveData": true,
+                "yAxis": {
+                    "left": {
+                        "showUnits": false,
+                        "label": "Status Count",
+                        "min": 0
+                    }
+                },
+                "legend": {
+                    "position": "hidden"
+                }
+            }
+        },
+        {
+            "height": 6,
+            "width": 6,
+            "y": 38,
+            "x": 0,
+            "type": "metric",
+            "properties": {
+                "metrics": [
+                    [ { "expression": "SEARCH('{AWS/ApiGateway,ApiName,Method,Resource,Stage} MetricName=\"5XXError\"', 'Sum', 60)", "id": "e1", "period": 60, "stat": "Sum", "region": "ap-northeast-2" } ]
+                ],
+                "view": "timeSeries",
+                "stacked": true,
+                "region": "ap-northeast-2",
+                "title": "API5xxStatus",
+                "stat": "Sum",
+                "period": 60,
+                "liveData": true,
+                "yAxis": {
+                    "left": {
+                        "showUnits": false,
+                        "label": "Status Count",
+                        "min": 0
+                    }
+                },
+                "legend": {
+                    "position": "hidden"
+                }
+            }
+        },
+        {
+            "height": 6,
+            "width": 6,
+            "y": 32,
+            "x": 12,
+            "type": "metric",
+            "properties": {
+                "metrics": [
+                    [ { "expression": "SEARCH('{AWS/ApiGateway,ApiName,Method,Resource,Stage} MetricName=\"Count\"', 'Sum', 60)", "id": "e1", "period": 60, "stat": "Sum" } ]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "ap-northeast-2",
+                "legend": {
+                    "position": "hidden"
+                },
+                "yAxis": {
+                    "left": {
+                        "showUnits": false,
+                        "min": 0,
+                        "label": "Request Count"
+                    }
+                },
+                "period": 60,
+                "stat": "Sum",
+                "liveData": true,
+                "title": "APIRequest (1m)"
+            }
+        },
+        {
+            "type": "metric",
+            "x": 0,
+            "y": 44,
+            "width": 6,
+            "height": 6,
+            "properties": {
+                "metrics": [
+                    [ { "expression": "SUM(SEARCH('{AWS/VpcLattice,AvailabilityZone,Service} MetricName=\"RequestTime\"', 'Average', 60))", "label": "avg", "id": "e1", "period": 60, "region": "ap-northeast-2" } ],
+                    [ { "expression": "SUM(SEARCH('{AWS/VpcLattice,AvailabilityZone,Service} MetricName=\"RequestTime\"', 'p99', 60))", "label": "p99", "id": "e2", "period": 60, "region": "ap-northeast-2" } ]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "ap-northeast-2",
+                "stat": "Average",
+                "period": 60,
+                "title": "LatticeLatency (1m)",
+                "liveData": true,
+                "yAxis": {
+                    "left": {
+                        "showUnits": false,
+                        "min": 0,
+                        "label": "Latency (ms)"
+                    }
+                }
+            }
+        },
+        {
+            "type": "metric",
+            "x": 6,
+            "y": 38,
+            "width": 6,
+            "height": 6,
+            "properties": {
+                "metrics": [
+                    [ { "expression": "SUM(SEARCH('{AWS/VpcLattice,AvailabilityZone,Service} MetricName=\"TotalRequestCount\"', 'Sum', 60))", "id": "e1", "period": 60, "region": "ap-northeast-2" } ]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "ap-northeast-2",
+                "stat": "Average",
+                "period": 60,
+                "title": "LatticeRequest (1m)",
+                "liveData": true,
+                "yAxis": {
+                    "left": {
+                        "showUnits": false,
+                        "min": 0,
+                        "label": "Request Count"
+                    }
+                }
+            }
+        },
+        {
+            "type": "metric",
+            "x": 12,
+            "y": 38,
+            "width": 6,
+            "height": 6,
+            "properties": {
+                "metrics": [
+                    [ { "expression": "SUM(SEARCH('{AWS/VpcLattice,AvailabilityZone,Service} MetricName=\"HTTPCode_4XX_Count\"', 'Sum', 60))", "id": "e1", "period": 300, "region": "ap-northeast-2" } ]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "ap-northeast-2",
+                "stat": "Average",
+                "liveData": true,
+                "yAxis": {
+                    "left": {
+                        "showUnits": false,
+                        "label": "Status Count",
+                        "min": 0
+                    }
+                },
+                "legend": {
+                    "position": "hidden"
+                },
+                "title": "Lattice4xxStatus",
+                "period": 300
+            }
+        },
+        {
+            "type": "metric",
+            "x": 18,
+            "y": 38,
+            "width": 6,
+            "height": 6,
+            "properties": {
+                "metrics": [
+                    [ { "expression": "SUM(SEARCH('{AWS/VpcLattice,AvailabilityZone,Service} MetricName=\"HTTPCode_5XX_Count\"', 'Sum', 60))", "id": "e1", "period": 300, "region": "ap-northeast-2" } ]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "ap-northeast-2",
+                "stat": "Average",
+                "liveData": true,
+                "yAxis": {
+                    "left": {
+                        "showUnits": false,
+                        "label": "Status Count",
+                        "min": 0
+                    }
+                },
+                "legend": {
+                    "position": "hidden"
+                },
+                "title": "Lattice5xxStatus",
+                "period": 300
+            }
+        },
+        {
+            "type": "metric",
+            "x": 6,
+            "y": 44,
+            "width": 6,
+            "height": 6,
+            "properties": {
+                "metrics": [
+                    [ { "expression": "SUM(SEARCH('{AWS/AutoScaling,AutoScalingGroupName} MetricName=\"GroupInServiceInstances\"', 'Average', 60))", "label": "InService", "id": "e1", "period": 300, "color": "#2ca02c", "region": "ap-northeast-2" } ],
+                    [ { "expression": "SUM(SEARCH('{AWS/AutoScaling,AutoScalingGroupName} MetricName=\"GroupTerminatingCapacity\"', 'Average', 60))", "label": "Terminating", "id": "e2", "period": 60, "color": "#d62728", "region": "ap-northeast-2" } ],
+                    [ { "expression": "SUM(SEARCH('{AWS/AutoScaling,AutoScalingGroupName} MetricName=\"GroupPendingCapacity\"', 'Average', 60))", "label": "Pending", "id": "e3", "period": 60, "color": "#c7c7c7", "region": "ap-northeast-2" } ]
+                ],
+                "view": "timeSeries",
+                "stacked": true,
+                "region": "ap-northeast-2",
+                "stat": "Average",
+                "period": 60,
+                "legend": {
+                    "position": "hidden"
+                },
+                "liveData": true,
+                "yAxis": {
+                    "left": {
+                        "showUnits": false
+                    }
+                },
+                "title": "ASGInstanceStatus"
+            }
+        },
+        {
+            "type": "metric",
+            "x": 12,
+            "y": 44,
+            "width": 6,
+            "height": 6,
+            "properties": {
+                "metrics": [
+                    [ { "expression": "SUM(SEARCH('{AWS/AutoScaling,AutoScalingGroupName} MetricName=\"GroupTotalCapacity\"', 'Maximum', 60))", "label": "Current", "id": "e1", "period": 60, "color": "#2ca02c", "stat": "Maximum", "region": "ap-northeast-2" } ],
+                    [ { "expression": "SUM(SEARCH('{AWS/AutoScaling,AutoScalingGroupName} MetricName=\"GroupDesiredCapacity\"', 'Maximum', 60))", "label": "Desired", "id": "e2", "period": 60, "color": "#d62728", "stat": "Maximum", "region": "ap-northeast-2" } ]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "ap-northeast-2",
+                "stat": "Maximum",
+                "period": 60,
+                "title": "ASGDesiredFollowing",
+                "yAxis": {
+                    "left": {
+                        "min": 0,
+                        "showUnits": false
+                    }
                 }
             }
         }
