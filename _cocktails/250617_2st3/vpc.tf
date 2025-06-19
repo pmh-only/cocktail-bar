@@ -3,8 +3,8 @@ locals {
   az_override = [] # Example: ["a", "b"]
 
   # Enable/disable NAT Gateways and Internet Gateway via locals.
-  enable_natgw = false
-  enable_igw   = false
+  enable_natgw = true
+  enable_igw   = true
 
   # Naming format strings; placeholders: 
   # $1 = project_name, $2 = AZ (lowercase), $3 = AZ (uppercase)
@@ -21,6 +21,68 @@ locals {
   # type=private, Attach NAT Gateway Route
   # type=intra, No internet connections
   subnets = [
+    {
+      type = "public"
+
+      separate_rtb_per_az = true
+
+      create_rds_subnet_group         = false
+      create_elasticache_subnet_group = false
+      create_redshift_subnet_group    = false
+
+      create_vpc_endpoint = false
+      create_client_vpn   = false
+
+      create_eks_controlplane = false
+      create_ecs_node         = false
+      tag_eks_node            = false
+
+      tag_tgw_attachment = false
+      tag_alb_public     = true
+      tag_alb_private    = false
+
+      name     = "$1-subnet-public-$2"
+      rtb_name = "$1-rtb-public-$2"
+      cidr_pattern = {
+        start_index     = 0
+        step_per_subnet = 1
+        override        = []
+      }
+      additional_tags = {
+        "zone-type" = "public"
+      }
+    },
+    {
+      type = "private"
+
+      separate_rtb_per_az = true
+
+      create_rds_subnet_group         = false
+      create_elasticache_subnet_group = false
+      create_redshift_subnet_group    = false
+
+      create_vpc_endpoint = false
+      create_client_vpn   = false
+
+      create_eks_controlplane = false
+      create_ecs_node         = true
+      tag_eks_node            = true
+
+      tag_tgw_attachment = false
+      tag_alb_public     = false
+      tag_alb_private    = true
+
+      name     = "$1-subnet-private-$2"
+      rtb_name = "$1-rtb-private-$2"
+      cidr_pattern = {
+        start_index     = 10
+        step_per_subnet = 1
+        override        = []
+      }
+      additional_tags = {
+        "zone-type" = "private"
+      }
+    },
     {
       type = "intra"
 
@@ -44,7 +106,7 @@ locals {
       name     = "$1-subnet-protected-$2"
       rtb_name = "$1-rtb-protected-$2"
       cidr_pattern = {
-        start_index     = 0
+        start_index     = 20
         step_per_subnet = 1
         override        = []
       }
@@ -56,16 +118,16 @@ locals {
 
   enabled_gateway_endpoints = [
     "s3",
-    "dynamodb"
+    # "dynamodb"
   ]
 
   enabled_interface_endpoints = [
-    # "ssm",
-    # "ssmmessages",
-    # "ec2messages",
+    "ssm",
+    "ssmmessages",
+    "ec2messages",
 
-    # "ecr.api",
-    # "ecr.dkr",
+    "ecr.api",
+    "ecr.dkr",
 
     # "ecs",
     # "ecs-agent",
@@ -79,7 +141,7 @@ locals {
     # "sns",
     # "glue",
     # "rds",
-    "secretsmanager",
+    # "secretsmanager",
     # "vpc-lattice",
     # "elasticloadbalancing",
     # "elasticfilesystem"

@@ -1,13 +1,11 @@
 import mysql from 'mysql'
 import {
   SecretsManagerClient,
-  GetRandomPasswordCommand,
-  PutSecretValueCommand,
   GetSecretValueCommand
 } from "@aws-sdk/client-secrets-manager"
 import { DynamoDBClient, GetItemCommand, PutItemCommand } from "@aws-sdk/client-dynamodb"; // ES Modules import
 
-const ADMIN_SECRET_ID = process.env.ADMIN_SECRET_ID
+const ADMIN_SECRET_ID = "arn:aws:secretsmanager:ap-northeast-2:648911607072:secret:project-secret-qfBq2W"
 
 const dynamodb = new DynamoDBClient();
 const secretsmanager = new SecretsManagerClient();
@@ -74,7 +72,7 @@ export const handler = async (event) => {
     const SecretContent2 = JSON.parse(SecretString2)
 
     const conn = mysql.createConnection({
-      host: "project-db-proxy.proxy-cemltsgrnhrl.ap-northeast-2.rds.amazonaws.com",
+      host: "project-rdsproxy.proxy-cemltsgrnhrl.ap-northeast-2.rds.amazonaws.com",
       port: 3306,
       user: SecretContent2.username,
       password: SecretContent2.password
@@ -117,7 +115,7 @@ export const handler = async (event) => {
   }
 
   if (event.path === "/cost" && event.httpMethod === "POST") {
-    const result = await fetch('http://internal-project-alb-1445643657.ap-northeast-2.elb.amazonaws.com/cost', {
+    const result = await fetch('http://project-webapp-nlb-ccaac2585e653a80.elb.ap-northeast-2.amazonaws.com/cost', {
       headers: {
         'Content-Type': 'application/json'
       },
