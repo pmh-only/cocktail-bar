@@ -43,11 +43,12 @@ module "db" {
   iam_database_authentication_enabled = true
 
   cluster_performance_insights_enabled          = true
-  cluster_performance_insights_retention_period = 7
+  cluster_performance_insights_retention_period = 465
 
   backup_retention_period                = 7
   performance_insights_enabled           = true
-  performance_insights_retention_period  = 7
+  performance_insights_retention_period  = 465
+  database_insights_mode                 = "advanced"
   create_monitoring_role                 = true
   monitoring_interval                    = 30
   cloudwatch_log_group_retention_in_days = 7

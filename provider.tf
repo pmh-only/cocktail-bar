@@ -88,6 +88,8 @@ resource "aws_s3_account_public_access_block" "default" {
   restrict_public_buckets = true
 }
 
+resource "aws_securityhub_account" "default" {}
+
 resource "aws_devopsguru_resource_collection" "default" {
   type = "AWS_SERVICE"
   cloudformation {
@@ -129,9 +131,10 @@ resource "aws_guardduty_detector_feature" "all" {
   }
 }
 
+
 module "guardduty_bucket" {
   source = "terraform-aws-modules/s3-bucket/aws"
-  bucket = "${var.project_name}-guardduty-${var.region}"
+  bucket = "${var.project_name}-trail-guardduty-${var.region}"
 
   force_destroy = true
   versioning = {
@@ -159,6 +162,8 @@ module "guardduty_bucket" {
     }
   ]
 
+
+  attach_policy = true
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -175,11 +180,23 @@ module "guardduty_bucket" {
         Principal = { Service = "guardduty.amazonaws.com" }
         Action    = "s3:GetBucketLocation"
         Resource  = "${module.guardduty_bucket.s3_bucket_arn}"
+      },
+      {
+        Sid       = "stmt3"
+        Effect    = "Allow"
+        Principal = { Service = "cloudtrail.amazonaws.com" }
+        Action    = "s3:GetBucketAcl"
+        Resource  = "${module.guardduty_bucket.s3_bucket_arn}"
+      },
+      {
+        Sid       = "stmt4"
+        Effect    = "Allow"
+        Principal = { Service = "cloudtrail.amazonaws.com" }
+        Action    = "s3:PutObject"
+        Resource  = "${module.guardduty_bucket.s3_bucket_arn}/*"
       }
     ]
   })
-
-  attach_deny_insecure_transport_policy = true
 }
 
 resource "aws_kms_key" "guardduty" {
@@ -193,6 +210,13 @@ resource "aws_kms_key" "guardduty" {
     {
       "Sid": "AllowAdministration",
       "Effect": "Allow",
+      "Principal": { "AWS": "arn:aws:iam::${data.aws_caller_identity.caller.account_id}:root" },
+      "Action": "kms:*",
+      "Resource": "*"
+    },
+    {
+      "Sid": "AllowAdministration2",
+      "Effect": "Allow",
       "Principal": { "AWS": "${data.aws_caller_identity.caller.arn}" },
       "Action": "kms:*",
       "Resource": "*"
@@ -202,8 +226,16 @@ resource "aws_kms_key" "guardduty" {
       "Effect": "Allow",
       "Principal": { "Service": "guardduty.amazonaws.com" },
       "Action": [
-        "kms:GenerateDataKey",
-        "kms:Decrypt"
+        "kms:*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "AllowCloudTrailUse",
+      "Effect": "Allow",
+      "Principal": { "Service": "cloudtrail.amazonaws.com" },
+      "Action": [
+        "kms:*"
       ],
       "Resource": "*"
     }
@@ -216,4 +248,21 @@ resource "aws_guardduty_publishing_destination" "findings_export" {
   detector_id     = aws_guardduty_detector.default.id
   destination_arn = module.guardduty_bucket.s3_bucket_arn
   kms_key_arn     = aws_kms_key.guardduty.arn
+}
+
+resource "aws_cloudtrail" "default" {
+  name                          = "${var.project_name}-cloudtrail"
+  s3_bucket_name                = module.guardduty_bucket.s3_bucket_id
+  is_multi_region_trail         = true
+  enable_log_file_validation    = true
+  include_global_service_events = true
+
+  event_selector {
+    read_write_type           = "All"
+    include_management_events = true
+    data_resource {
+      type   = "AWS::S3::Object"
+      values = ["arn:aws:s3:::${module.guardduty_bucket.s3_bucket_id}/"]
+    }
+  }
 }
