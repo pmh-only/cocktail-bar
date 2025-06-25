@@ -1,0 +1,76 @@
+#!/bin/bash
+
+cd /root
+
+aws s3 cp s3://project-application-artifacts/main.py /root/main.py
+aws s3 cp s3://project-application-artifacts/package.tar.gz /root/package.tar.gz
+
+tar xvf package.tar.gz -C /root
+
+yum install -y python3-boto3 python3-flask
+
+python3 -m ensurepip
+python3 -m pip install --no-index --find-links /root mysql-connector-python
+
+curl https://raw.githubusercontent.com/fluent/fluent-bit/master/install.sh | sh
+cat <<EOF > /etc/fleunt-bit/fluent-bit.conf
+[SERVICE]
+    Flush           1
+    Daemon          off
+    Log_Level       debug
+    Parsers_File    /parsers.conf
+
+[INPUT]
+    Name tail
+    Tag  app.log
+    Path /app/log/app.log
+    Parser applog
+
+[FILTER]
+    Name grep
+    Match   *
+    Exclude path ^/healthcheck$
+
+[FILTER]
+    Name aws
+    Match *
+    imds_version v2
+    ec2_instance_id true
+
+[OUTPUT]
+    Name cloudwatch_logs
+    Match   *
+    region ap-northeast-2
+    log_group_name /project/webapp/
+    log_stream_prefix $ec2_instance_id
+    auto_create_group On                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+EOF
+
+cat <<EOF > /etc/fleunt-bit/parser.conf
+[PARSER]
+    Name applog
+    Format regex
+    Regex ^(?<clientip>\S*) - \[(?<time>[^\]]*)] "(?<method>\S*) (?<path>\S*) (?<protocol>\S*)" (?<responsecode>\S*) "(?<useragent>\S*)"$
+    Time_Key time
+    Time_Format %d/%b/%Y:%H:%M:%S %z
+EOF
+
+systemctl enable --now fleunt-bit
+
+cat > /etc/systemd/system/project-app.service <<'EOF'
+[Unit]
+Description=Project App
+
+[Service]
+WorkingDirectory=/root
+Environment=AWS_REGION=ap-northeast-2
+Environment=SECRET_NAME=project-secret
+ExecStart=/usr/bin/python3 /root/main.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl daemon-reload
+systemctl enable --now project-app
