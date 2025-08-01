@@ -36,7 +36,7 @@ Full scope allowed: false
         {
             "Effect": "Allow",
             "Principal": {
-                "Federated": "arn:aws:iam::648911607072:saml-provider/keycloak"
+                "Federated": "arn:aws:iam::<ACCOUNT_ID>:saml-provider/keycloak"
             },
             "Action": "sts:AssumeRoleWithSAML",
             "Condition": {

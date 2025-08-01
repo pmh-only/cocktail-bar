@@ -7,7 +7,7 @@ CREATE TRIGGER on_order_insert
   FOR EACH ROW
 BEGIN
   CALL mysql.lambda_async(
-    'arn:aws:lambda:ap-northeast-2:648911607072:function:day2-order-transfer',
+    'arn:aws:lambda:ap-northeast-2:<ACCOUNT_ID>:function:day2-order-transfer',
     JSON_OBJECT(
       'id',               NEW.id,
       'customerID',       NEW.customerID,
@@ -33,7 +33,7 @@ CREATE TRIGGER on_order_insert
   FOR EACH ROW
 BEGIN
   SELECT lambda_async(
-    'arn:aws:lambda:ap-northeast-2:648911607072:function:day2-order-transfer',
+    'arn:aws:lambda:ap-northeast-2:<ACCOUNT_ID>:function:day2-order-transfer',
     JSON_OBJECT(
       'id',               NEW.id,
       'customerID',       NEW.customerID,

@@ -81,7 +81,7 @@ module "ecs_service" {
 
       # secrets = [{
       #   name      = "MYSQL_DBINFO"
-      #   valueFrom = "arn:aws:secretsmanager:ap-northeast-2:648911607072:secret:project-rds-r5wn4n"
+      #   valueFrom = "arn:aws:secretsmanager:ap-northeast-2:<ACCOUNT_ID>:secret:project-rds-r5wn4n"
       # }]
 
       port_mappings = [

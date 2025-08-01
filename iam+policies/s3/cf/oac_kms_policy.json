@@ -14,7 +14,7 @@
   "Resource": "*",
   "Condition":{
     "StringEquals":{
-    "aws:SourceArn": "arn:aws:cloudfront::648911607072:distribution/EKDO81UTF8M52"
+    "aws:SourceArn": "arn:aws:cloudfront::<ACCOUNT_ID>:distribution/EKDO81UTF8M52"
     }
   }
 }
